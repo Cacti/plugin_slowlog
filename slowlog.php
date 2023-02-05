@@ -878,22 +878,16 @@ function slowlog_view_charts($method) {
 			}],
 			yaxis: {
 				show: true,
-				floating: false,
 				minWidth: 40,
 				maxWidth: 160,
 				title: {
 					text: yaxislabel,
                     rotate: -90,
-                    offsetX: 0,
+                    offsetX: 5,
                     offsetY: 0,
 				},
 				labels: {
 					formatter: convertLabel
-				},
-				axisBorder: {
-					show: true,
-					offsetX: 00,
-					offsetY: 00
 				},
 				axisTicks: {
 					witdh: 20
