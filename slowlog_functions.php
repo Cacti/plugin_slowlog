@@ -136,7 +136,11 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 					$query  = '';
 					$oquery = '';
 					$p1     = explode(' ', $l);
-					$date   = '20' . substr($p1[2], 0, 2) . '-' . substr($p1[2], 2, 2) . '-' . substr($p1[2], 4, 2) . ' ' . $p1[3];
+					$date   = '20' .
+						substr($p1[2], 0, 2) . '-' .
+						substr($p1[2], 2, 2) . '-' .
+						substr($p1[2], 4, 2) .
+						(isset($p1[3]) ? ' ' . $p1[3]:'');
 
 					if ($start_time == 0) {
 						$start_time = $date;
