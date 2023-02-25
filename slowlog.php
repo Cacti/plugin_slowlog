@@ -26,6 +26,7 @@ chdir('../../');
 include('./include/auth.php');
 include_once('./lib/utility.php');
 include_once('./lib/poller.php');
+include_once('./lib/timespan_settings.php');
 include_once('./plugins/slowlog/slowlog_functions.php');
 
 ini_set('max_execution_time', '0');
@@ -457,6 +458,13 @@ function slowlog_get_chart_object($chart_type, $measure) {
 }
 
 function slowlog_request_validation() {
+	$logid = get_filter_request_var('logid');
+
+	$logdata = db_fetch_row_prepared('SELECT *
+		FROM plugin_slowlog
+		WHERE logid = ?',
+		array($logid));
+
 	/* ================= input validation and session storage ================= */
 	$filters = array(
 		'rows' => array(
@@ -508,6 +516,16 @@ function slowlog_request_validation() {
 			'pageset' => true,
 			'default' => ''
 		),
+		'date1' => array(
+			'filter' => FILTER_CALLBACK,
+			'default' => cacti_sizeof($logdata) ? $logdata['start_time']:'',
+			'options' => array('options' => 'sanitize_search_string')
+		),
+		'date2' => array(
+			'filter' => FILTER_CALLBACK,
+			'default' => cacti_sizeof($logdata) ? $logdata['end_time']:'',
+			'options' => array('options' => 'sanitize_search_string')
+		),
 		'sort_column' => array(
 			'filter' => FILTER_CALLBACK,
 			'default' => 'table_name',
@@ -522,6 +540,9 @@ function slowlog_request_validation() {
 
 	validate_store_request_vars($filters, 'sess_sl_det');
 	/* ================= input validation ================= */
+
+	$_SESSION['sess_start_time'] = $_SESSION['sess_sl_det_date1'];
+	$_SESSION['sess_end_time']   = $_SESSION['sess_sl_det_date2'];
 }
 
 function slowlog_view_details() {
@@ -556,12 +577,6 @@ function slowlog_view_details() {
 		$sql_params[] = get_request_var('logid');
 	}
 
-	if (get_request_var('mmethod') != '-1') {
-		$sql_where .= ($sql_where != '' ? ' AND':'WHERE') . ' slm.methodid = ?';
-
-		$sql_params[] = get_request_var('mmethod');
-	}
-
 	if (get_request_var('user') != '-1') {
 		$sql_where .= ($sql_where != '' ? ' AND':'WHERE') . ' sld.user = ?';
 
@@ -574,39 +589,73 @@ function slowlog_view_details() {
 		$sql_params[] = get_request_var('host');
 	}
 
-	if (get_request_var('table') != '-1' && get_request_var('table') != '-2') {
+	$sql_where   .= ($sql_where != '' ? ' AND':'WHERE') . ' date BETWEEN ? AND ?';
+
+	$sql_params[] = get_request_var('date1');
+	$sql_params[] = get_request_var('date2');
+
+	// Aggregation and down-select filters
+	$agg_by_table  = false;
+	$agg_by_method = false;
+	$sql_join      = '';
+	$method        = 'slm.method';
+	$table         = 'sldt.table_name';
+
+	if (get_request_var('table') == '-3') { // Aggregate by table
+		$agg_by_table = true;
+	} elseif (get_request_var('table') == '-2') { // Others
+		$sql_where .= ($sql_where != '' ? ' AND':'WHERE') . ' sldt.table_name IS NULL';
+	} elseif (get_request_var('table') != '-1') { // Not All
 		$sql_where .= ($sql_where != '' ? ' AND':'WHERE') . ' sldt.table_name = ?';
 
 		$sql_params[] = get_request_var('table');
-	} elseif (get_request_var('table') == '-2') {
-		$sql_where .= ($sql_where != '' ? ' AND':'WHERE') . ' sldt.table_name IS NULL';
 	}
 
-	$results = db_fetch_assoc_prepared("SELECT DISTINCT sld.*, slm.method, sldt.table_name
+	if (get_request_var('mmethod') == '-2') { // Aggregate by method
+		$agg_by_method = true;
+	} elseif (get_request_var('mmethod') != '-1') {
+		$sql_where .= ($sql_where != '' ? ' AND':'WHERE') . ' slm.methodid = ?';
+
+		$sql_params[] = get_request_var('mmethod');
+	}
+
+	if (!$agg_by_table) {
+		$sql_join = ' LEFT JOIN plugin_slowlog_details_tables AS sldt
+			ON sld.logid = sldt.logid
+			AND sld.logentry = sldt.logentry';
+	} else {
+		$table = '"N/A" AS table_name';
+	}
+
+	if (!$agg_by_method) {
+		$sql_join .= ' LEFT JOIN plugin_slowlog_details_methods AS sldm
+			ON sld.logid = sldm.logid
+			AND sld.logentry = sldm.logentry
+			LEFT JOIN plugin_slowlog_methods AS slm
+			ON sldm.methodid = slm.methodid';
+	} else {
+		$method = '"N/A" AS method';
+	}
+
+	$results = db_fetch_assoc_prepared("SELECT DISTINCT sld.*, $method, $table
 		FROM plugin_slowlog_details AS sld
-		LEFT JOIN plugin_slowlog_details_tables AS sldt
-		ON sld.logid = sldt.logid
-		AND sld.logentry = sldt.logentry
-		LEFT JOIN plugin_slowlog_details_methods AS sldm
-		ON sld.logid = sldm.logid
-		AND sld.logentry = sldm.logentry
-		LEFT JOIN plugin_slowlog_methods AS slm
-		ON sldm.methodid = slm.methodid
+		$sql_join
 		$sql_where
 		$sql_orderby
 		$sql_limit",
 		$sql_params);
 
+	cacti_log(vsprintf(str_replace('?', "'%s'", "SELECT DISTINCT sld.*, $method, $table
+        FROM plugin_slowlog_details AS sld
+        $sql_join
+        $sql_where
+        $sql_orderby
+        $sql_limit"),
+        $sql_params));
+
 	$total_rows = db_fetch_cell_prepared("SELECT COUNT(*)
 		FROM plugin_slowlog_details AS sld
-		LEFT JOIN plugin_slowlog_details_tables AS sldt
-		ON sld.logid = sldt.logid
-		AND sld.logentry = sldt.logentry
-		LEFT JOIN plugin_slowlog_details_methods AS sldm
-		ON sld.logid = sldm.logid
-		AND sld.logentry = sldm.logentry
-		LEFT JOIN plugin_slowlog_methods AS slm
-		ON sldm.methodid = slm.methodid
+		$sql_join
 		$sql_where",
 		$sql_params);
 
@@ -647,7 +696,7 @@ function slowlog_view_details() {
 			'align' => 'right'
 		),
 		'rows_sent' => array(
-			'display' => 'Send',
+			'display' => 'Sent',
 			'sort' => 'DESC',
 			'align' => 'right'
 		),
@@ -1019,7 +1068,7 @@ function slowlog_view() {
 	$sql_orderby = get_order_string();
 
 	if (get_request_var('filter') != '') {
-		$sql_where = ($sql_where != '' ? ' AND ': 'WHERE ') . "(description LIKE '%%" . $_REQUEST["filter"] . "%%')";
+		$sql_where = ($sql_where != '' ? ' AND ': 'WHERE ') . "(description LIKE '%%" . get_request_var('filter') . "%%')";
 		$sql_params[] = '%' . get_request_var('filter') . '%';
 	}
 
@@ -1243,7 +1292,7 @@ function filter() {
 }
 
 function slowlog_details_filter() {
-	global $config, $item_rows;
+	global $config, $item_rows, $graph_timespans, $graph_timeshifts;
 
 	?>
 	<tr class='even'>
@@ -1256,14 +1305,14 @@ function slowlog_details_filter() {
 						</td>
 						<td>
 							<select id='logid' onChange='applyFilter()'>
-								<option value='-1'<?php if ($_REQUEST['logid'] == '-1') {?> selected<?php }?>>Any</option>
+								<option value='-1'<?php if (get_request_var('logid') == '-1') {?> selected<?php }?>>Any</option>
 								<?php
-								$logids = db_fetch_assoc('SELECT logid, CONCAT(description, " [ ", import_date, " ]") AS name
+								$logids = db_fetch_assoc('SELECT logid, CONCAT(description) AS name
 									FROM plugin_slowlog ORDER BY name');
 
 								if (cacti_sizeof($logids)) {
 									foreach ($logids as $l) {
-										print '<option value="' . $l['logid'] . '"' . ($_REQUEST['logid'] == $l['logid'] ? ' selected':'') . '>' . html_escape($l['name']) . '</option>';
+										print '<option value="' . $l['logid'] . '"' . (get_request_var('logid') == $l['logid'] ? ' selected':'') . '>' . html_escape($l['name']) . '</option>';
 									}
 								}
 								?>
@@ -1274,13 +1323,14 @@ function slowlog_details_filter() {
 						</td>
 						<td>
 							<select id='mmethod' onChange='applyFilter()'>
-								<option value='-1'<?php if ($_REQUEST['mmethod'] == '-1') {?> selected<?php }?>>Any</option>
+								<option value='-1'<?php if (get_request_var('mmethod') == '-1') {?> selected<?php }?>>Any</option>
+								<option value='-2'<?php if (get_request_var('mmethod') == '-2') {?> selected<?php }?>>N/A</option>
 								<?php
 								$methods = db_fetch_assoc('SELECT * FROM plugin_slowlog_methods ORDER BY method');
 
 								if (cacti_sizeof($methods)) {
 									foreach ($methods as $m) {
-										print '<option value="' . $m['methodid'] . '"' . ($_REQUEST['mmethod'] == $m['methodid'] ? ' selected':'') . '>' . html_escape($m['method']) . '</option>';
+										print '<option value="' . $m['methodid'] . '"' . (get_request_var('mmethod') == $m['methodid'] ? ' selected':'') . '>' . html_escape($m['method']) . '</option>';
 									}
 								}
 								?>
@@ -1291,8 +1341,9 @@ function slowlog_details_filter() {
 						</td>
 						<td>
 							<select id='table' onChange='applyFilter()'>
-								<option value='-1'<?php if ($_REQUEST['table'] == '-1') {?> selected<?php }?>>Any</option>
-								<option value='-2'<?php if ($_REQUEST['table'] == '-2') {?> selected<?php }?>>Others</option>
+								<option value='-1'<?php if (get_request_var('table') == '-1') {?> selected<?php }?>>Any</option>
+								<option value='-2'<?php if (get_request_var('table') == '-2') {?> selected<?php }?>>Others</option>
+								<option value='-3'<?php if (get_request_var('table') == '-3') {?> selected<?php }?>>N/A</option>
 								<?php
 								if (get_request_var('logid') > 0) {
 									$tables = db_fetch_assoc_prepared('SELECT DISTINCT table_name
@@ -1308,7 +1359,7 @@ function slowlog_details_filter() {
 
 								if (cacti_sizeof($tables)) {
 									foreach ($tables as $t) {
-										print '<option value="' . $t['table_name'] . '"' . ($_REQUEST['table'] == $t['table_name'] ? ' selected':'') . '>' . html_escape($t['table_name']) . '</option>';
+										print '<option value="' . $t['table_name'] . '"' . (get_request_var('table') == $t['table_name'] ? ' selected':'') . '>' . html_escape($t['table_name']) . '</option>';
 									}
 								}
 								?>
@@ -1377,7 +1428,7 @@ function slowlog_details_filter() {
 						</td>
 						<td>
 							<select id='host' onChange='applyFilter()'>
-								<option value='-1'<?php if ($_REQUEST['host'] == '-1') {?> selected<?php }?>>Any</option>
+								<option value='-1'<?php if (get_request_var('host') == '-1') {?> selected<?php }?>>Any</option>
 								<?php
 								if (get_request_var('logid') > 0) {
 									$hosts = db_fetch_assoc_prepared('SELECT DISTINCT host
@@ -1401,10 +1452,70 @@ function slowlog_details_filter() {
 						</td>
 					</tr>
 				</table>
+				<table class='filterTable'>
+					<tr id='timespan'>
+						<td>
+							<?php print __('From');?>
+						</td>
+						<td>
+							<span>
+								<input type='text' class='ui-state-default ui-corner-all' id='date1' size='18' value='<?php print get_request_var('date1');?>'>
+								<i id='startDate' class='calendar fa fa-calendar-alt' title='<?php print __esc('Start Date Selector');?>'></i>
+							</span>
+						</td>
+						<td>
+							<?php print __('To');?>
+						</td>
+						<td>
+							<span>
+								<input type='text' class='ui-state-default ui-corner-all' id='date2' size='18' value='<?php print get_request_var('date2');?>'>
+								<i id='endDate' class='calendar fa fa-calendar-alt' title='<?php print __esc('End Date Selector');?>'></i>
+							</span>
+						</td>
+						<td>
+							<span>
+								<i class='shiftArrow fa fa-backward' onClick='timeshiftGraphFilterLeft()' title='<?php print __esc('Shift Time Backward');?>'></i>
+								<select id='predefined_timeshift' title='<?php print __esc('Define Shifting Interval');?>'>
+									<?php
+									$start_val = 1;
+									$end_val = cacti_sizeof($graph_timeshifts)+1;
+									if (cacti_sizeof($graph_timeshifts)) {
+										for ($shift_value=$start_val; $shift_value < $end_val; $shift_value++) {
+											print "<option value='$shift_value'"; if ($_SESSION['sess_current_timeshift'] == $shift_value) { print ' selected'; } print '>' . html_escape($graph_timeshifts[$shift_value]) . '</option>';
+										}
+									}
+									?>
+								</select>
+								<i class='shiftArrow fa fa-forward' onClick='timeshiftGraphFilterRight()' title='<?php print __esc('Shift Time Forward');?>'></i>
+							</span>
+						</td>
+						<td style='display:none;'>
+							<select id='predefined_timespan' onChange='applyGraphTimespan()'>
+								<?php
+								$graph_timespans = array_merge(array(GT_CUSTOM => __('Custom')), $graph_timespans);
+
+								$start_val = 0;
+								$end_val   = cacti_sizeof($graph_timespans);
+
+								if (cacti_sizeof($graph_timespans)) {
+									foreach($graph_timespans as $value => $text) {
+										print "<option value='$value'"; if ($_SESSION['sess_current_timespan'] == $value) { print ' selected'; } print '>' . html_escape($text) . '</option>';
+									}
+								}
+								?>
+							</select>
+						</td>
+				</table>
 			</form>
 			<script type='text/javascript'>
+			var date1Open = false;
+			var date2Open = false;
+			var pageTab   = '<?php print get_request_var('tab');?>';
+			var logid     = <?php print get_request_var('logid');?>;
+
 			function applyFilter() {
-				var strURL = '?action=details&logid=<?php print $_REQUEST['logid'];?>';
+				var strURL = 'slowlog.php?action=details&logid=' + logid;
+
 				strURL += '&header=false';
 				strURL += '&filter=' + $('#filter').val();
 				strURL += '&rows=' + $('#rows').val();
@@ -1413,12 +1524,36 @@ function slowlog_details_filter() {
 				strURL += '&table=' + $('#table').val();
 				strURL += '&user=' + $('#myuser').val();
 				strURL += '&host=' + $('#host').val();
+				strURL += '&date1=' + $('#date1').val();
+				strURL += '&date2=' + $('#date2').val();
 
 				loadPageNoHeader(strURL);
 			}
 
 			function clearFilter() {
-				var strURL = 'slowlog.php?header=false&reset=true&action=details&logid=<?php print get_request_var('logid');?>';
+				var strURL = 'slowlog.php?header=false&reset=true&action=details&logid=' + logid;
+
+				loadPageNoHeader(strURL);
+			}
+
+			function timeshiftFilterLeft() {
+				var strURL = 'slowlog.php?tab='+pageTab+'&header=false&logid=' + logid;
+
+				strURL += '&shift_left=true';
+				strURL += '&date1='+$('#date1').val();
+				strURL += '&date2='+$('#date2').val();
+				strURL += '&predefined_timeshift='+$('#predefined_timeshift').val();
+
+				loadPageNoHeader(strURL);
+			}
+
+			function timeshiftFilterRight() {
+				var strURL  = 'slowlog.php?tab='+pageTab+'&header=false&logid=' + logid;
+
+				strURL += '&shift_right=true';
+				strURL += '&date1='+$('#date1').val();
+				strURL += '&date2='+$('#date2').val();
+				strURL += '&predefined_timeshift='+$('#predefined_timeshift').val();
 
 				loadPageNoHeader(strURL);
 			}
@@ -1427,6 +1562,46 @@ function slowlog_details_filter() {
 				$('#details').submit(function(event) {
 					event.preventDefault();
 					applyFilter();
+				});
+
+				$('#startDate').click(function() {
+					if (date1Open) {
+						date1Open = false;
+						$('#date1').datetimepicker('hide');
+					} else {
+						date1Open = true;
+						$('#date1').datetimepicker('show');
+					}
+				});
+
+				$('#endDate').click(function() {
+					if (date2Open) {
+						date2Open = false;
+						$('#date2').datetimepicker('hide');
+					} else {
+						date2Open = true;
+						$('#date2').datetimepicker('show');
+					}
+				});
+
+				$('#date1').datetimepicker({
+					minuteGrid: 10,
+					stepMinute: 1,
+					showAnim: 'slideDown',
+					numberOfMonths: 1,
+					timeFormat: 'HH:mm',
+					dateFormat: 'yy-mm-dd',
+					showButtonPanel: false
+				});
+
+				$('#date2').datetimepicker({
+					minuteGrid: 10,
+					stepMinute: 1,
+					showAnim: 'slideDown',
+					numberOfMonths: 1,
+					timeFormat: 'HH:mm',
+					dateFormat: 'yy-mm-dd',
+					showButtonPanel: false
 				});
 			});
 			</script>
