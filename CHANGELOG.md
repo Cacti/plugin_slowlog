@@ -2,6 +2,7 @@
 
 --- develop ---
 
+* security: Fix potential security exposure with unserialize() function
 * issue#2: Warnings issue when attempting to import a Slowlog from the CLI
 * feature: Allow summarizing the Details page by method and by table
 * feature: Add Time-span selector to details page

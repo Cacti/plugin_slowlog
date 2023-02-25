@@ -139,7 +139,7 @@ function form_actions() {
 
 	/* if we are to save this form, instead of display it */
 	if (isset($_POST['selected_items'])) {
-		$selected_items = unserialize(stripslashes($_POST['selected_items']));
+		$selected_items = sanitize_unserialize_selected_items(get_request_var('selected_items'));
 
 		if ($_POST['drp_action'] == '1') { /* delete */
 			for ($i=0; $i<count($selected_items); $i++) {
