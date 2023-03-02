@@ -48,6 +48,8 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 		$table_names = get_cacti_tables();
 	}
 
+	$logfile = trim($logfile);
+
 	if (file_exists($logfile)) {
 		// suck the log through a straw
 		$entries    = file($logfile);
@@ -299,7 +301,7 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 			import_post_process($logid, $table_names);
 		}
 	} else {
-		print "FATAL: Can not find file '$file'\n";
+		print "FATAL: Can not find file '$logfile'\n";
 		exit -1;
 	}
 }
