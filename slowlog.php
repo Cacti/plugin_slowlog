@@ -939,7 +939,7 @@ function slowlog_view_charts($method) {
 					formatter: convertLabel
 				},
 				axisTicks: {
-					witdh: 20
+					width: 20
 				}
 			},
 			grid: {
