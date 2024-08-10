@@ -33,7 +33,7 @@ ini_set('max_execution_time', '0');
 ini_set('memory_limit', '-1');
 
 $actions = array(
-	1 => 'Delete'
+	1 => __('Delete', 'slowlog')
 );
 
 set_default_action('select');
@@ -170,7 +170,7 @@ function form_actions() {
 				WHERE logid = ?",
 				array($matches[1]));
 
-			$slowlog_list   .= '<li>' . $slowlog_info . '</li>';
+			$slowlog_list   .= '<li>' . html_escape($slowlog_info) . '</li>';
 			$slowlog_array[] = $matches[1];
 		}
 	}
@@ -185,17 +185,16 @@ function form_actions() {
 		print "<tr class='even'>
 			<td class='textArea'>
 				<p>Are you sure you want to delete the following MySQL Slow Log entries?</p>
-				<ul>$slowlog_list</ul>";
-				print "</td></tr>
+				<ul class='itemlist'>$slowlog_list</ul>
 			</td>
 		</tr>";
 	}
 
 	if (!isset($slowlog_array)) {
-		print "<tr><td><span class='textError'>You must select at least one Slowlog record.</span></td></tr>\n";
+		print "<tr><td><span class='textError'>" . __esc('You must select at least one Slowlog record.', 'slowlog') . "</span></td></tr>";
 		$save_html = '';
 	} else {
-		$save_html = "<input type='submit' name='save' value='Yes'>";
+		$save_html = "<input type='submit' name='save' value='" . __esc('Yes', 'slowlog') . "'>";
 	}
 
 	print "	<tr>
@@ -203,8 +202,8 @@ function form_actions() {
 			<input type='hidden' name='action' value='actions'>
 			<input type='hidden' name='selected_items' value='" . (isset($slowlog_array) ? serialize($slowlog_array) : '') . "'>
 			<input type='hidden' name='drp_action' value='" . $_POST['drp_action'] . "'>" . (strlen($save_html) ? "
-			<input type='submit' name='cancel' value='No'>
-			$save_html" : "<input type='submit' name='cancel' value='Return'>") . "
+			<input type='submit' name='cancel' value='" . __esc('No', 'slowlog') . "'>
+			$save_html" : "<input type='submit' name='cancel' value='" . __esc('Return', 'slowlog') . "'>") . "
 		</td>
 	</tr>";
 
@@ -218,8 +217,8 @@ function form_actions() {
 function api_slowlog_save($logid, $description, $length) {
 	return true;
 
-	$save['logid']            = $logid;
-	$save['description']      = form_input_validate($description, 'description', '', false, 3);
+	$save['logid']       = $logid;
+	$save['description'] = form_input_validate($description, 'description', '', false, 3);
 
 	$logid = 0;
 	if (!is_error_message()) {
@@ -312,14 +311,14 @@ function slowlog_import() {
 		'novalue1' => array(
 			'method' => 'other',
 			'friendly_name' => __('Max Post Size', 'slowlog'),
-			'description' => __(' The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache.', 'slowlog'),
+			'description' => __('The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache.', 'slowlog'),
 			'value'  => $post_max_size
 		)
 	);
 
 	form_start('slowlog.php?action=import', 'import', true);
 
-	html_start_box('Import MySQL Slowlog', '100%', '', '3', 'center', '');
+	html_start_box(__('Import MariaDB/MySQL Slowlog', 'slowlog'), '100%', '', '3', 'center', '');
 
 	draw_edit_form(
 		array(
@@ -645,13 +644,13 @@ function slowlog_view_details() {
 		$sql_limit",
 		$sql_params);
 
-	cacti_log(vsprintf(str_replace('?', "'%s'", "SELECT DISTINCT sld.*, $method, $table
-        FROM plugin_slowlog_details AS sld
-        $sql_join
-        $sql_where
-        $sql_orderby
-        $sql_limit"),
-        $sql_params));
+	//cacti_log(vsprintf(str_replace('?', "'%s'", "SELECT DISTINCT sld.*, $method, $table
+	//	FROM plugin_slowlog_details AS sld
+	//	$sql_join
+	//	$sql_where
+	//	$sql_orderby
+	//	$sql_limit"),
+	//	$sql_params));
 
 	$total_rows = db_fetch_cell_prepared("SELECT COUNT(*)
 		FROM plugin_slowlog_details AS sld
@@ -663,55 +662,55 @@ function slowlog_view_details() {
 
 	$display_text = array(
 		'nosort0' => array(
-			'display' => 'Actions'
+			'display' => __('Actions', 'slowlog')
 		),
 		'table_name' => array(
-			'display' => 'Table Name',
+			'display' => __('Table Name', 'slowlog'),
 			'sort' => 'ASC'
 		),
 		'method' => array(
-			'display' => 'Method',
+			'display' => __('Method', 'slowlog'),
 			'sort' => 'ASC'
 		),
 		'date' => array(
-			'display' => 'Date',
+			'display' => __('Date', 'slowlog'),
 			'sort' => 'ASC'
 		),
 		'user' => array(
-			'display' => 'User',
+			'display' => __('User', 'slowlog'),
 			'sort' => 'ASC'
 		),
 		'host' => array(
-			'display' => 'Host',
+			'display' => __('Host', 'slowlog'),
 			'sort' => 'ASC'
 		),
 		'query_time' => array(
-			'display' => 'Query Time',
+			'display' => __('Query Time', 'slowlog'),
 			'sort' => 'DESC',
 			'align' => 'right'
 		),
 		'lock_time' => array(
-			'display' => 'Lock Time',
+			'display' => __('Lock Time', 'slowlog'),
 			'sort' => 'DESC',
 			'align' => 'right'
 		),
 		'rows_sent' => array(
-			'display' => 'Sent',
+			'display' => __('Sent', 'slowlog'),
 			'sort' => 'DESC',
 			'align' => 'right'
 		),
 		'rows_examined' => array(
-			'display' => 'Examined',
+			'display' => __('Examined', 'slowlog'),
 			'sort' => 'DESC',
 			'align' => 'right'
 		),
 		'rows_affected' => array(
-			'display' => 'Affected',
+			'display' => __('Affected', 'slowlog'),
 			'sort' => 'DESC',
 			'align' => 'right'
 		),
 		'bytes_sent' => array(
-			'display' => 'Bytes Sent',
+			'display' => __('Bytes Sent', 'slowlog'),
 			'sort' => 'DESC',
 			'align' => 'right'
 		)
@@ -719,9 +718,9 @@ function slowlog_view_details() {
 
 	$jsprefix = 'slowlog.php?action=details&logid=' . get_request_var('logid');
 
-	$nav = html_nav_bar('slowlog.php?action=details&logid=' . get_request_var('logid'), MAX_DISPLAY_PAGES, get_request_var_request('page'), $rows, $total_rows, cacti_sizeof($display_text), 'Log Entries', 'page', 'main');
+	$nav = html_nav_bar('slowlog.php?action=details&logid=' . get_request_var('logid'), MAX_DISPLAY_PAGES, get_request_var_request('page'), $rows, $total_rows, cacti_sizeof($display_text), __('Log Entries', 'slowlog'), 'page', 'main');
 
-	html_start_box('MySQL SlowLog Details', '100%', '', '3', 'center', '');
+	html_start_box(__('MariaDB/MySQL SlowLog Details', 'slowlog'), '100%', '', '3', 'center', '');
 	slowlog_details_filter();
 	html_end_box();
 
@@ -739,11 +738,11 @@ function slowlog_view_details() {
 			form_alternate_row();
 
 			?>
-			<td style='width:60px'>
-				<a class='pic' href='slowlog.php?action=query&logid=<?php print $r['logid'];?>&logentry=<?php print $r['logentry'];?>'><i class='fas fa-search-plus pic' title='View Details'></i></a>
+			<td style='width:1%'>
+				<a class='pic' href='slowlog.php?action=query&logid=<?php print $r['logid'];?>&logentry=<?php print $r['logentry'];?>'><i class='fas fa-search-plus pic' title='<?php print __esc('View Details', 'slowlog');?>'></i></a>
 			</td>
 			<td>
-				<a class='pic' class='linkEditMain' href='slowlog.php?action=details&table=<?php print $table;?>&logid=<?php print $r['logid'];?>'><?php print $table;?></a>
+				<a class='pic' class='linkEditMain' href='<?php print html_escape('slowlog.php?action=details&table=' . $table . '&logid=' . $r['logid']);?>'><?php print html_escape($table);?></a>
 			</td>
 			<td><?php print $r['method'];?></td>
 			<td><?php print $r['date'];?></td>
@@ -755,6 +754,7 @@ function slowlog_view_details() {
 			<td class='right'><?php print number_format_i18n($r['rows_examined']);?></td>
 			<td class='right'><?php print number_format_i18n($r['rows_affected']);?></td>
 			<td class='right'><?php print number_format_i18n($r['bytes_sent']);?></td>
+
 			<?php
 			form_end_row();
 		}
@@ -802,7 +802,7 @@ function slowlog_view_charts($method) {
 
 	slowlog_tabs();
 
-	html_start_box('MySQL SlowLog Results - By ' . ucfirst($method), '100%', '', '3', 'center', '');
+	html_start_box(__('MariaDB/MySQL SlowLog Results - By %s', ucfirst($method), 'slowlog'), '100%', '', '3', 'center', '');
 
 	print '<div class="flexContainer" style="width:100%;justify-content:space-evenly">';
 
@@ -814,7 +814,6 @@ function slowlog_view_charts($method) {
 	print '<div style="flex-basis:40%" id="my_bytes"></div>';
 
 	print '</div>';
-
 
 	$width  = 700;
 	$height = 400;
@@ -982,36 +981,36 @@ function slowlog_view_query() {
 
 	slowlog_tabs();
 
-	html_start_box('MySQL SlowLog Query Details', '100%', '', '3', 'center', '');
+	html_start_box(__('MariaDB/MySQL SlowLog Query Details', 'slowlog'), '100%', '', '3', 'center', '');
 
 	form_alternate_row();
 
-	print '<td>Date</td><td>'  . html_escape($entry['date'])       . '</td>';
-	print '<td>User</td><td>'  . html_escape($entry['user'])       . '</td>';
-	print '<td>Host</td><td>'  . html_escape($entry['host'])       . '</td>';
-	print '<td>IP</td><td>'    . html_escape($entry['ip_address']) . '</td>';
+	print '<td>' . __('Date', 'slowlog') . '</td><td>'  . html_escape($entry['date'])       . '</td>';
+	print '<td>' . __('User', 'slowlog') . '</td><td>'  . html_escape($entry['user'])       . '</td>';
+	print '<td>' . __('Host', 'slowlog') . '</td><td>'  . html_escape($entry['host'])       . '</td>';
+	print '<td>' . __('IP', 'slowlog') . '</td><td>'    . html_escape($entry['ip_address']) . '</td>';
 
 	form_end_row();
 
 	form_alternate_row();
 
-	print "<td>Query Time</td><td>"    . number_format_i18n($entry['query_time'])    . '</td>';
-	print "<td>Lock Time</td><td>"     . number_format_i18n($entry['lock_time'])     . '</td>';
-	print "<td>Rows Sent</td><td>"     . number_format_i18n($entry['rows_sent'])     . '</td>';
-	print "<td>Rows Examined</td><td>" . number_format_i18n($entry['rows_examined']) . '</td>';
+	print '<td>' . __('Query Time', 'slowlog') . '</td><td>'    . number_format_i18n($entry['query_time'])    . '</td>';
+	print '<td>' . __('Lock Time', 'slowlog') . '</td><td>'     . number_format_i18n($entry['lock_time'])     . '</td>';
+	print '<td>' . __('Rows Sent', 'slowlog') . '</td><td>'     . number_format_i18n($entry['rows_sent'])     . '</td>';
+	print '<td>' . __('Rows Examined', 'slowlog') . '</td><td>' . number_format_i18n($entry['rows_examined']) . '</td>';
 
 	form_end_row();
 
 	form_alternate_row();
 
-	print "<td>Rows Affected</td><td>" . number_format_i18n($entry['rows_affected']) . '</td>';
-	print "<td>Bytes Sent</td><td>"    . number_format_i18n($entry['bytes_sent'])    . '</td>';
-	print "<td colspan='4'></td>";
+	print '<td>' . __('Rows Affected', 'slowlog') . '</td><td>' . number_format_i18n($entry['rows_affected']) . '</td>';
+	print '<td>' . __('Bytes Sent', 'slowlog') . '</td><td>'    . number_format_i18n($entry['bytes_sent'])    . '</td>';
+	print '<td colspan="4"></td>';
 
 	form_end_row();
 	html_end_box(false);
 
-	html_start_box('Original Query', '100%', '', '3', 'center', '');
+	html_start_box(__('Original Query', 'slowlog'), '100%', '', '3', 'center', '');
 
 	form_alternate_row();
 
@@ -1080,7 +1079,7 @@ function slowlog_view() {
 
 	slowlog_tabs();
 
-	html_start_box('MySQL SlowLog File Filters', '100%', '', '3', 'center', 'slowlog.php?action=edit');
+	html_start_box(__('MariaDB/MySQL SlowLog File Filters', 'slowlog'), '100%', '', '3', 'center', 'slowlog.php?action=edit');
 	filter();
 	html_end_box();
 
@@ -1090,47 +1089,47 @@ function slowlog_view() {
 
 	$display_text = array(
 		'nosort' => array(
-			'display' => 'Actions'
+			'display' => __('Actions', 'slowlog'),
 		),
 		'description' => array(
-			'display' => 'Description',
+			'display' => __('Description', 'slowlog'),
 			'sort'    => 'ASC'
 		),
 		'import_status' => array(
-			'display' => 'Import Status',
+			'display' => __('Import Status', 'slowlog'),
 			'sort'    => 'DESC'
 		),
 		'import_text_status' => array(
-			'display' => 'Status String',
+			'display' => __('Status String', 'slowlog'),
 			'sort'    => 'DESC'
 		),
 		'logid' => array(
-			'display' => 'ID',
+			'display' => __('ID', 'slowlog'),
 			'sort'    => 'ASC',
 			'align'   => 'right'
 		),
 		'import_date' => array(
-			'display' => 'Imported',
+			'display' => __('Imported', 'slowlog'),
 			'sort'    => 'DESC',
 			'align'   => 'right'
 		),
 		'import_lines' => array(
-			'display' => 'Lines',
+			'display' => __('Lines', 'slowlog'),
 			'sort'    => 'DESC',
 			'align'   => 'right'
 		),
 		'duration' => array(
-			'display' => 'Duration',
+			'display' => __('Duration', 'slowlog'),
 			'sort'    => 'DESC',
 			'align'   => 'right'
 		),
 		'start_time' => array(
-			'display' => 'Start Date',
+			'display' => __('Start Date', 'slowlog'),
 			'sort'    => 'DESC',
 			'align'   => 'right'
 		),
 		'end_time' => array(
-			'display' => 'End Date',
+			'display' => __('End Date', 'slowlog'),
 			'sort'    => 'DESC',
 			'align'   => 'right'
 		)
@@ -1140,7 +1139,7 @@ function slowlog_view() {
 
 	if (cacti_sizeof($entries)) {
 		foreach ($entries as $entry) {
-			$html = "<a class='pic' href='slowlog.php?action=methods&reset=true&logid=" . $entry["logid"] . "'>
+			$html = "<a class='pic' href='slowlog.php?action=methods&reset=true&logid=" . $entry['logid'] . "'>
 				<i class='fas fa-poll deviceUp' title='View Methods'></i></a>
 				<a class='pic' href='" . html_escape($config['url_path'] . 'plugins/slowlog/slowlog.php?action=tables&reset=true&logid=' . $entry["logid"]) . "'>
 				<i class='fas fa-poll deviceRecovering' title='View Tables'></i></a>
@@ -1169,7 +1168,7 @@ function slowlog_view() {
 			form_selectable_cell(get_daysfromtime($entry['duration']), $entry['logid'], '', 'right');
 			form_selectable_cell($entry['start_time'], $entry['logid'], '', 'right');
 			form_selectable_cell($entry['end_time'], $entry['logid'], '', 'right');
-			form_checkbox_cell($entry['description'], $entry['logid'], '', 'right');
+			form_checkbox_cell($entry['description'], $entry['logid']);
 
 			form_end_row();
 		}
@@ -1184,50 +1183,55 @@ function slowlog_view() {
 	form_end();
 }
 
-/* slowlog_save_button - draws a (save|create) and cancel button at the bottom of
-     an html edit form
-   @arg $force_type - if specified, will force the 'action' button to be either
-     'save' or 'create'. otherwise this field should be properly auto-detected */
+/**
+ * slowlog_save_button - draws a (save|create) and cancel button at the bottom of
+ * an html edit form
+ * @param $force_type - if specified, will force the 'action' button to be either
+ *                      'save' or 'create'. otherwise this field should be
+ *                      properly auto-detected.
+ */
 function slowlog_save_button($cancel_action = '', $action = 'save', $force_type = '', $key_field = 'id') {
 	global $config;
 
 	if (substr_count($cancel_action, '.php')) {
 		$caction = $cancel_action;
-		$calt = 'Return';
+		$calt  = __esc('Return', 'slowlog');
 		$sname = 'save';
-		$salt = 'Save';
+		$salt  = __esc('Save', 'slowlog');
 	} else {
 		$caction = 'slowlog.php';
-		$calt = 'Cancel';
+		$calt    = __esc('Cancel', 'slowlog');
+
 		if ((empty($force_type)) || ($cancel_action == 'return')) {
 			if ($action == 'import') {
 				$sname = 'import';
-				$salt  = 'Import';
+				$salt  = __esc('Import', 'slowlog');
 			} elseif (empty($_GET[$key_field])) {
 				$sname = 'create';
-				$salt  = 'Create';
+				$salt  = __esc('Create', 'slowlog');
 			} else {
 				$sname = 'save';
-				$salt  = 'Save';
+				$salt  = __esc('Save', 'slowlog');
 			}
 
 			if ($cancel_action == 'return') {
-				$calt   = 'Return';
+				$calt   = __esc('Return', 'slowlog');
 				$action = 'save';
 			} else {
-				$calt   = 'Cancel';
+				$calt   = __esc('Cancel', 'slowlog');
 			}
 		} elseif ($force_type == 'save') {
 			$sname = 'save';
-			$salt  = 'Save';
+			$salt  = __esc('Save', 'slowlog');
 		} elseif ($force_type == 'create') {
 			$sname = 'create';
-			$salt  = 'Create';
+			$salt  = __esc('Create', 'slowlog');
 		} elseif ($force_type == 'import') {
 			$sname = 'import';
-			$salt  = 'Import';
+			$salt  = __esc('Import', 'slowlog');
 		}
 	}
+
 	?>
 	<table>
 		<tr>
@@ -1252,7 +1256,7 @@ function filter() {
 				<table class='filterTable'>
 					<tr>
 						<td>
-							Search
+							<?php print __('Search', 'slowlog');?>
 						</td>
 						<td>
 							<input type='text' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
@@ -1301,11 +1305,11 @@ function slowlog_details_filter() {
 				<table class='filterTable'>
 					<tr>
 						<td>
-							LogFile
+							<?php print __('LogFile', 'slowlog');?>
 						</td>
 						<td>
 							<select id='logid' onChange='applyFilter()'>
-								<option value='-1'<?php if (get_request_var('logid') == '-1') {?> selected<?php }?>>Any</option>
+								<option value='-1'<?php if (get_request_var('logid') == '-1') {?> selected<?php }?>><?php print __('Any', 'slowlog');?></option>
 								<?php
 								$logids = db_fetch_assoc('SELECT logid, CONCAT(description) AS name
 									FROM plugin_slowlog ORDER BY name');
@@ -1319,12 +1323,12 @@ function slowlog_details_filter() {
 							</select>
 						</td>
 						<td>
-							Method
+							<?php print __('Method', 'slowlog');?>
 						</td>
 						<td>
 							<select id='mmethod' onChange='applyFilter()'>
-								<option value='-1'<?php if (get_request_var('mmethod') == '-1') {?> selected<?php }?>>Any</option>
-								<option value='-2'<?php if (get_request_var('mmethod') == '-2') {?> selected<?php }?>>N/A</option>
+								<option value='-1'<?php if (get_request_var('mmethod') == '-1') {?> selected<?php }?>><?php print __('Any', 'slowlog');?></option>
+								<option value='-2'<?php if (get_request_var('mmethod') == '-2') {?> selected<?php }?>><?php print __('N/A', 'slowlog');?></option>
 								<?php
 								$methods = db_fetch_assoc('SELECT * FROM plugin_slowlog_methods ORDER BY method');
 
@@ -1337,13 +1341,13 @@ function slowlog_details_filter() {
 							</select>
 						</td>
 						<td>
-							Tables
+							<?php print __('Tables', 'slowlog');?>
 						</td>
 						<td>
 							<select id='table' onChange='applyFilter()'>
-								<option value='-1'<?php if (get_request_var('table') == '-1') {?> selected<?php }?>>Any</option>
-								<option value='-2'<?php if (get_request_var('table') == '-2') {?> selected<?php }?>>Others</option>
-								<option value='-3'<?php if (get_request_var('table') == '-3') {?> selected<?php }?>>N/A</option>
+								<option value='-1'<?php if (get_request_var('table') == '-1') {?> selected<?php }?>><?php print __('Any', 'slowlog');?></option>
+								<option value='-2'<?php if (get_request_var('table') == '-2') {?> selected<?php }?>><?php print __('Others', 'slowlog');?></option>
+								<option value='-3'<?php if (get_request_var('table') == '-3') {?> selected<?php }?>><?php print __('N/A', 'slowlog');?></option>
 								<?php
 								if (get_request_var('logid') > 0) {
 									$tables = db_fetch_assoc_prepared('SELECT DISTINCT table_name
@@ -1366,11 +1370,11 @@ function slowlog_details_filter() {
 							</select>
 						</td>
 						<td>
-							Rows
+							<?php print __('Rows', 'slowlog');?>
 						</td>
 						<td>
 							<select id='rows' onChange='applyFilter()'>
-								<option value='-1'<?php if (get_request_var_request('rows') == '-1') {?> selected<?php }?>>Default</option>
+								<option value='-1'<?php if (get_request_var_request('rows') == '-1') {?> selected<?php }?>><?php print __('Default', 'slowlog');?></option>
 								<?php
 								if (cacti_sizeof($item_rows)) {
 									foreach ($item_rows as $key => $value) {
@@ -1382,8 +1386,8 @@ function slowlog_details_filter() {
 						</td>
 						<td>
 							<span>
-								<input class='button_go' type='submit' onClick='applyFilter()' name='go' value='Go'>
-								<input class='button_clear' type='button' onClick='clearFilter()' name='clear' value='Clear'>
+								<input class='button_go' type='submit' onClick='applyFilter()' name='go' value='<?php print __('Go', 'slowlog');?>'>
+								<input class='button_clear' type='button' onClick='clearFilter()' name='clear' value='<?php print __('Clear', 'slowlog');?>'>
 							</span>
 						</td>
 					</tr>
@@ -1391,17 +1395,17 @@ function slowlog_details_filter() {
 				<table class='filterTable'>
 					<tr>
 						<td>
-							Search
+							<?php print __('Search', 'slowlog');?>
 						</td>
 						<td>
 							<input type='text' id='filter' size='40' value='<?php print html_escape_request_var('filter');?>'>
 						</td>
 						<td>
-							User
+							<?php print __('User', 'slowlog');?>
 						</td>
 						<td>
 							<select id='myuser' onChange='applyFilter()'>
-								<option value='-1'<?php if (get_request_var('user') == '-1') {?> selected<?php }?>>Any</option>
+								<option value='-1'<?php if (get_request_var('user') == '-1') {?> selected<?php }?>><?php print __('Any', 'slowlog');?></option>
 								<?php
 								if (get_request_var('logid') > 0) {
 									$users = db_fetch_assoc_prepared('SELECT DISTINCT user
@@ -1424,11 +1428,11 @@ function slowlog_details_filter() {
 							</select>
 						</td>
 						<td>
-							Host
+							<?php print __('Host', 'slowlog');?>
 						</td>
 						<td>
 							<select id='host' onChange='applyFilter()'>
-								<option value='-1'<?php if (get_request_var('host') == '-1') {?> selected<?php }?>>Any</option>
+								<option value='-1'<?php if (get_request_var('host') == '-1') {?> selected<?php }?>><?php print __('Any', 'slowlog');?></option>
 								<?php
 								if (get_request_var('logid') > 0) {
 									$hosts = db_fetch_assoc_prepared('SELECT DISTINCT host
@@ -1455,27 +1459,27 @@ function slowlog_details_filter() {
 				<table class='filterTable'>
 					<tr id='timespan'>
 						<td>
-							<?php print __('From');?>
+							<?php print __('From', 'slowlog');?>
 						</td>
 						<td>
 							<span>
 								<input type='text' class='ui-state-default ui-corner-all' id='date1' size='18' value='<?php print get_request_var('date1');?>'>
-								<i id='startDate' class='calendar fa fa-calendar-alt' title='<?php print __esc('Start Date Selector');?>'></i>
+								<i id='startDate' class='calendar fa fa-calendar-alt' title='<?php print __esc('Start Date Selector', 'slowlog');?>'></i>
 							</span>
 						</td>
 						<td>
-							<?php print __('To');?>
+							<?php print __('To', 'slowlog');?>
 						</td>
 						<td>
 							<span>
 								<input type='text' class='ui-state-default ui-corner-all' id='date2' size='18' value='<?php print get_request_var('date2');?>'>
-								<i id='endDate' class='calendar fa fa-calendar-alt' title='<?php print __esc('End Date Selector');?>'></i>
+								<i id='endDate' class='calendar fa fa-calendar-alt' title='<?php print __esc('End Date Selector', 'slowlog');?>'></i>
 							</span>
 						</td>
 						<td>
 							<span>
-								<i class='shiftArrow fa fa-backward' onClick='timeshiftGraphFilterLeft()' title='<?php print __esc('Shift Time Backward');?>'></i>
-								<select id='predefined_timeshift' title='<?php print __esc('Define Shifting Interval');?>'>
+								<i class='shiftArrow fa fa-backward' onClick='timeshiftGraphFilterLeft()' title='<?php print __esc('Shift Time Backward', 'slowlog');?>'></i>
+								<select id='predefined_timeshift' title='<?php print __esc('Define Shifting Interval', 'slowlog');?>'>
 									<?php
 									$start_val = 1;
 									$end_val = cacti_sizeof($graph_timeshifts)+1;
@@ -1486,13 +1490,13 @@ function slowlog_details_filter() {
 									}
 									?>
 								</select>
-								<i class='shiftArrow fa fa-forward' onClick='timeshiftGraphFilterRight()' title='<?php print __esc('Shift Time Forward');?>'></i>
+								<i class='shiftArrow fa fa-forward' onClick='timeshiftGraphFilterRight()' title='<?php print __esc('Shift Time Forward', 'slowlog');?>'></i>
 							</span>
 						</td>
 						<td style='display:none;'>
 							<select id='predefined_timespan' onChange='applyGraphTimespan()'>
 								<?php
-								$graph_timespans = array_merge(array(GT_CUSTOM => __('Custom')), $graph_timespans);
+								$graph_timespans = array_merge(array(GT_CUSTOM => __('Custom', 'slowlog')), $graph_timespans);
 
 								$start_val = 0;
 								$end_val   = cacti_sizeof($graph_timespans);
