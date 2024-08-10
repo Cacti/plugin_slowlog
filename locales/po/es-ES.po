@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: developers@cacti.net\n"
 "POT-Creation-Date: 2024-08-10 11:22-0400\n"
-"PO-Revision-Date: 2024-07-14 20:21-0400\n"
+"PO-Revision-Date: 2024-08-10 11:31-0400\n"
 "Last-Translator: Tadeo Briceño <tadeobriceno@vencable.com>\n"
 "Language-Team: Spanish <http://translate.cacti.net/projects/cacti/flowview/es/>\n"
 "Language: es_ES\n"
@@ -23,9 +23,8 @@ msgid "Delete"
 msgstr "Eliminar"
 
 #: slowlog.php:194
-#, fuzzy
 msgid "You must select at least one Slowlog record."
-msgstr "Debes seleccionar al menos un dispositivo."
+msgstr "Debe seleccionar al menos un registro Slowlog."
 
 #: slowlog.php:197
 msgid "Yes"
@@ -37,37 +36,35 @@ msgstr "No"
 
 #: slowlog.php:206 slowlog.php:1198 slowlog.php:1218
 msgid "Return"
-msgstr ""
+msgstr "Regresar"
 
 #: slowlog.php:254
 msgid "Import Template from Local File"
-msgstr ""
+msgstr "Importar plantilla desde equipo local"
 
 #: slowlog.php:255
 msgid "If the XML file containing template data is located on your local machine, select it here."
-msgstr ""
+msgstr "Si el archivo XML que contiene datos de plantilla está ubicado en su equipo local, seleccione aquí."
 
 #: slowlog.php:260
-#, fuzzy
 msgid "LogFile Description"
-msgstr "Descripción de la ruta"
+msgstr "Descripción del archivo de registro"
 
 #: slowlog.php:261
 msgid "Please provide a description for this MySQL Slowlog file to be imported."
-msgstr ""
+msgstr "Proporcione una descripción de este archivo MySQL Slowlog que se va a importar."
 
 #: slowlog.php:262
-#, fuzzy
 msgid "New Slow Log"
-msgstr "Nuevo Flujo"
+msgstr "Nuevo registro lento"
 
 #: slowlog.php:268
 msgid "Max Query Length"
-msgstr ""
+msgstr "Longitud máxima de la consulta"
 
 #: slowlog.php:269
 msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
-msgstr ""
+msgstr "Solo importe los primeros X caracteres de la consulta SQL desde el registro de consultas lentas de MySQL."
 
 #: slowlog.php:272
 msgid "All"
@@ -77,257 +74,236 @@ msgstr "Todos"
 #: slowlog.php:277
 #, php-format
 msgid "%d Chars"
-msgstr ""
+msgstr "%d Caracteres"
 
 #: slowlog.php:282
 msgid "Slowlog Table Names [ optional ]"
-msgstr ""
+msgstr "Nombres de tablas de Slowlog [ opcional ]"
 
 #: slowlog.php:283
 msgid "Leave Blank for Auto Detection which runs must faster."
-msgstr ""
+msgstr "Deje en blanco para la detección automática que se ejecuta más rápido."
 
 #: slowlog.php:287
 msgid "Use This Cacti Database"
-msgstr ""
+msgstr "Utilice esta base de datos de cactus"
 
 #: slowlog.php:288
 msgid "Slowlog needs to know the tables names used in your slowlog.  If it's the Cacti database on this system, simply check the checkbox.  Otherwise, you will have to paste the output as show below under 'Tables of Interest', or leave blank to have the Post-process detect the Tables."
-msgstr ""
+msgstr "Slowlog necesita conocer los nombres de las tablas utilizadas en su slowlog.  Si se trata de la base de datos de Cacti en este sistema, simplemente marque la casilla de verificación.  De lo contrario, tendrá que pegar la salida como se muestra a continuación en 'Tablas de interés', o dejarla en blanco para que el post-proceso detecte las tablas."
 
 #: slowlog.php:293
 msgid "Tables of Interest"
-msgstr ""
+msgstr "Tablas de interés"
 
 #: slowlog.php:294
 msgid "Please provide a space delimited list of tables that you are interested in.  If you provide this list of tables the MySQL Slow Query Log will be scanned for these entries and more details statistics will be provided.  In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
-msgstr ""
+msgstr "Proporcione una lista delimitada por espacios de las mesas que le interesen.  Si proporciona esta lista de tablas, se analizará el registro de consultas lentas de MySQL en busca de estas entradas y se proporcionarán estadísticas más detalladas.  En Linux/UNIX, puede obtener una lista de tablas utilizando el siguiente comando:<br><br> print 'mysql -u<i><b>usuario</b></i> -p<i><b>contraseña</b></i> -e base <i><b>de datos</b></i> \"show tables\" | grep -v Tables_in' | tr '\\n' ' '<br><br>Los valores de '<i><b>usuario</b></i>', '<i><b>contraseña</b></i>' y '<i><b>base de datos</b></i>' se reemplazan por sus valores."
 
 #: slowlog.php:302
-#, fuzzy
 msgid "Upload Limits"
-msgstr "Sín límite"
+msgstr "Límites de carga"
 
 #: slowlog.php:303
 msgid "File Size upload limits in Cacti."
-msgstr ""
+msgstr "Límites de carga de tamaño de archivo en Cacti."
 
 #: slowlog.php:307
 msgid "Max Upload Filesize"
-msgstr ""
+msgstr "Tamaño máximo de archivo de carga"
 
 #: slowlog.php:308
 msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
-msgstr ""
+msgstr "El tamaño máximo de archivo que su servidor Apache permitirá cargar se establece en el valor de la derecha.  Actualmente, no puede cargar un archivo más grande que este.  Si tiene registros lentos de MySQL más grandes que esto, debe modificar el archivo <i>php.ini</i> asociado con Apache, encontrar la variable <b><i>upload_max_filesize</i></b> y aumentar el valor.  Después de lo cual debe reiniciar Apache."
 
 #: slowlog.php:313
 msgid "Max Post Size"
-msgstr ""
+msgstr "Tamaño máximo de la publicación"
 
 #: slowlog.php:314
 msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
-msgstr ""
+msgstr "El tamaño máximo que puede publicar en el servidor Apache se establece en el valor de la derecha.  Si tiene registros lentos de MySQL mayores que este valor, debe modificar el archivo <i>php.ini</i> asociado con Apache, encontrar la variable <b><i>post_max_size</i></b> y aumentar su valor.  Después de lo cual debe reiniciar Apache."
 
 #: slowlog.php:321
 msgid "Import MariaDB/MySQL Slowlog"
-msgstr ""
+msgstr "Importar MariaDB/MySQL Slowlog"
 
 #: slowlog.php:407
-#, fuzzy
 msgid "Queries"
-msgstr "Consultas paralelas"
+msgstr "Consultas"
 
 #: slowlog.php:408
-#, fuzzy
 msgid "Total Queries"
-msgstr "Consultas paralelas"
+msgstr "Total de consultas"
 
 #: slowlog.php:411 slowlog.php:415 slowlog.php:427 slowlog.php:1373
 msgid "Rows"
-msgstr ""
+msgstr "Filas"
 
 #: slowlog.php:412
 msgid "Rows Returned"
-msgstr ""
+msgstr "Filas devueltas"
 
 #: slowlog.php:416 slowlog.php:1000
-#, fuzzy
 msgid "Rows Examined"
-msgstr "Barra de paquetes"
+msgstr "Filas examinadas"
 
 #: slowlog.php:419 slowlog.php:423
 msgid "Seconds"
-msgstr ""
+msgstr "Segundos"
 
 #: slowlog.php:420
 msgid "Lock Seconds"
-msgstr ""
+msgstr "Segundos de bloqueo"
 
 #: slowlog.php:424
 msgid "Query Seconds"
-msgstr ""
+msgstr "Segundos de consulta"
 
 #: slowlog.php:428 slowlog.php:1006
 msgid "Rows Affected"
-msgstr ""
+msgstr "Filas afectadas"
 
 #: slowlog.php:431
 msgid "Bytes"
 msgstr "Bytes"
 
 #: slowlog.php:432 slowlog.php:713 slowlog.php:1007
-#, fuzzy
 msgid "Bytes Sent"
-msgstr "Barra de bytes"
+msgstr "Bytes enviados"
 
 #: slowlog.php:665 slowlog.php:1092
-#, fuzzy
 msgid "Actions"
-msgstr "(acciones)"
+msgstr "Acciones"
 
 #: slowlog.php:668
-#, fuzzy
 msgid "Table Name"
-msgstr "Tabla"
+msgstr "Nombre de Tabla"
 
 #: slowlog.php:672 slowlog.php:1326
 msgid "Method"
 msgstr "Método"
 
 #: slowlog.php:676 slowlog.php:988
-#, fuzzy
 msgid "Date"
-msgstr "Fecha de finalización"
+msgstr "Fecha"
 
 #: slowlog.php:680 slowlog.php:989 slowlog.php:1404
 msgid "User"
-msgstr ""
+msgstr "Usuario"
 
 #: slowlog.php:684 slowlog.php:990 slowlog.php:1431
 msgid "Host"
-msgstr ""
+msgstr "Equipo"
 
 #: slowlog.php:688 slowlog.php:997
-#, fuzzy
 msgid "Query Time"
-msgstr "Hora de inicio"
+msgstr "Tiempo de consulta"
 
 #: slowlog.php:693 slowlog.php:998
-#, fuzzy
 msgid "Lock Time"
-msgstr "Tiempos de flujo"
+msgstr "Tiempo de bloqueo"
 
 #: slowlog.php:698
 msgid "Sent"
-msgstr ""
+msgstr "Enviado"
 
 #: slowlog.php:703
-#, fuzzy
 msgid "Examined"
-msgstr "Barra de paquetes"
+msgstr "Examinado"
 
 #: slowlog.php:708
 msgid "Affected"
-msgstr ""
+msgstr "Afectado"
 
 #: slowlog.php:721
-#, fuzzy
 msgid "Log Entries"
-msgstr "Entradas"
+msgstr "Entradas de log"
 
 #: slowlog.php:723
 msgid "MariaDB/MySQL SlowLog Details"
-msgstr ""
+msgstr "Detalles de MariaDB/MySQL SlowLog"
 
 #: slowlog.php:742
 msgid "View Details"
-msgstr ""
+msgstr "Ver detalles"
 
 #: slowlog.php:805
 #, php-format
 msgid "MariaDB/MySQL SlowLog Results - By %s"
-msgstr ""
+msgstr "Resultados de MariaDB/MySQL SlowLog - Por %s"
 
 #: slowlog.php:984
 msgid "MariaDB/MySQL SlowLog Query Details"
-msgstr ""
+msgstr "Detalles de la consulta MariaDB/MySQL SlowLog"
 
 #: slowlog.php:991
-#, fuzzy
 msgid "IP"
 msgstr "IP"
 
 #: slowlog.php:999
 msgid "Rows Sent"
-msgstr ""
+msgstr "Filas enviadas"
 
 #: slowlog.php:1013
-#, fuzzy
 msgid "Original Query"
-msgstr "Origen AS"
+msgstr "Consulta original"
 
 #: slowlog.php:1082
 msgid "MariaDB/MySQL SlowLog File Filters"
-msgstr ""
+msgstr "Filtros de archivos MariaDB/MySQL SlowLog"
 
 #: slowlog.php:1095
 msgid "Description"
 msgstr "Descripción"
 
 #: slowlog.php:1099
-#, fuzzy
 msgid "Import Status"
-msgstr "Importar a través de"
+msgstr "Estado de importación"
 
 #: slowlog.php:1103
-#, fuzzy
 msgid "Status String"
-msgstr "Estado"
+msgstr "Cadena de estado"
 
 #: slowlog.php:1107
 msgid "ID"
 msgstr "ID"
 
 #: slowlog.php:1112
-#, fuzzy
 msgid "Imported"
-msgstr "Importar"
+msgstr "Importado"
 
 #: slowlog.php:1117
 msgid "Lines"
 msgstr "Líneas"
 
 #: slowlog.php:1122
-#, fuzzy
 msgid "Duration"
-msgstr "Autorización"
+msgstr "Duracion"
 
 #: slowlog.php:1127
 msgid "Start Date"
 msgstr "Fecha de inicio"
 
 #: slowlog.php:1132
-#, fuzzy
 msgid "End Date"
 msgstr "Fecha de finalización"
 
 #: slowlog.php:1152
 msgid "Pre-Processing"
-msgstr ""
+msgstr "Pre-Procesamiento"
 
 #: slowlog.php:1154
 msgid "Post-Processing"
-msgstr ""
+msgstr "Post-Procesamiento"
 
 #: slowlog.php:1156
-#, fuzzy
 msgid "Complete"
-msgstr "Componentes"
+msgstr "Completo"
 
 #: slowlog.php:1158
-#, fuzzy
 msgid "Unknown"
-msgstr "Desconocido (%s)"
+msgstr "Desconocido"
 
 #: slowlog.php:1200 slowlog.php:1214 slowlog.php:1225
 msgid "Save"
@@ -343,7 +319,7 @@ msgstr "Importar"
 
 #: slowlog.php:1211 slowlog.php:1228
 msgid "Create"
-msgstr ""
+msgstr "Crear"
 
 #: slowlog.php:1259 slowlog.php:1398
 msgid "Search"
@@ -351,7 +327,7 @@ msgstr "Buscar"
 
 #: slowlog.php:1308
 msgid "LogFile"
-msgstr ""
+msgstr "Archivo de log y Syslog/Eventlog"
 
 #: slowlog.php:1312 slowlog.php:1330 slowlog.php:1348 slowlog.php:1408
 #: slowlog.php:1435
@@ -363,13 +339,12 @@ msgid "N/A"
 msgstr "n/d"
 
 #: slowlog.php:1344
-#, fuzzy
 msgid "Tables"
-msgstr "Tabla"
+msgstr "Tablas"
 
 #: slowlog.php:1349
 msgid "Others"
-msgstr ""
+msgstr "Otros"
 
 #: slowlog.php:1377
 msgid "Default"
@@ -417,5 +392,4 @@ msgstr "Personalizado"
 
 #: slowlog_functions.php:290
 msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
-msgstr ""
-
+msgstr "Se ha ingerido el Slowlog inicial.  El procesamiento posterior se llevará a cabo en segundo plano.  Puede comenzar a analizar los detalles una vez que se complete el estado"

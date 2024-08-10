@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: developers@cacti.net\n"
 "POT-Creation-Date: 2024-08-10 11:22-0400\n"
-"PO-Revision-Date: 2024-07-14 20:37-0400\n"
+"PO-Revision-Date: 2024-08-10 11:39-0400\n"
 "Last-Translator: San IPE <sanipe1949@krunsea.com>\n"
 "Language-Team: Turkish <http://translate.cacti.net/projects/cacti/flowview/tr/>\n"
 "Language: tr_TR\n"
@@ -23,9 +23,8 @@ msgid "Delete"
 msgstr "Sil"
 
 #: slowlog.php:194
-#, fuzzy
 msgid "You must select at least one Slowlog record."
-msgstr "En az bir cihaz seçmelisiniz."
+msgstr "En az bir Slowlog kaydı seçmeniz gerekir."
 
 #: slowlog.php:197
 msgid "Yes"
@@ -37,37 +36,35 @@ msgstr "Hayır"
 
 #: slowlog.php:206 slowlog.php:1198 slowlog.php:1218
 msgid "Return"
-msgstr ""
+msgstr "Dönüş"
 
 #: slowlog.php:254
 msgid "Import Template from Local File"
-msgstr ""
+msgstr "Şablonu Yerel Dosyadan İçe Aktar"
 
 #: slowlog.php:255
 msgid "If the XML file containing template data is located on your local machine, select it here."
-msgstr ""
+msgstr "Şablon verilerini içeren XML dosyası yerel makinenizde bulunuyorsa, buradan seçin."
 
 #: slowlog.php:260
-#, fuzzy
 msgid "LogFile Description"
-msgstr "Rota Açıklaması"
+msgstr "Günlük Dosyası Açıklaması"
 
 #: slowlog.php:261
 msgid "Please provide a description for this MySQL Slowlog file to be imported."
-msgstr ""
+msgstr "Lütfen bu MySQL Slowlog dosyasının içe aktarılması için bir açıklama sağlayın."
 
 #: slowlog.php:262
-#, fuzzy
 msgid "New Slow Log"
-msgstr "Yeni akış"
+msgstr "Yeni Yavaş Günlük"
 
 #: slowlog.php:268
 msgid "Max Query Length"
-msgstr ""
+msgstr "Maksimum Sorgu Uzunluğu"
 
 #: slowlog.php:269
 msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
-msgstr ""
+msgstr "MySQL Yavaş Sorgu günlüğünden SQL Sorgusunun yalnızca ilk X karakterini içe aktarın."
 
 #: slowlog.php:272
 msgid "All"
@@ -77,257 +74,236 @@ msgstr "Tümü"
 #: slowlog.php:277
 #, php-format
 msgid "%d Chars"
-msgstr ""
+msgstr "%d Karakterler"
 
 #: slowlog.php:282
 msgid "Slowlog Table Names [ optional ]"
-msgstr ""
+msgstr "Slowlog Tablo Adları [ isteğe bağlı ]"
 
 #: slowlog.php:283
 msgid "Leave Blank for Auto Detection which runs must faster."
-msgstr ""
+msgstr "Daha hızlı çalışan Otomatik Algılama için Boş Bırakın."
 
 #: slowlog.php:287
 msgid "Use This Cacti Database"
-msgstr ""
+msgstr "Bu kaktüsler veritabanını kullanın"
 
 #: slowlog.php:288
 msgid "Slowlog needs to know the tables names used in your slowlog.  If it's the Cacti database on this system, simply check the checkbox.  Otherwise, you will have to paste the output as show below under 'Tables of Interest', or leave blank to have the Post-process detect the Tables."
-msgstr ""
+msgstr "Slowlog'un, slowlog'unuzda kullanılan tablo adlarını bilmesi gerekir.  Bu sistemdeki Kaktüsler veritabanıysa, onay kutusunu işaretlemeniz yeterlidir.  Aksi takdirde, çıktıyı aşağıda 'İlgilenilen Tablolar' altında gösterildiği gibi yapıştırmanız veya İşlem Sonrası'nın Tabloları algılaması için boş bırakmanız gerekir."
 
 #: slowlog.php:293
 msgid "Tables of Interest"
-msgstr ""
+msgstr "İlgi Alanları"
 
 #: slowlog.php:294
 msgid "Please provide a space delimited list of tables that you are interested in.  If you provide this list of tables the MySQL Slow Query Log will be scanned for these entries and more details statistics will be provided.  In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
-msgstr ""
+msgstr "Lütfen ilgilendiğiniz tabloların boşlukla ayrılmış bir listesini sağlayın.  Bu tablo listesini sağlarsanız, MySQL Yavaş Sorgu Günlüğü bu girişler için taranır ve daha fazla ayrıntı istatistiği sağlanır.  Linux/UNIX'te, aşağıdaki komutu kullanarak tabloların bir listesini elde edebilirsiniz:<br><br> print 'mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>veritabanı</b></i> | grep -v Tables_in' | tr '\\n' ' '<br><br>'<i><b>user</b></i>', '<i><b>password</b></i>' ve '<i><b>database</b></i>' değerleri sizin değerlerinizle değiştirilir."
 
 #: slowlog.php:302
-#, fuzzy
 msgid "Upload Limits"
-msgstr "Limit yok"
+msgstr "Yükleme Sınırları"
 
 #: slowlog.php:303
 msgid "File Size upload limits in Cacti."
-msgstr ""
+msgstr "Cacti'de Dosya Boyutu yükleme sınırları."
 
 #: slowlog.php:307
 msgid "Max Upload Filesize"
-msgstr ""
+msgstr "Maksimum Yükleme Dosya Boyutu"
 
 #: slowlog.php:308
 msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
-msgstr ""
+msgstr "Apache sunucunuzun yüklenmesine izin vereceği maksimum dosya boyutu sağdaki değere ayarlanmıştır.  Şu anda, bundan daha büyük bir dosya yükleyemezsiniz.  Bundan daha büyük MySQL Yavaş günlükleriniz varsa, Apache ile ilişkili <i>php.ini</i> dosyasını değiştirmeli, <b><i>upload_max_filesize</i></b> değişkenini bulmalı ve değeri artırmalısınız.  Bundan sonra Apache'yi yeniden başlatmanız gerekir."
 
 #: slowlog.php:313
 msgid "Max Post Size"
-msgstr ""
+msgstr "Maksimum Yazı Boyutu"
 
 #: slowlog.php:314
 msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
-msgstr ""
+msgstr "Apache sunucusuna gönderebileceğiniz maksimum boyut, sağdaki değere ayarlanmıştır.  Bu değerden daha büyük MySQL Yavaş günlükleriniz varsa, Apache ile ilişkili <i>php.ini</i> dosyasını değiştirmeli, <b><i>post_max_size</i></b> değişkenini bulmalı ve değerini artırmalısınız.  Bundan sonra Apache'yi yeniden başlatmanız gerekir."
 
 #: slowlog.php:321
 msgid "Import MariaDB/MySQL Slowlog"
-msgstr ""
+msgstr "MariaDB/MySQL Slowlog'u İçe Aktar"
 
 #: slowlog.php:407
-#, fuzzy
 msgid "Queries"
-msgstr "Paralel Sorgular"
+msgstr "Sorgular"
 
 #: slowlog.php:408
-#, fuzzy
 msgid "Total Queries"
-msgstr "Paralel Sorgular"
+msgstr "Toplam Sorgu Sayısı"
 
 #: slowlog.php:411 slowlog.php:415 slowlog.php:427 slowlog.php:1373
 msgid "Rows"
-msgstr ""
+msgstr "Satırlar"
 
 #: slowlog.php:412
 msgid "Rows Returned"
-msgstr ""
+msgstr "Döndürülen Satırlar"
 
 #: slowlog.php:416 slowlog.php:1000
-#, fuzzy
 msgid "Rows Examined"
-msgstr "Paket Çubuğu"
+msgstr "İncelenen Satırlar"
 
 #: slowlog.php:419 slowlog.php:423
 msgid "Seconds"
-msgstr ""
+msgstr "Saniye"
 
 #: slowlog.php:420
 msgid "Lock Seconds"
-msgstr ""
+msgstr "Saniyeleri Kilitle"
 
 #: slowlog.php:424
 msgid "Query Seconds"
-msgstr ""
+msgstr "Sorgu Saniyeleri"
 
 #: slowlog.php:428 slowlog.php:1006
 msgid "Rows Affected"
-msgstr ""
+msgstr "Etkilenen Satırlar"
 
 #: slowlog.php:431
 msgid "Bytes"
 msgstr "B"
 
 #: slowlog.php:432 slowlog.php:713 slowlog.php:1007
-#, fuzzy
 msgid "Bytes Sent"
-msgstr "Bayt Çubuğu"
+msgstr "Gönderilen Bayt Sayısı"
 
 #: slowlog.php:665 slowlog.php:1092
-#, fuzzy
 msgid "Actions"
 msgstr "Eylemler"
 
 #: slowlog.php:668
-#, fuzzy
 msgid "Table Name"
-msgstr "Tablo"
+msgstr "Tablo adı"
 
 #: slowlog.php:672 slowlog.php:1326
 msgid "Method"
 msgstr "Yöntem"
 
 #: slowlog.php:676 slowlog.php:988
-#, fuzzy
 msgid "Date"
-msgstr "Bitiş Tarihi"
+msgstr "Tarih"
 
 #: slowlog.php:680 slowlog.php:989 slowlog.php:1404
 msgid "User"
-msgstr ""
+msgstr "Kullanıcı"
 
 #: slowlog.php:684 slowlog.php:990 slowlog.php:1431
 msgid "Host"
-msgstr ""
+msgstr "Host"
 
 #: slowlog.php:688 slowlog.php:997
-#, fuzzy
 msgid "Query Time"
-msgstr "Başlama Zamanı"
+msgstr "Sorgu Süresi"
 
 #: slowlog.php:693 slowlog.php:998
-#, fuzzy
 msgid "Lock Time"
-msgstr "Akış zamanları"
+msgstr "Kilitleme Süresi"
 
 #: slowlog.php:698
 msgid "Sent"
-msgstr ""
+msgstr "Gönderildi"
 
 #: slowlog.php:703
-#, fuzzy
 msgid "Examined"
-msgstr "Paket Çubuğu"
+msgstr "Incele -di"
 
 #: slowlog.php:708
 msgid "Affected"
-msgstr ""
+msgstr "Etkilenen"
 
 #: slowlog.php:721
-#, fuzzy
 msgid "Log Entries"
-msgstr "Kayıtlar"
+msgstr "Log Girdileri"
 
 #: slowlog.php:723
 msgid "MariaDB/MySQL SlowLog Details"
-msgstr ""
+msgstr "MariaDB/MySQL SlowLog Ayrıntıları"
 
 #: slowlog.php:742
 msgid "View Details"
-msgstr ""
+msgstr "Detayları göster"
 
 #: slowlog.php:805
 #, php-format
 msgid "MariaDB/MySQL SlowLog Results - By %s"
-msgstr ""
+msgstr "MariaDB/MySQL SlowLog Sonuçları - %s Tarafından"
 
 #: slowlog.php:984
 msgid "MariaDB/MySQL SlowLog Query Details"
-msgstr ""
+msgstr "MariaDB/MySQL SlowLog Sorgu Ayrıntıları"
 
 #: slowlog.php:991
-#, fuzzy
 msgid "IP"
 msgstr "IP"
 
 #: slowlog.php:999
 msgid "Rows Sent"
-msgstr ""
+msgstr "Gönderilen Satırlar"
 
 #: slowlog.php:1013
-#, fuzzy
 msgid "Original Query"
-msgstr "Menşei A.Ş."
+msgstr "Özgün Sorgu"
 
 #: slowlog.php:1082
 msgid "MariaDB/MySQL SlowLog File Filters"
-msgstr ""
+msgstr "MariaDB/MySQL SlowLog Dosya Filtreleri"
 
 #: slowlog.php:1095
 msgid "Description"
 msgstr "Açıklama"
 
 #: slowlog.php:1099
-#, fuzzy
 msgid "Import Status"
-msgstr "Şununla İçe Aktar"
+msgstr "İçe Aktarma Durumu"
 
 #: slowlog.php:1103
-#, fuzzy
 msgid "Status String"
-msgstr "Durum"
+msgstr "Durum Dizesi"
 
 #: slowlog.php:1107
 msgid "ID"
 msgstr "ID"
 
 #: slowlog.php:1112
-#, fuzzy
 msgid "Imported"
-msgstr "İçe Aktar"
+msgstr "Eklendi"
 
 #: slowlog.php:1117
 msgid "Lines"
 msgstr "Çizgiler"
 
 #: slowlog.php:1122
-#, fuzzy
 msgid "Duration"
-msgstr "Yetki"
+msgstr "Süre"
 
 #: slowlog.php:1127
 msgid "Start Date"
 msgstr "Başlangıç Tarihi"
 
 #: slowlog.php:1132
-#, fuzzy
 msgid "End Date"
 msgstr "Bitiş Tarihi"
 
 #: slowlog.php:1152
 msgid "Pre-Processing"
-msgstr ""
+msgstr "Ön İşleme"
 
 #: slowlog.php:1154
 msgid "Post-Processing"
-msgstr ""
+msgstr "İşlem Sonrası"
 
 #: slowlog.php:1156
-#, fuzzy
 msgid "Complete"
-msgstr "Bileşenler"
+msgstr "Tamamlayınız"
 
 #: slowlog.php:1158
-#, fuzzy
 msgid "Unknown"
-msgstr "Bilinmeyen (%s)"
+msgstr "Bilinmeyen"
 
 #: slowlog.php:1200 slowlog.php:1214 slowlog.php:1225
 msgid "Save"
@@ -343,7 +319,7 @@ msgstr "İçe Aktar"
 
 #: slowlog.php:1211 slowlog.php:1228
 msgid "Create"
-msgstr ""
+msgstr "Oluştur"
 
 #: slowlog.php:1259 slowlog.php:1398
 msgid "Search"
@@ -351,7 +327,7 @@ msgstr "Ara"
 
 #: slowlog.php:1308
 msgid "LogFile"
-msgstr ""
+msgstr "Günlük Dosyası"
 
 #: slowlog.php:1312 slowlog.php:1330 slowlog.php:1348 slowlog.php:1408
 #: slowlog.php:1435
@@ -363,13 +339,12 @@ msgid "N/A"
 msgstr "Yok"
 
 #: slowlog.php:1344
-#, fuzzy
 msgid "Tables"
-msgstr "Tablo"
+msgstr "Tablolar"
 
 #: slowlog.php:1349
 msgid "Others"
-msgstr ""
+msgstr "Diğerleri"
 
 #: slowlog.php:1377
 msgid "Default"
@@ -417,5 +392,4 @@ msgstr "Özel"
 
 #: slowlog_functions.php:290
 msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
-msgstr ""
-
+msgstr "İlk Slowlog alındı.  İşlem Sonrası arka planda gerçekleşecektir.  Durum tamamlandıktan sonra Ayrıntıları analiz etmeye başlayabilirsiniz"

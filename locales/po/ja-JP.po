@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: developers@cacti.net\n"
 "POT-Creation-Date: 2024-08-10 11:22-0400\n"
-"PO-Revision-Date: 2024-07-14 20:26-0400\n"
+"PO-Revision-Date: 2024-08-10 11:34-0400\n"
 "Last-Translator: Seita Kawamot <seita_sk@yahoo.co.jp>\n"
 "Language-Team: Japanese <http://translate.cacti.net/projects/cacti/flowview/ja/>\n"
 "Language: ja_JP\n"
@@ -23,9 +23,8 @@ msgid "Delete"
 msgstr "削除"
 
 #: slowlog.php:194
-#, fuzzy
 msgid "You must select at least one Slowlog record."
-msgstr "少なくとも1つのデバイスを選択する必要があります。"
+msgstr "少なくとも 1 つの Slowlog レコードを選択する必要があります。"
 
 #: slowlog.php:197
 msgid "Yes"
@@ -37,37 +36,35 @@ msgstr "いいえ"
 
 #: slowlog.php:206 slowlog.php:1198 slowlog.php:1218
 msgid "Return"
-msgstr ""
+msgstr "帰還"
 
 #: slowlog.php:254
 msgid "Import Template from Local File"
-msgstr ""
+msgstr "ローカルファイルからテンプレートをインポート"
 
 #: slowlog.php:255
 msgid "If the XML file containing template data is located on your local machine, select it here."
-msgstr ""
+msgstr "テンプレート データを含む XML ファイルがローカル マシン上にある場合は、ここで選択します。"
 
 #: slowlog.php:260
-#, fuzzy
 msgid "LogFile Description"
-msgstr "ルートの説明"
+msgstr "ログファイルの説明"
 
 #: slowlog.php:261
 msgid "Please provide a description for this MySQL Slowlog file to be imported."
-msgstr ""
+msgstr "インポートするこのMySQL Slowlogファイルの説明を入力してください。"
 
 #: slowlog.php:262
-#, fuzzy
 msgid "New Slow Log"
-msgstr "新しい流れ"
+msgstr "新しいスローログ"
 
 #: slowlog.php:268
 msgid "Max Query Length"
-msgstr ""
+msgstr "最大クエリ長"
 
 #: slowlog.php:269
 msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
-msgstr ""
+msgstr "SQL クエリの最初の X 文字のみを MySQL Slow Query ログからインポートします。"
 
 #: slowlog.php:272
 msgid "All"
@@ -77,257 +74,236 @@ msgstr "すべて"
 #: slowlog.php:277
 #, php-format
 msgid "%d Chars"
-msgstr ""
+msgstr "%dチャーズ"
 
 #: slowlog.php:282
 msgid "Slowlog Table Names [ optional ]"
-msgstr ""
+msgstr "Slowlog テーブル名 [ オプション ]"
 
 #: slowlog.php:283
 msgid "Leave Blank for Auto Detection which runs must faster."
-msgstr ""
+msgstr "[自動検出] を空白のままにすると、実行が高速になります。"
 
 #: slowlog.php:287
 msgid "Use This Cacti Database"
-msgstr ""
+msgstr "このサボテンデータベースを使用する"
 
 #: slowlog.php:288
 msgid "Slowlog needs to know the tables names used in your slowlog.  If it's the Cacti database on this system, simply check the checkbox.  Otherwise, you will have to paste the output as show below under 'Tables of Interest', or leave blank to have the Post-process detect the Tables."
-msgstr ""
+msgstr "Slowlogは、slowlogで使用されているテーブル名を知っている必要があります。 このシステムのCactiデータベースの場合は、チェックボックスをオンにするだけです。 それ以外の場合は、以下に示すように「Tables of Interest」の下に出力を貼り付けるか、空白のままにして後処理でテーブルを検出する必要があります。"
 
 #: slowlog.php:293
 msgid "Tables of Interest"
-msgstr ""
+msgstr "関心のあるテーブル"
 
 #: slowlog.php:294
 msgid "Please provide a space delimited list of tables that you are interested in.  If you provide this list of tables the MySQL Slow Query Log will be scanned for these entries and more details statistics will be provided.  In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
-msgstr ""
+msgstr "関心のあるテーブルのスペース区切りリストを提供してください。 このテーブルのリストを指定すると、MySQL Slow Query Log でこれらのエントリがスキャンされ、より詳細な統計が提供されます。 Linux/UNIX では、次のコマンドを使用してテーブルのリストを取得できます。<br><br> print 'mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>データベース</b></i> |grep -v Tables_in' |tr '\\n' ' ' '<br><br>'<i><b>user</b></i>'、<i><b>'password</b></i>'、および '<i><b>database</b></i>' の値は、実際の値に置き換えられます。"
 
 #: slowlog.php:302
-#, fuzzy
 msgid "Upload Limits"
-msgstr "制限"
+msgstr "アップロード制限"
 
 #: slowlog.php:303
 msgid "File Size upload limits in Cacti."
-msgstr ""
+msgstr "Cactiのファイルサイズのアップロード制限。"
 
 #: slowlog.php:307
 msgid "Max Upload Filesize"
-msgstr ""
+msgstr "最大アップロードファイルサイズ"
 
 #: slowlog.php:308
 msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
-msgstr ""
+msgstr "Apacheサーバーがアップロードできる最大ファイルサイズは、右側の値に設定されています。 現在、これより大きいファイルをアップロードすることはできません。 MySQL Slow ログがこれより大きい場合は、Apache に関連付けられている <i>php.ini</i> ファイルを変更し、変数 <b><i>upload_max_filesize</i></b> を見つけて値を増やす必要があります。 その後、Apacheを再起動する必要があります。"
 
 #: slowlog.php:313
 msgid "Max Post Size"
-msgstr ""
+msgstr "最大のPOSTサイズ"
 
 #: slowlog.php:314
 msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
-msgstr ""
+msgstr "Apache サーバーにポストできる最大サイズは、右側の値に設定されます。 この値より大きい MySQL Slow ログがある場合は、Apache に関連付けられている <i>php.ini</i> ファイルを変更し、変数 <b><i>post_max_size</i></b> を見つけて、その値を増やす必要があります。 その後、Apacheを再起動する必要があります。"
 
 #: slowlog.php:321
 msgid "Import MariaDB/MySQL Slowlog"
-msgstr ""
+msgstr "MariaDB/MySQL Slowlogのインポート"
 
 #: slowlog.php:407
-#, fuzzy
 msgid "Queries"
-msgstr "並列クエリ"
+msgstr "クエリ"
 
 #: slowlog.php:408
-#, fuzzy
 msgid "Total Queries"
-msgstr "並列クエリ"
+msgstr "総クエリ数"
 
 #: slowlog.php:411 slowlog.php:415 slowlog.php:427 slowlog.php:1373
 msgid "Rows"
-msgstr ""
+msgstr "行"
 
 #: slowlog.php:412
 msgid "Rows Returned"
-msgstr ""
+msgstr "返される行"
 
 #: slowlog.php:416 slowlog.php:1000
-#, fuzzy
 msgid "Rows Examined"
-msgstr "パケットバー"
+msgstr "調査された行"
 
 #: slowlog.php:419 slowlog.php:423
 msgid "Seconds"
-msgstr ""
+msgstr "秒"
 
 #: slowlog.php:420
 msgid "Lock Seconds"
-msgstr ""
+msgstr "ロック秒数"
 
 #: slowlog.php:424
 msgid "Query Seconds"
-msgstr ""
+msgstr "クエリ秒数"
 
 #: slowlog.php:428 slowlog.php:1006
 msgid "Rows Affected"
-msgstr ""
+msgstr "影響を受ける行"
 
 #: slowlog.php:431
 msgid "Bytes"
 msgstr "バイト"
 
 #: slowlog.php:432 slowlog.php:713 slowlog.php:1007
-#, fuzzy
 msgid "Bytes Sent"
-msgstr "バイトバー"
+msgstr "送信バイト数"
 
 #: slowlog.php:665 slowlog.php:1092
-#, fuzzy
 msgid "Actions"
 msgstr "操作"
 
 #: slowlog.php:668
-#, fuzzy
 msgid "Table Name"
-msgstr "テーブル"
+msgstr "テーブル名"
 
 #: slowlog.php:672 slowlog.php:1326
 msgid "Method"
 msgstr "方法"
 
 #: slowlog.php:676 slowlog.php:988
-#, fuzzy
 msgid "Date"
-msgstr "終了日"
+msgstr "日付"
 
 #: slowlog.php:680 slowlog.php:989 slowlog.php:1404
 msgid "User"
-msgstr ""
+msgstr "ユーザー"
 
 #: slowlog.php:684 slowlog.php:990 slowlog.php:1431
 msgid "Host"
-msgstr ""
+msgstr "ホスト"
 
 #: slowlog.php:688 slowlog.php:997
-#, fuzzy
 msgid "Query Time"
-msgstr "開始時間"
+msgstr "クエリ時間"
 
 #: slowlog.php:693 slowlog.php:998
-#, fuzzy
 msgid "Lock Time"
-msgstr "フロータイム"
+msgstr "ロック時間"
 
 #: slowlog.php:698
 msgid "Sent"
-msgstr ""
+msgstr "送信"
 
 #: slowlog.php:703
-#, fuzzy
 msgid "Examined"
-msgstr "パケットバー"
+msgstr "検討"
 
 #: slowlog.php:708
 msgid "Affected"
-msgstr ""
+msgstr "影響あり"
 
 #: slowlog.php:721
-#, fuzzy
 msgid "Log Entries"
-msgstr "エントリー"
+msgstr "エントリー履歴"
 
 #: slowlog.php:723
 msgid "MariaDB/MySQL SlowLog Details"
-msgstr ""
+msgstr "MariaDB/MySQL SlowLogの詳細"
 
 #: slowlog.php:742
 msgid "View Details"
-msgstr ""
+msgstr "詳細を見る"
 
 #: slowlog.php:805
 #, php-format
 msgid "MariaDB/MySQL SlowLog Results - By %s"
-msgstr ""
+msgstr "MariaDB/MySQL SlowLogの結果 - %sで"
 
 #: slowlog.php:984
 msgid "MariaDB/MySQL SlowLog Query Details"
-msgstr ""
+msgstr "MariaDB/MySQL SlowLogクエリの詳細"
 
 #: slowlog.php:991
-#, fuzzy
 msgid "IP"
 msgstr "IP"
 
 #: slowlog.php:999
 msgid "Rows Sent"
-msgstr ""
+msgstr "送信済み行"
 
 #: slowlog.php:1013
-#, fuzzy
 msgid "Original Query"
-msgstr "オリジンAS"
+msgstr "元のクエリ"
 
 #: slowlog.php:1082
 msgid "MariaDB/MySQL SlowLog File Filters"
-msgstr ""
+msgstr "MariaDB/MySQL SlowLogファイルフィルター"
 
 #: slowlog.php:1095
 msgid "Description"
 msgstr "説明"
 
 #: slowlog.php:1099
-#, fuzzy
 msgid "Import Status"
-msgstr "インポート方法"
+msgstr "インポート状態"
 
 #: slowlog.php:1103
-#, fuzzy
 msgid "Status String"
-msgstr "状態"
+msgstr "ステータス文字列"
 
 #: slowlog.php:1107
 msgid "ID"
 msgstr "ID"
 
 #: slowlog.php:1112
-#, fuzzy
 msgid "Imported"
-msgstr "インポート"
+msgstr "インポート済み"
 
 #: slowlog.php:1117
 msgid "Lines"
 msgstr "直線"
 
 #: slowlog.php:1122
-#, fuzzy
 msgid "Duration"
-msgstr "承認"
+msgstr "期間"
 
 #: slowlog.php:1127
 msgid "Start Date"
 msgstr "開始日"
 
 #: slowlog.php:1132
-#, fuzzy
 msgid "End Date"
 msgstr "終了日"
 
 #: slowlog.php:1152
 msgid "Pre-Processing"
-msgstr ""
+msgstr "前処理"
 
 #: slowlog.php:1154
 msgid "Post-Processing"
-msgstr ""
+msgstr "ポストプロセッシング"
 
 #: slowlog.php:1156
-#, fuzzy
 msgid "Complete"
-msgstr "コンポーネント"
+msgstr "完了"
 
 #: slowlog.php:1158
-#, fuzzy
 msgid "Unknown"
-msgstr "不明 (%s)"
+msgstr "不明"
 
 #: slowlog.php:1200 slowlog.php:1214 slowlog.php:1225
 msgid "Save"
@@ -343,7 +319,7 @@ msgstr "インポート"
 
 #: slowlog.php:1211 slowlog.php:1228
 msgid "Create"
-msgstr ""
+msgstr "作成"
 
 #: slowlog.php:1259 slowlog.php:1398
 msgid "Search"
@@ -351,7 +327,7 @@ msgstr "検索"
 
 #: slowlog.php:1308
 msgid "LogFile"
-msgstr ""
+msgstr "ログファイルのみ"
 
 #: slowlog.php:1312 slowlog.php:1330 slowlog.php:1348 slowlog.php:1408
 #: slowlog.php:1435
@@ -363,13 +339,12 @@ msgid "N/A"
 msgstr "該当なし"
 
 #: slowlog.php:1344
-#, fuzzy
 msgid "Tables"
 msgstr "テーブル"
 
 #: slowlog.php:1349
 msgid "Others"
-msgstr ""
+msgstr "その他"
 
 #: slowlog.php:1377
 msgid "Default"
@@ -417,5 +392,4 @@ msgstr "カスタム"
 
 #: slowlog_functions.php:290
 msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
-msgstr ""
-
+msgstr "最初の Slowlog が取り込まれました。 ポストプロセッシングはバックグラウンドで行われます。 ステータスが完了すると、詳細の分析を開始できます"

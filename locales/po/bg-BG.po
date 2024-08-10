@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: developers@cacti.net\n"
 "POT-Creation-Date: 2024-08-10 11:22-0400\n"
-"PO-Revision-Date: 2024-07-14 20:11-0400\n"
+"PO-Revision-Date: 2024-08-10 11:28-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: bg_BG\n"
@@ -23,7 +23,6 @@ msgid "Delete"
 msgstr "Изтрий"
 
 #: slowlog.php:194
-#, fuzzy
 msgid "You must select at least one Slowlog record."
 msgstr "Трябва да изберете поне едно устройство."
 
@@ -37,37 +36,35 @@ msgstr "Не"
 
 #: slowlog.php:206 slowlog.php:1198 slowlog.php:1218
 msgid "Return"
-msgstr ""
+msgstr "Връщане"
 
 #: slowlog.php:254
 msgid "Import Template from Local File"
-msgstr ""
+msgstr "Импортиране на шаблон от локален файл"
 
 #: slowlog.php:255
 msgid "If the XML file containing template data is located on your local machine, select it here."
-msgstr ""
+msgstr "Ако XML файлът, съдържащ данни за шаблона, се намира на вашата локална машина, изберете го тук."
 
 #: slowlog.php:260
-#, fuzzy
 msgid "LogFile Description"
 msgstr "Описание на маршрута"
 
 #: slowlog.php:261
 msgid "Please provide a description for this MySQL Slowlog file to be imported."
-msgstr ""
+msgstr "Моля, предоставете описание на този MySQL Slowlog файл, който ще бъде импортиран."
 
 #: slowlog.php:262
-#, fuzzy
 msgid "New Slow Log"
 msgstr "Нов поток"
 
 #: slowlog.php:268
 msgid "Max Query Length"
-msgstr ""
+msgstr "Максимална дължина на заявката"
 
 #: slowlog.php:269
 msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
-msgstr ""
+msgstr "Импортирайте само първите X знака на SQL заявката от дневника на MySQL Slow Query."
 
 #: slowlog.php:272
 msgid "All"
@@ -77,116 +74,109 @@ msgstr "Всички"
 #: slowlog.php:277
 #, php-format
 msgid "%d Chars"
-msgstr ""
+msgstr "%d Chars"
 
 #: slowlog.php:282
 msgid "Slowlog Table Names [ optional ]"
-msgstr ""
+msgstr "Имена на таблици Slowlog [ по избор ]"
 
 #: slowlog.php:283
 msgid "Leave Blank for Auto Detection which runs must faster."
-msgstr ""
+msgstr "Оставете празно за автоматично откриване, което трябва да работи по-бързо."
 
 #: slowlog.php:287
 msgid "Use This Cacti Database"
-msgstr ""
+msgstr "Използвайте тази база данни за кактуси"
 
 #: slowlog.php:288
 msgid "Slowlog needs to know the tables names used in your slowlog.  If it's the Cacti database on this system, simply check the checkbox.  Otherwise, you will have to paste the output as show below under 'Tables of Interest', or leave blank to have the Post-process detect the Tables."
-msgstr ""
+msgstr "Slowlog трябва да знае имената на таблиците, използвани във вашия slowlog.  Ако това е базата данни на Cacti в тази система, просто поставете отметка в квадратчето.  В противен случай ще трябва да поставите изхода, както е показано по-долу под \"Таблици от интерес\", или да оставите празен, за да може последващата обработка да открие таблиците."
 
 #: slowlog.php:293
 msgid "Tables of Interest"
-msgstr ""
+msgstr "Таблици, представляващи интерес"
 
 #: slowlog.php:294
 msgid "Please provide a space delimited list of tables that you are interested in.  If you provide this list of tables the MySQL Slow Query Log will be scanned for these entries and more details statistics will be provided.  In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
-msgstr ""
+msgstr "Моля, предоставете списък с таблици, които ви интересуват.  Ако предоставите този списък с таблици, MySQL Slow Query Log ще бъде сканиран за тези записи и ще бъде предоставена повече подробна статистика.  В Linux/UNIX можете да получите списък с таблици, като използвате следната команда:<br><br> Print 'MySQL -<i><b>U User</b></i> -P<i><b>Password</b></i> -e \"Показване на <i><b>таблици\" База данни</b></i> | grep -v Tables_in' | tr '\\n' ' ' '<br><br>Стойностите на \"<i><b>потребител</b></i>\", \"<i><b>парола</b></i>\" и \"<i><b>база данни</b></i>\" се заменят с вашите стойности."
 
 #: slowlog.php:302
-#, fuzzy
 msgid "Upload Limits"
 msgstr "Без ограничение"
 
 #: slowlog.php:303
 msgid "File Size upload limits in Cacti."
-msgstr ""
+msgstr "Ограничения за качване на размера на файла в Cacti."
 
 #: slowlog.php:307
 msgid "Max Upload Filesize"
-msgstr ""
+msgstr "Максимален размер на файла за качване"
 
 #: slowlog.php:308
 msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
-msgstr ""
+msgstr "Максималният размер на файла, който вашият Apache сървър ще позволи да бъде качен, е зададен на стойността вдясно.  В момента не можете да качите файл, по-голям от този.  Ако имате дневни файлове на MySQL Slow, по-големи от този, трябва да промените <i>файла php.ini</i> , свързан с Apache, да намерите <b><i>променливата upload_max_filesize</i></b> и да увеличите стойността.  След което трябва да рестартирате Apache."
 
 #: slowlog.php:313
 msgid "Max Post Size"
-msgstr ""
+msgstr "Максимален размер на публикацията"
 
 #: slowlog.php:314
 msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
-msgstr ""
+msgstr "Максималният размер, който можете да публикувате на сървъра на Apache, е зададен на стойността вдясно.  Ако имате дневни файлове на MySQL Slow, по-големи от тази стойност, трябва да промените <i>файла php.ini</i> , свързан с Apache, да намерите <b><i>променливата post_max_size</i></b> и да увеличите нейната стойност.  След което трябва да рестартирате Apache."
 
 #: slowlog.php:321
 msgid "Import MariaDB/MySQL Slowlog"
-msgstr ""
+msgstr "Импортиране на MariaDB/MySQL Slowlog"
 
 #: slowlog.php:407
-#, fuzzy
 msgid "Queries"
-msgstr "Паралелни заявки"
+msgstr "Справки"
 
 #: slowlog.php:408
-#, fuzzy
 msgid "Total Queries"
 msgstr "Паралелни заявки"
 
 #: slowlog.php:411 slowlog.php:415 slowlog.php:427 slowlog.php:1373
 msgid "Rows"
-msgstr ""
+msgstr "Редове"
 
 #: slowlog.php:412
 msgid "Rows Returned"
-msgstr ""
+msgstr "Върнати редове"
 
 #: slowlog.php:416 slowlog.php:1000
-#, fuzzy
 msgid "Rows Examined"
 msgstr "Пакет бар"
 
 #: slowlog.php:419 slowlog.php:423
 msgid "Seconds"
-msgstr ""
+msgstr "Секунди"
 
 #: slowlog.php:420
 msgid "Lock Seconds"
-msgstr ""
+msgstr "Заключване на секундите"
 
 #: slowlog.php:424
 msgid "Query Seconds"
-msgstr ""
+msgstr "Секунди на заявка"
 
 #: slowlog.php:428 slowlog.php:1006
 msgid "Rows Affected"
-msgstr ""
+msgstr "Засегнати редове"
 
 #: slowlog.php:431
 msgid "Bytes"
 msgstr "Bytes"
 
 #: slowlog.php:432 slowlog.php:713 slowlog.php:1007
-#, fuzzy
 msgid "Bytes Sent"
 msgstr "Бар за байтове"
 
 #: slowlog.php:665 slowlog.php:1092
-#, fuzzy
 msgid "Actions"
 msgstr "Действия"
 
 #: slowlog.php:668
-#, fuzzy
 msgid "Table Name"
 msgstr "Таблица"
 
@@ -195,92 +185,83 @@ msgid "Method"
 msgstr "Метод"
 
 #: slowlog.php:676 slowlog.php:988
-#, fuzzy
 msgid "Date"
-msgstr "Крайна дата"
+msgstr "Дата"
 
 #: slowlog.php:680 slowlog.php:989 slowlog.php:1404
 msgid "User"
-msgstr ""
+msgstr "Потребител"
 
 #: slowlog.php:684 slowlog.php:990 slowlog.php:1431
 msgid "Host"
-msgstr ""
+msgstr "Хост"
 
 #: slowlog.php:688 slowlog.php:997
-#, fuzzy
 msgid "Query Time"
 msgstr "Начален час"
 
 #: slowlog.php:693 slowlog.php:998
-#, fuzzy
 msgid "Lock Time"
 msgstr "Flow Times"
 
 #: slowlog.php:698
 msgid "Sent"
-msgstr ""
+msgstr "Изпратено"
 
 #: slowlog.php:703
-#, fuzzy
 msgid "Examined"
 msgstr "Пакет бар"
 
 #: slowlog.php:708
 msgid "Affected"
-msgstr ""
+msgstr "Засегнати"
 
 #: slowlog.php:721
-#, fuzzy
 msgid "Log Entries"
 msgstr "Получени съобщения"
 
 #: slowlog.php:723
 msgid "MariaDB/MySQL SlowLog Details"
-msgstr ""
+msgstr "Подробности за MariaDB/MySQL SlowLog"
 
 #: slowlog.php:742
 msgid "View Details"
-msgstr ""
+msgstr "Вижте детайлите"
 
 #: slowlog.php:805
 #, php-format
 msgid "MariaDB/MySQL SlowLog Results - By %s"
-msgstr ""
+msgstr "Резултати от MariaDB/MySQL SlowLog - от %s"
 
 #: slowlog.php:984
 msgid "MariaDB/MySQL SlowLog Query Details"
-msgstr ""
+msgstr "Подробности за заявката MariaDB/MySQL SlowLog"
 
 #: slowlog.php:991
-#, fuzzy
 msgid "IP"
 msgstr "IP адрес"
 
 #: slowlog.php:999
 msgid "Rows Sent"
-msgstr ""
+msgstr "Изпратени редове"
 
 #: slowlog.php:1013
-#, fuzzy
 msgid "Original Query"
 msgstr "Произход AS"
 
 #: slowlog.php:1082
 msgid "MariaDB/MySQL SlowLog File Filters"
-msgstr ""
+msgstr "MariaDB/MySQL SlowLog файлови филтри"
 
 #: slowlog.php:1095
 msgid "Description"
 msgstr "Описание"
 
 #: slowlog.php:1099
-#, fuzzy
 msgid "Import Status"
 msgstr "Импортиране чрез"
 
 #: slowlog.php:1103
-#, fuzzy
 msgid "Status String"
 msgstr "Статус"
 
@@ -289,45 +270,40 @@ msgid "ID"
 msgstr "ID"
 
 #: slowlog.php:1112
-#, fuzzy
 msgid "Imported"
-msgstr "Импорт"
+msgstr "Импортирано"
 
 #: slowlog.php:1117
 msgid "Lines"
 msgstr "Редове"
 
 #: slowlog.php:1122
-#, fuzzy
 msgid "Duration"
-msgstr "Оторизиране"
+msgstr "Продължителност"
 
 #: slowlog.php:1127
 msgid "Start Date"
 msgstr "Начална Дата"
 
 #: slowlog.php:1132
-#, fuzzy
 msgid "End Date"
 msgstr "Крайна дата"
 
 #: slowlog.php:1152
 msgid "Pre-Processing"
-msgstr ""
+msgstr "Предварителна обработка"
 
 #: slowlog.php:1154
 msgid "Post-Processing"
-msgstr ""
+msgstr "Последваща обработка"
 
 #: slowlog.php:1156
-#, fuzzy
 msgid "Complete"
-msgstr "Компоненти"
+msgstr "Завършен"
 
 #: slowlog.php:1158
-#, fuzzy
 msgid "Unknown"
-msgstr "Неизвестен (%s)"
+msgstr "알려지지 않음"
 
 #: slowlog.php:1200 slowlog.php:1214 slowlog.php:1225
 msgid "Save"
@@ -343,7 +319,7 @@ msgstr "Импорт"
 
 #: slowlog.php:1211 slowlog.php:1228
 msgid "Create"
-msgstr ""
+msgstr "Създай"
 
 #: slowlog.php:1259 slowlog.php:1398
 msgid "Search"
@@ -351,7 +327,7 @@ msgstr "Търсене"
 
 #: slowlog.php:1308
 msgid "LogFile"
-msgstr ""
+msgstr "LogFile"
 
 #: slowlog.php:1312 slowlog.php:1330 slowlog.php:1348 slowlog.php:1408
 #: slowlog.php:1435
@@ -363,13 +339,12 @@ msgid "N/A"
 msgstr "Няма"
 
 #: slowlog.php:1344
-#, fuzzy
 msgid "Tables"
-msgstr "Таблица"
+msgstr "Таблици"
 
 #: slowlog.php:1349
 msgid "Others"
-msgstr ""
+msgstr "Други"
 
 #: slowlog.php:1377
 msgid "Default"
@@ -417,5 +392,4 @@ msgstr "Персонализиране"
 
 #: slowlog_functions.php:290
 msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
-msgstr ""
-
+msgstr "Първоначалният Slowlog е погълнат.  Последващата обработка ще се извършва във фонов режим.  Можете да започнете да анализирате подробностите, след като състоянието е завършено"

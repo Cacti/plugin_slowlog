@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: developers@cacti.net\n"
 "POT-Creation-Date: 2024-08-10 11:22-0400\n"
-"PO-Revision-Date: 2024-07-14 20:24-0400\n"
+"PO-Revision-Date: 2024-08-10 11:33-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: hi_IN\n"
@@ -23,9 +23,8 @@ msgid "Delete"
 msgstr "हटाएं"
 
 #: slowlog.php:194
-#, fuzzy
 msgid "You must select at least one Slowlog record."
-msgstr "आपके लिए कम से कम एक डिवाइस चुनना ज़रूरी है।"
+msgstr "आपको कम से कम एक स्लोलॉग रिकॉर्ड का चयन करना होगा."
 
 #: slowlog.php:197
 msgid "Yes"
@@ -37,37 +36,35 @@ msgstr "नहीं"
 
 #: slowlog.php:206 slowlog.php:1198 slowlog.php:1218
 msgid "Return"
-msgstr ""
+msgstr "वापसी"
 
 #: slowlog.php:254
 msgid "Import Template from Local File"
-msgstr ""
+msgstr "स्थानीय फ़ाइल से टेम्पलेट आयात करें"
 
 #: slowlog.php:255
 msgid "If the XML file containing template data is located on your local machine, select it here."
-msgstr ""
+msgstr "यदि टेम्पलेट डेटा वाली XML फ़ाइल आपकी स्थानीय मशीन पर स्थित है, तो उसका चयन यहाँ करें."
 
 #: slowlog.php:260
-#, fuzzy
 msgid "LogFile Description"
-msgstr "मार्ग विवरण"
+msgstr "लॉगफ़ाइल विवरण"
 
 #: slowlog.php:261
 msgid "Please provide a description for this MySQL Slowlog file to be imported."
-msgstr ""
+msgstr "कृपया आयात की जाने वाली इस MySQL Slowlog फ़ाइल के लिए विवरण प्रदान करें।"
 
 #: slowlog.php:262
-#, fuzzy
 msgid "New Slow Log"
-msgstr "नया प्रवाह"
+msgstr "नया धीमा लॉग"
 
 #: slowlog.php:268
 msgid "Max Query Length"
-msgstr ""
+msgstr "अधिकतम क्वेरी लंबाई"
 
 #: slowlog.php:269
 msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
-msgstr ""
+msgstr "केवल MySQL धीमी क्वेरी लॉग से SQL क्वेरी के पहले X वर्ण आयात करें।"
 
 #: slowlog.php:272
 msgid "All"
@@ -77,257 +74,236 @@ msgstr "所有"
 #: slowlog.php:277
 #, php-format
 msgid "%d Chars"
-msgstr ""
+msgstr "%d चार्स"
 
 #: slowlog.php:282
 msgid "Slowlog Table Names [ optional ]"
-msgstr ""
+msgstr "स्लोलॉग टेबल नाम [वैकल्पिक]"
 
 #: slowlog.php:283
 msgid "Leave Blank for Auto Detection which runs must faster."
-msgstr ""
+msgstr "ऑटो डिटेक्शन के लिए खाली छोड़ दें जो तेजी से चलना चाहिए।"
 
 #: slowlog.php:287
 msgid "Use This Cacti Database"
-msgstr ""
+msgstr "इस कैक्टि डेटाबेस का उपयोग करें"
 
 #: slowlog.php:288
 msgid "Slowlog needs to know the tables names used in your slowlog.  If it's the Cacti database on this system, simply check the checkbox.  Otherwise, you will have to paste the output as show below under 'Tables of Interest', or leave blank to have the Post-process detect the Tables."
-msgstr ""
+msgstr "स्लोलॉग को आपके स्लोलॉग में उपयोग किए गए टेबल नामों को जानना होगा।  यदि यह इस प्रणाली पर कैक्टि डेटाबेस है, तो बस चेकबॉक्स को चेक करें।  अन्यथा, आपको आउटपुट को 'रुचि की तालिकाओं' के तहत नीचे दिखाए गए अनुसार पेस्ट करना होगा, या पोस्ट-प्रोसेस को टेबल्स का पता लगाने के लिए खाली छोड़ना होगा।"
 
 #: slowlog.php:293
 msgid "Tables of Interest"
-msgstr ""
+msgstr "रुचि की तालिकाएँ"
 
 #: slowlog.php:294
 msgid "Please provide a space delimited list of tables that you are interested in.  If you provide this list of tables the MySQL Slow Query Log will be scanned for these entries and more details statistics will be provided.  In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
-msgstr ""
+msgstr "कृपया उन तालिकाओं की स्थान सीमांकित सूची प्रदान करें जिनमें आप रुचि रखते हैं.  यदि आप तालिकाओं की यह सूची प्रदान करते हैं तो इन प्रविष्टियों के लिए MySQL धीमी क्वेरी लॉग स्कैन किया जाएगा और अधिक विवरण आँकड़े प्रदान किए जाएंगे।  Linux/UNIX में, आप निम्न आदेश का उपयोग करके तालिकाओं की एक सूची प्राप्त कर सकते हैं:<br><br> प्रिंट 'MySQL -u<i><b>उपयोगकर्ता</b></i> -p<i><b>पासवर्ड</b></i> -e \"शो टेबल्स\" <i><b>डेटाबेस</b></i> | जीआरईपी -वी Tables_in' | tr '\\n' '<br><br>'<i><b>उपयोगकर्ता</b></i>', '<i><b>पासवर्ड</b></i>' और '<i><b>डेटाबेस</b></i>' के मूल्यों को आपके मूल्यों से बदल दिया जाता है।"
 
 #: slowlog.php:302
-#, fuzzy
 msgid "Upload Limits"
-msgstr "कोई सीमा नहीं"
+msgstr "अपलोड सीमाएं"
 
 #: slowlog.php:303
 msgid "File Size upload limits in Cacti."
-msgstr ""
+msgstr "कैक्टि में फ़ाइल आकार अपलोड सीमाएं।"
 
 #: slowlog.php:307
 msgid "Max Upload Filesize"
-msgstr ""
+msgstr "अधिकतम अपलोड फ़ाइल आकार"
 
 #: slowlog.php:308
 msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
-msgstr ""
+msgstr "आपके अपाचे सर्वर को अपलोड करने की अनुमति देने वाला अधिकतम फ़ाइल आकार दाईं ओर के मान पर सेट है।  वर्तमान में, आप इससे बड़ी फ़ाइल अपलोड नहीं कर सकते हैं।  यदि आपके पास MySQL स्लो लॉग इससे बड़े हैं, तो आपको अपाचे से जुड़ी <i>php.ini</i> फ़ाइल को बदलना होगा, चर <b><i>upload_max_filesize</i></b> ढूंढना होगा और मान बढ़ाना होगा।  जिसके बाद आपको अपाचे को रीस्टार्ट करना होगा।"
 
 #: slowlog.php:313
 msgid "Max Post Size"
-msgstr ""
+msgstr "अधिकतम पोस्ट आकार"
 
 #: slowlog.php:314
 msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
-msgstr ""
+msgstr "अपाचे सर्वर पर आप जो अधिकतम आकार पोस्ट कर सकते हैं, वह दाईं ओर के मान पर सेट है।  यदि आपके पास MySQL स्लो लॉग इस मान से बड़ा है, तो आपको अपाचे से जुड़ी <i>php.ini</i> फ़ाइल को बदलना होगा, चर <b><i>post_max_size</i></b> ढूंढना होगा और इसका मूल्य बढ़ाना होगा।  जिसके बाद आपको अपाचे को रीस्टार्ट करना होगा।"
 
 #: slowlog.php:321
 msgid "Import MariaDB/MySQL Slowlog"
-msgstr ""
+msgstr "MariaDB/MySQL स्लोलॉग आयात करें"
 
 #: slowlog.php:407
-#, fuzzy
 msgid "Queries"
-msgstr "समानांतर क्वेरीज़"
+msgstr "पूछताछ"
 
 #: slowlog.php:408
-#, fuzzy
 msgid "Total Queries"
-msgstr "समानांतर क्वेरीज़"
+msgstr "कुल क्वेरीज़"
 
 #: slowlog.php:411 slowlog.php:415 slowlog.php:427 slowlog.php:1373
 msgid "Rows"
-msgstr ""
+msgstr "पंक्तियाँ"
 
 #: slowlog.php:412
 msgid "Rows Returned"
-msgstr ""
+msgstr "पंक्तियाँ लौटाई गईं"
 
 #: slowlog.php:416 slowlog.php:1000
-#, fuzzy
 msgid "Rows Examined"
-msgstr "पैकेट बार"
+msgstr "पंक्तियों की जांच की गई"
 
 #: slowlog.php:419 slowlog.php:423
 msgid "Seconds"
-msgstr ""
+msgstr "सेकंड"
 
 #: slowlog.php:420
 msgid "Lock Seconds"
-msgstr ""
+msgstr "सेकंड लॉक करें"
 
 #: slowlog.php:424
 msgid "Query Seconds"
-msgstr ""
+msgstr "क्वेरी सेकंड"
 
 #: slowlog.php:428 slowlog.php:1006
 msgid "Rows Affected"
-msgstr ""
+msgstr "पंक्तियाँ प्रभावित"
 
 #: slowlog.php:431
 msgid "Bytes"
 msgstr "बाइट्स"
 
 #: slowlog.php:432 slowlog.php:713 slowlog.php:1007
-#, fuzzy
 msgid "Bytes Sent"
-msgstr "बाइट्स बार"
+msgstr "बाइट्स भेजे गए"
 
 #: slowlog.php:665 slowlog.php:1092
-#, fuzzy
 msgid "Actions"
 msgstr "कार्रवाइयाँ"
 
 #: slowlog.php:668
-#, fuzzy
 msgid "Table Name"
-msgstr "तालिका"
+msgstr "टेबल का नाम"
 
 #: slowlog.php:672 slowlog.php:1326
 msgid "Method"
 msgstr "तरीका"
 
 #: slowlog.php:676 slowlog.php:988
-#, fuzzy
 msgid "Date"
-msgstr "अंतिम दिनांक"
+msgstr "दिनांक"
 
 #: slowlog.php:680 slowlog.php:989 slowlog.php:1404
 msgid "User"
-msgstr ""
+msgstr "उपयोगकर्ता "
 
 #: slowlog.php:684 slowlog.php:990 slowlog.php:1431
 msgid "Host"
-msgstr ""
+msgstr "होस्ट"
 
 #: slowlog.php:688 slowlog.php:997
-#, fuzzy
 msgid "Query Time"
-msgstr "प्रारंभ समय"
+msgstr "क्वेरी वेळ"
 
 #: slowlog.php:693 slowlog.php:998
-#, fuzzy
 msgid "Lock Time"
-msgstr "फ्लो टाइम्स"
+msgstr "लॉक टाइम"
 
 #: slowlog.php:698
 msgid "Sent"
-msgstr ""
+msgstr "रूप"
 
 #: slowlog.php:703
-#, fuzzy
 msgid "Examined"
-msgstr "पैकेट बार"
+msgstr "जांच"
 
 #: slowlog.php:708
 msgid "Affected"
-msgstr ""
+msgstr "कृत्रिम"
 
 #: slowlog.php:721
-#, fuzzy
 msgid "Log Entries"
-msgstr "प्रविश्टयां"
+msgstr "लॉग प्रविष्टियाँ"
 
 #: slowlog.php:723
 msgid "MariaDB/MySQL SlowLog Details"
-msgstr ""
+msgstr "MariaDB/MySQL SlowLog विवरण"
 
 #: slowlog.php:742
 msgid "View Details"
-msgstr ""
+msgstr "विवरण देखें"
 
 #: slowlog.php:805
 #, php-format
 msgid "MariaDB/MySQL SlowLog Results - By %s"
-msgstr ""
+msgstr "MariaDB/MySQL SlowLog परिणाम - %s तक"
 
 #: slowlog.php:984
 msgid "MariaDB/MySQL SlowLog Query Details"
-msgstr ""
+msgstr "MariaDB/MySQL SlowLog क्वेरी विवरण"
 
 #: slowlog.php:991
-#, fuzzy
 msgid "IP"
-msgstr "आईपी"
+msgstr "IP"
 
 #: slowlog.php:999
 msgid "Rows Sent"
-msgstr ""
+msgstr "पंक्तियाँ भेजी गईं"
 
 #: slowlog.php:1013
-#, fuzzy
 msgid "Original Query"
-msgstr "उत्पत्ति के रूप में"
+msgstr "मूल क्वेरी"
 
 #: slowlog.php:1082
 msgid "MariaDB/MySQL SlowLog File Filters"
-msgstr ""
+msgstr "MariaDB/MySQL स्लोलॉग फ़ाइल फ़िल्टर"
 
 #: slowlog.php:1095
 msgid "Description"
 msgstr "विवरण"
 
 #: slowlog.php:1099
-#, fuzzy
 msgid "Import Status"
-msgstr "आयात के माध्यम से"
+msgstr "आयात स्थिति"
 
 #: slowlog.php:1103
-#, fuzzy
 msgid "Status String"
-msgstr "ऑर्डर स्थिति"
+msgstr "स्थिति स्ट्रिंग"
 
 #: slowlog.php:1107
 msgid "ID"
 msgstr "ID"
 
 #: slowlog.php:1112
-#, fuzzy
 msgid "Imported"
-msgstr "आयात करें"
+msgstr "आयात"
 
 #: slowlog.php:1117
 msgid "Lines"
 msgstr "पंक्तियां"
 
 #: slowlog.php:1122
-#, fuzzy
 msgid "Duration"
-msgstr "प्राधिकरण"
+msgstr "अवधि"
 
 #: slowlog.php:1127
 msgid "Start Date"
 msgstr "प्रारंभ दिनांक"
 
 #: slowlog.php:1132
-#, fuzzy
 msgid "End Date"
 msgstr "अंतिम दिनांक"
 
 #: slowlog.php:1152
 msgid "Pre-Processing"
-msgstr ""
+msgstr "पूर्व प्रसंस्करण"
 
 #: slowlog.php:1154
 msgid "Post-Processing"
-msgstr ""
+msgstr "प्रसंस्करण के बाद"
 
 #: slowlog.php:1156
-#, fuzzy
 msgid "Complete"
-msgstr "घटक"
+msgstr "पूर्ण"
 
 #: slowlog.php:1158
-#, fuzzy
 msgid "Unknown"
-msgstr "अज्ञात (%s)"
+msgstr "अज्ञात"
 
 #: slowlog.php:1200 slowlog.php:1214 slowlog.php:1225
 msgid "Save"
@@ -343,7 +319,7 @@ msgstr "आयात करें"
 
 #: slowlog.php:1211 slowlog.php:1228
 msgid "Create"
-msgstr ""
+msgstr "बनाएं"
 
 #: slowlog.php:1259 slowlog.php:1398
 msgid "Search"
@@ -351,7 +327,7 @@ msgstr "खोजें"
 
 #: slowlog.php:1308
 msgid "LogFile"
-msgstr ""
+msgstr "लॉगफ़ाइल"
 
 #: slowlog.php:1312 slowlog.php:1330 slowlog.php:1348 slowlog.php:1408
 #: slowlog.php:1435
@@ -363,13 +339,12 @@ msgid "N/A"
 msgstr "लागू नहीं"
 
 #: slowlog.php:1344
-#, fuzzy
 msgid "Tables"
-msgstr "तालिका"
+msgstr "टेबल"
 
 #: slowlog.php:1349
 msgid "Others"
-msgstr ""
+msgstr "अन्य लोग"
 
 #: slowlog.php:1377
 msgid "Default"
@@ -417,5 +392,4 @@ msgstr "रुचि अनुसरणीय"
 
 #: slowlog_functions.php:290
 msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
-msgstr ""
-
+msgstr "प्रारंभिक स्लोलॉग को निगला गया है।  पोस्ट प्रोसेसिंग बैकग्राउंड में होगी।  स्थिति पूरी होने के बाद आप विवरण का विश्लेषण शुरू कर सकते हैं"

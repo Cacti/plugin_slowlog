@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: developers@cacti.net\n"
 "POT-Creation-Date: 2024-08-10 11:22-0400\n"
-"PO-Revision-Date: 2024-07-14 20:38-0400\n"
+"PO-Revision-Date: 2024-08-10 11:40-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: vi_VN\n"
@@ -23,9 +23,8 @@ msgid "Delete"
 msgstr "Xóa"
 
 #: slowlog.php:194
-#, fuzzy
 msgid "You must select at least one Slowlog record."
-msgstr "Bạn phải chọn ít nhất một thiết bị."
+msgstr "Bạn phải chọn ít nhất một bản ghi Slowlog."
 
 #: slowlog.php:197
 msgid "Yes"
@@ -37,37 +36,35 @@ msgstr "Không"
 
 #: slowlog.php:206 slowlog.php:1198 slowlog.php:1218
 msgid "Return"
-msgstr ""
+msgstr "Trở về trang cài đặt bắt buộc Plugins"
 
 #: slowlog.php:254
 msgid "Import Template from Local File"
-msgstr ""
+msgstr "Nhập mẫu từ tệp cục bộ"
 
 #: slowlog.php:255
 msgid "If the XML file containing template data is located on your local machine, select it here."
-msgstr ""
+msgstr "Nếu tệp XML chứa dữ liệu mẫu nằm trên máy cục bộ của bạn, hãy chọn nó ở đây."
 
 #: slowlog.php:260
-#, fuzzy
 msgid "LogFile Description"
-msgstr "Mô tả tuyến đường"
+msgstr "Mô tả LogFile"
 
 #: slowlog.php:261
 msgid "Please provide a description for this MySQL Slowlog file to be imported."
-msgstr ""
+msgstr "Vui lòng cung cấp mô tả cho tệp MySQL Slowlog này sẽ được nhập."
 
 #: slowlog.php:262
-#, fuzzy
 msgid "New Slow Log"
-msgstr "Dòng chảy mới"
+msgstr "Nhật ký chậm mới"
 
 #: slowlog.php:268
 msgid "Max Query Length"
-msgstr ""
+msgstr "Độ dài truy vấn tối đa"
 
 #: slowlog.php:269
 msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
-msgstr ""
+msgstr "Chỉ nhập các ký tự X đầu tiên của truy vấn SQL từ Nhật ký truy vấn chậm MySQL."
 
 #: slowlog.php:272
 msgid "All"
@@ -77,257 +74,236 @@ msgstr "Tất cả"
 #: slowlog.php:277
 #, php-format
 msgid "%d Chars"
-msgstr ""
+msgstr "%d Ký tự"
 
 #: slowlog.php:282
 msgid "Slowlog Table Names [ optional ]"
-msgstr ""
+msgstr "Tên bảng Slowlog [ tùy chọn ]"
 
 #: slowlog.php:283
 msgid "Leave Blank for Auto Detection which runs must faster."
-msgstr ""
+msgstr "Để trống cho Tự động phát hiện chạy phải nhanh hơn."
 
 #: slowlog.php:287
 msgid "Use This Cacti Database"
-msgstr ""
+msgstr "Sử dụng cơ sở dữ liệu xương rồng này"
 
 #: slowlog.php:288
 msgid "Slowlog needs to know the tables names used in your slowlog.  If it's the Cacti database on this system, simply check the checkbox.  Otherwise, you will have to paste the output as show below under 'Tables of Interest', or leave blank to have the Post-process detect the Tables."
-msgstr ""
+msgstr "Slowlog cần biết tên bảng được sử dụng trong slowlog của bạn.  Nếu đó là cơ sở dữ liệu Cacti trên hệ thống này, chỉ cần chọn hộp kiểm.  Nếu không, bạn sẽ phải dán đầu ra như hình dưới đây trong 'Bảng quan tâm' hoặc để trống để quá trình hậu kỳ phát hiện các Bảng."
 
 #: slowlog.php:293
 msgid "Tables of Interest"
-msgstr ""
+msgstr "Bảng quan tâm"
 
 #: slowlog.php:294
 msgid "Please provide a space delimited list of tables that you are interested in.  If you provide this list of tables the MySQL Slow Query Log will be scanned for these entries and more details statistics will be provided.  In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
-msgstr ""
+msgstr "Vui lòng cung cấp danh sách các bảng được phân tách bằng không gian mà bạn quan tâm.  Nếu bạn cung cấp danh sách các bảng này, Nhật ký truy vấn chậm MySQL sẽ được quét cho các mục này và thống kê chi tiết hơn sẽ được cung cấp.  Trong Linux/UNIX, bạn có thể lấy danh sách các bảng bằng cách sử dụng lệnh sau:<br><br> In 'mysql -u<i><b>user</b></i> -p<i><b>mật khẩu</b></i> -e \"hiển thị bảng\" <i><b>cơ sở dữ liệu</b></i> | grep -v Tables_in' | tr '\\n' ' '<br><br>Các giá trị '<i><b>người dùng</b></i>', '<i><b>mật khẩu</b></i>' và '<i><b>cơ sở dữ liệu</b></i>' được thay thế bằng các giá trị của bạn."
 
 #: slowlog.php:302
-#, fuzzy
 msgid "Upload Limits"
-msgstr "Không giới hạn"
+msgstr "Giới hạn tải lên"
 
 #: slowlog.php:303
 msgid "File Size upload limits in Cacti."
-msgstr ""
+msgstr "Giới hạn tải lên Kích thước tệp trong Cacti."
 
 #: slowlog.php:307
 msgid "Max Upload Filesize"
-msgstr ""
+msgstr "Kích thước tệp tải lên tối đa"
 
 #: slowlog.php:308
 msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
-msgstr ""
+msgstr "Kích thước tệp tối đa mà máy chủ Apache của bạn sẽ cho phép tải lên được đặt thành giá trị ở bên phải.  Hiện tại, bạn không thể tải lên tệp lớn hơn tệp này.  Nếu bạn có nhật ký MySQL Slow lớn hơn mức này, bạn phải thay đổi tệp <i>php.ini</i> được liên kết với Apache, tìm biến <b><i>upload_max_filesize</i></b> và tăng giá trị.  Sau đó, bạn phải khởi động lại Apache."
 
 #: slowlog.php:313
 msgid "Max Post Size"
-msgstr ""
+msgstr "Kích thước bài đăng tối đa"
 
 #: slowlog.php:314
 msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
-msgstr ""
+msgstr "Kích thước tối đa bạn có thể đăng lên máy chủ Apache được đặt thành giá trị bên phải.  Nếu bạn có MySQL Slow logs lớn hơn giá trị này, bạn phải thay đổi tệp <i>php.ini</i> liên kết với Apache, tìm biến <b><i>post_max_size</i></b> và tăng giá trị của nó.  Sau đó, bạn phải khởi động lại Apache."
 
 #: slowlog.php:321
 msgid "Import MariaDB/MySQL Slowlog"
-msgstr ""
+msgstr "Nhập MariaDB / MySQL Slowlog"
 
 #: slowlog.php:407
-#, fuzzy
 msgid "Queries"
-msgstr "Truy vấn song song"
+msgstr "Truy vấn"
 
 #: slowlog.php:408
-#, fuzzy
 msgid "Total Queries"
-msgstr "Truy vấn song song"
+msgstr "Tổng số truy vấn"
 
 #: slowlog.php:411 slowlog.php:415 slowlog.php:427 slowlog.php:1373
 msgid "Rows"
-msgstr ""
+msgstr "Hàng"
 
 #: slowlog.php:412
 msgid "Rows Returned"
-msgstr ""
+msgstr "Hàng được trả về"
 
 #: slowlog.php:416 slowlog.php:1000
-#, fuzzy
 msgid "Rows Examined"
-msgstr "Gói thanh"
+msgstr "Các hàng được kiểm tra"
 
 #: slowlog.php:419 slowlog.php:423
 msgid "Seconds"
-msgstr ""
+msgstr "Giây"
 
 #: slowlog.php:420
 msgid "Lock Seconds"
-msgstr ""
+msgstr "Khóa giây"
 
 #: slowlog.php:424
 msgid "Query Seconds"
-msgstr ""
+msgstr "Giây truy vấn"
 
 #: slowlog.php:428 slowlog.php:1006
 msgid "Rows Affected"
-msgstr ""
+msgstr "Các hàng bị ảnh hưởng"
 
 #: slowlog.php:431
 msgid "Bytes"
 msgstr "Bytes"
 
 #: slowlog.php:432 slowlog.php:713 slowlog.php:1007
-#, fuzzy
 msgid "Bytes Sent"
-msgstr "Thanh byte"
+msgstr "Số byte đã gửi"
 
 #: slowlog.php:665 slowlog.php:1092
-#, fuzzy
 msgid "Actions"
 msgstr "Hành động"
 
 #: slowlog.php:668
-#, fuzzy
 msgid "Table Name"
-msgstr "Bảng"
+msgstr "Tên bảng"
 
 #: slowlog.php:672 slowlog.php:1326
 msgid "Method"
 msgstr "Phương thức"
 
 #: slowlog.php:676 slowlog.php:988
-#, fuzzy
 msgid "Date"
-msgstr "Ngày kết thúc"
+msgstr "Ngày"
 
 #: slowlog.php:680 slowlog.php:989 slowlog.php:1404
 msgid "User"
-msgstr ""
+msgstr "Người dùng"
 
 #: slowlog.php:684 slowlog.php:990 slowlog.php:1431
 msgid "Host"
-msgstr ""
+msgstr "Host"
 
 #: slowlog.php:688 slowlog.php:997
-#, fuzzy
 msgid "Query Time"
-msgstr "Thời gian bắt đầu"
+msgstr "Thời gian truy vấn"
 
 #: slowlog.php:693 slowlog.php:998
-#, fuzzy
 msgid "Lock Time"
-msgstr "Dòng chảy thời gian"
+msgstr "Khóa thời gian"
 
 #: slowlog.php:698
 msgid "Sent"
-msgstr ""
+msgstr "Đã gửi"
 
 #: slowlog.php:703
-#, fuzzy
 msgid "Examined"
-msgstr "Gói thanh"
+msgstr "Kiểm tra"
 
 #: slowlog.php:708
 msgid "Affected"
-msgstr ""
+msgstr "Giả tạo"
 
 #: slowlog.php:721
-#, fuzzy
 msgid "Log Entries"
-msgstr "Mục"
+msgstr "Mục nhật ký"
 
 #: slowlog.php:723
 msgid "MariaDB/MySQL SlowLog Details"
-msgstr ""
+msgstr "MariaDB / MySQL Chi tiết SlowLog"
 
 #: slowlog.php:742
 msgid "View Details"
-msgstr ""
+msgstr "Xem chi tiết"
 
 #: slowlog.php:805
 #, php-format
 msgid "MariaDB/MySQL SlowLog Results - By %s"
-msgstr ""
+msgstr "Kết quả MariaDB / MySQL SlowLog - Bằng %s"
 
 #: slowlog.php:984
 msgid "MariaDB/MySQL SlowLog Query Details"
-msgstr ""
+msgstr "Chi tiết truy vấn MariaDB / MySQL SlowLog"
 
 #: slowlog.php:991
-#, fuzzy
 msgid "IP"
 msgstr "IP"
 
 #: slowlog.php:999
 msgid "Rows Sent"
-msgstr ""
+msgstr "Hàng đã gửi"
 
 #: slowlog.php:1013
-#, fuzzy
 msgid "Original Query"
-msgstr "Nguồn gốc AS"
+msgstr "Truy vấn gốc"
 
 #: slowlog.php:1082
 msgid "MariaDB/MySQL SlowLog File Filters"
-msgstr ""
+msgstr "Bộ lọc tệp MariaDB / MySQL SlowLog"
 
 #: slowlog.php:1095
 msgid "Description"
 msgstr "Mô tả"
 
 #: slowlog.php:1099
-#, fuzzy
 msgid "Import Status"
-msgstr "Nhập khẩu qua"
+msgstr "Trạng thái nhập khẩu"
 
 #: slowlog.php:1103
-#, fuzzy
 msgid "Status String"
-msgstr "Trạng thái"
+msgstr "Chuỗi trạng thái"
 
 #: slowlog.php:1107
 msgid "ID"
 msgstr "ID"
 
 #: slowlog.php:1112
-#, fuzzy
 msgid "Imported"
-msgstr "Nhập"
+msgstr "Đã nhập"
 
 #: slowlog.php:1117
 msgid "Lines"
 msgstr "Các dòng"
 
 #: slowlog.php:1122
-#, fuzzy
 msgid "Duration"
-msgstr "Xác thực"
+msgstr "Thời lượng"
 
 #: slowlog.php:1127
 msgid "Start Date"
 msgstr "Ngày bắt đầu"
 
 #: slowlog.php:1132
-#, fuzzy
 msgid "End Date"
 msgstr "Ngày kết thúc"
 
 #: slowlog.php:1152
 msgid "Pre-Processing"
-msgstr ""
+msgstr "Tiền xử lý"
 
 #: slowlog.php:1154
 msgid "Post-Processing"
-msgstr ""
+msgstr "Xử lý hậu kỳ"
 
 #: slowlog.php:1156
-#, fuzzy
 msgid "Complete"
-msgstr "Các thành phần"
+msgstr "Hoàn thành"
 
 #: slowlog.php:1158
-#, fuzzy
 msgid "Unknown"
-msgstr "Không xác định (%s)"
+msgstr "Không xác định"
 
 #: slowlog.php:1200 slowlog.php:1214 slowlog.php:1225
 msgid "Save"
@@ -343,7 +319,7 @@ msgstr "Nhập"
 
 #: slowlog.php:1211 slowlog.php:1228
 msgid "Create"
-msgstr ""
+msgstr "Tạo"
 
 #: slowlog.php:1259 slowlog.php:1398
 msgid "Search"
@@ -351,7 +327,7 @@ msgstr "Tìm kiếm"
 
 #: slowlog.php:1308
 msgid "LogFile"
-msgstr ""
+msgstr "Tệp nhật ký"
 
 #: slowlog.php:1312 slowlog.php:1330 slowlog.php:1348 slowlog.php:1408
 #: slowlog.php:1435
@@ -363,13 +339,12 @@ msgid "N/A"
 msgstr "N/A"
 
 #: slowlog.php:1344
-#, fuzzy
 msgid "Tables"
-msgstr "Bảng"
+msgstr "Những cái bàn"
 
 #: slowlog.php:1349
 msgid "Others"
-msgstr ""
+msgstr "Khác"
 
 #: slowlog.php:1377
 msgid "Default"
@@ -417,5 +392,4 @@ msgstr "Tùy chỉnh"
 
 #: slowlog_functions.php:290
 msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
-msgstr ""
-
+msgstr "Slowlog ban đầu đã được nhập.  Quá trình xử lý bài đăng sẽ diễn ra trong nền.  Bạn có thể bắt đầu phân tích Chi tiết sau khi trạng thái hoàn tất"
