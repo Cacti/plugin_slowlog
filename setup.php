@@ -137,10 +137,11 @@ function slowlog_setup_table_new() {
 		`oquery` text NOT NULL,
 		`query` text NOT NULL,
 		PRIMARY KEY  (`logentry`),
+		KEY `logid` (`logid`),
 		KEY `user` (`user`),
 		KEY `host` (`host`))
-		ENGINE = InnoDB
-		ROW_FORMAT=Dynamic
+		ENGINE=Aria
+		ROW_FORMAT=Page
 		COMMENT='Provides statistics on your slow query log';");
 
 	db_execute("CREATE TABLE IF NOT EXISTS `plugin_slowlog_details_methods` (
@@ -150,8 +151,8 @@ function slowlog_setup_table_new() {
 		`methodid` int(10) unsigned NOT NULL,
 		PRIMARY KEY  USING BTREE (`logid`,`logentry`,`methodid`),
 		KEY `id` (`id`))
-		ENGINE=InnoDB
-		ROW_FORMAT=Dynamic");
+		ENGINE=Aria
+		ROW_FORMAT=Page");
 
 	db_execute("CREATE TABLE IF NOT EXISTS `plugin_slowlog_details_tables` (
 		`tableid` int(10) unsigned NOT NULL auto_increment,
@@ -160,8 +161,8 @@ function slowlog_setup_table_new() {
 		`table_name` varchar(45) NOT NULL,
 		PRIMARY KEY  (`logid`,`logentry`,`table_name`),
 		KEY `tableid` (`tableid`))
-		ENGINE=InnoDB
-		ROW_FORMAT=Dynamic");
+		ENGINE=Aria
+		ROW_FORMAT=Page");
 
 	db_execute("CREATE TABLE IF NOT EXISTS `plugin_slowlog_methods` (
 		`method` varchar(45) NOT NULL,
