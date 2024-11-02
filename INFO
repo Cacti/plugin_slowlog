@@ -1,6 +1,6 @@
 [info]
 name = slowlog
-version = 2.0
+version = 2.1
 longname = MySQL/MariaDB Slow Log Viewer
 author = The Cacti Group
 email = 
