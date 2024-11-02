@@ -1,6 +1,6 @@
 ## ChangeLog
 
---- develop ---
+--- 2.1 ---
 
 * security: Fix potential security exposure with unserialize() function
 * issue#2: Warnings issue when attempting to import a Slowlog from the CLI
