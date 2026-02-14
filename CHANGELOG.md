@@ -30,3 +30,6 @@
 --- 1.0 ---
 
 * Initial release
+
+-----------------------------------------------
+Copyright (c) 2004-2026 - The Cacti Group, Inc.
