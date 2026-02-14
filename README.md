@@ -29,3 +29,6 @@ If you figure out this problem, let me know!!!
 ## Future Changes
 
 Got any ideas or complaints, please post them on the forums.
+
+-----------------------------------------------
+Copyright (c) 2004-2026 - The Cacti Group, Inc.
