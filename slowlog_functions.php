@@ -309,7 +309,9 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 function load_reserved_words() {
 	global $reserved_words;
 
-	$reserved_words = array_rekey(db_fetch_assoc('SELECT word FROM plugin_slowlog_reserved_words'), 'word', 'word');
+	$reserved_words = array_rekey(db_fetch_assoc_prepared('SELECT word
+		FROM plugin_slowlog_reserved_words',
+		array()), 'word', 'word');
 }
 
 function is_reserved_word($token) {
@@ -348,22 +350,23 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
 		$start = microtime(true);
 
 		// perform fairly fast
-		$methods = db_fetch_assoc('SELECT *
+		$methods = db_fetch_assoc_prepared('SELECT *
 			FROM plugin_slowlog_methods
-			ORDER BY method');
+			ORDER BY method',
+			array());
 
 		foreach($methods as $row) {
 			if ($row['method'] != 'OTHERS') {
 				$queries = explode(',', $row['query']);
 
 				foreach($queries as $q) {
-					db_execute_prepared("INSERT INTO plugin_slowlog_details_methods
+					db_execute_prepared('INSERT INTO plugin_slowlog_details_methods
 						(logid, logentry, methodid)
-						SELECT '$logid' AS logid, logentry, '" . $row['methodid'] . "' AS methodid
+						SELECT ? AS logid, logentry, ? AS methodid
 						FROM plugin_slowlog_details
 						WHERE logid = ?
-						AND query LIKE ?",
-						array($logid, '%' . $q . '%'));
+						AND query LIKE ?',
+						array($logid, $row['methodid'], $logid, '%' . $q . '%'));
 				}
 			} else {
 				$sql_where    = 'WHERE logid = ?';
@@ -381,10 +384,10 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
 
 				db_execute_prepared("INSERT INTO plugin_slowlog_details_methods
 					(logid, logentry, methodid)
-					SELECT '$logid' AS logid, logentry, " . $row['methodid'] . " AS methodid
+					SELECT ? AS logid, logentry, ? AS methodid
 					FROM plugin_slowlog_details
 					$sql_where",
-					$sql_params);
+					array_merge(array($logid, $row['methodid']), $sql_params));
 			}
 		}
 
@@ -410,20 +413,24 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
 
 		if ($total_tables > 0) {
 			foreach($tables as $t) {
-				db_execute("INSERT INTO plugin_slowlog_tables (logid, table_name) VALUES ($logid, '$t')");
+				db_execute_prepared('INSERT INTO plugin_slowlog_tables
+					(logid, table_name)
+					VALUES (?, ?)',
+					array($logid, $t));
 
-				db_execute("INSERT INTO plugin_slowlog_details_tables (logid, logentry, table_name)
-					SELECT '$logid' AS logid, logentry, '$t' AS table_name
+				db_execute_prepared('INSERT INTO plugin_slowlog_details_tables (logid, logentry, table_name)
+					SELECT ? AS logid, logentry, ? AS table_name
 					FROM plugin_slowlog_details
-					WHERE logid=$logid
-					AND (query LIKE '%FROM $t %'
-					OR query LIKE '%FROM ($t,%'
-					OR query LIKE '%FROM (%,$t)%'
-					OR query LIKE '%JOIN $t %'
-					OR query LIKE '%`$t`%'
-					OR query LIKE '%UPDATE $t %'
-					OR query LIKE '%INTO $t %'
-					OR query LIKE '%FROM $t')");
+					WHERE logid = ?
+					AND (query LIKE ?
+					OR query LIKE ?
+					OR query LIKE ?
+					OR query LIKE ?
+					OR query LIKE ?
+					OR query LIKE ?
+					OR query LIKE ?
+					OR query LIKE ?)',
+					array($logid, $t, $logid, '%FROM ' . $t . ' %', '%FROM (' . $t . ',%', '%FROM (%,' . $t . ')%', '%JOIN ' . $t . ' %', '%`' . $t . '`%', '%UPDATE ' . $t . ' %', '%INTO ' . $t . ' %', '%FROM ' . $t));
 
 				if ($i % 20 == 0) {
 					db_execute_prepared('UPDATE plugin_slowlog

@@ -81,16 +81,24 @@ function slowlog_check_upgrade() {
 
 	$current = slowlog_version();
 	$current = $current['version'];
-	$old     = db_fetch_cell("SELECT version FROM plugin_config WHERE directory='slowlog'");
+	$info    = slowlog_version();
+	$old     = db_fetch_cell_prepared('SELECT version
+		FROM plugin_config
+		WHERE directory = ?',
+		array('slowlog'));
 
 	if ($current != $old) {
-		db_execute("UPDATE plugin_config SET version='$current' WHERE directory='slowlog'");
-		db_execute("UPDATE plugin_config SET
-			version='" . $info['version']  . "',
-			name='"    . $info['longname'] . "',
-			author='"  . $info['author']   . "',
-			webpage='" . $info['homepage'] . "'
-			WHERE directory='" . $info['name'] . "' ");
+		db_execute_prepared('UPDATE plugin_config
+			SET version = ?
+			WHERE directory = ?',
+			array($current, 'slowlog'));
+		db_execute_prepared('UPDATE plugin_config
+			SET version = ?,
+			name = ?,
+			author = ?,
+			webpage = ?
+			WHERE directory = ?',
+			array($info['version'], $info['longname'], $info['author'], $info['homepage'], $info['name']));
 
 		db_execute('DELETE FROM plugin_hooks WHERE function="slowlog_page_head"');
 
@@ -253,7 +261,10 @@ function slowlog_show_tab() {
 	global $config;
 
 	if (!isset($_SESSION['sess_slowlog_level'])) {
-		$perms = db_fetch_cell("SELECT id FROM plugin_realms WHERE file LIKE '%slowlog.php%'") + 100;
+		$perms = db_fetch_cell_prepared('SELECT id
+			FROM plugin_realms
+			WHERE file LIKE ?',
+			array('%slowlog.php%')) + 100;
 
 		$level = db_fetch_assoc_prepared('SELECT realm_id
             FROM user_auth_realm
@@ -276,4 +287,3 @@ function slowlog_show_tab() {
 		}
 	}
 }
-
