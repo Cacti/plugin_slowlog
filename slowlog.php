@@ -57,39 +57,31 @@ switch (get_request_var('action')) {
 
 		break;
 	case 'edit':
-		general_header();
-		slowlog_import();
-		bottom_footer();
+		slowlog_render_with_layout('slowlog_import');
 
 		break;
 	case 'methods':
-		general_header();
-		slowlog_view_charts('methods');
-		bottom_footer();
+		slowlog_render_with_layout(function () {
+			slowlog_view_charts('methods');
+		});
 
 		break;
 	case 'tables':
-		general_header();
-		slowlog_view_charts('tables');
-		bottom_footer();
+		slowlog_render_with_layout(function () {
+			slowlog_view_charts('tables');
+		});
 
 		break;
 	case 'details':
-		general_header();
-		slowlog_view_details();
-		bottom_footer();
+		slowlog_render_with_layout('slowlog_view_details');
 
 		break;
 	case 'query':
-		general_header();
-		slowlog_view_query();
-		bottom_footer();
+		slowlog_render_with_layout('slowlog_view_query');
 
 		break;
 	default:
-		general_header();
-		slowlog_view();
-		bottom_footer();
+		slowlog_render_with_layout('slowlog_view');
 
 		break;
 }
@@ -1613,4 +1605,3 @@ function slowlog_details_filter() {
 	</tr>
 	<?php
 }
-
