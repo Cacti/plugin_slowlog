@@ -32,6 +32,14 @@ $setup_contents   = file_get_contents($setup_file);
 $slowlog_contents = file_get_contents($slowlog_file);
 $helpers_contents = file_get_contents($helpers_file);
 
+assert_true('setup.php is readable', $setup_contents !== false);
+assert_true('slowlog.php is readable', $slowlog_contents !== false);
+assert_true('slowlog_functions.php is readable', $helpers_contents !== false);
+
+$setup_contents   = ($setup_contents === false ? '' : $setup_contents);
+$slowlog_contents = ($slowlog_contents === false ? '' : $slowlog_contents);
+$helpers_contents = ($helpers_contents === false ? '' : $helpers_contents);
+
 assert_true(
 	'setup.php uses prepared version lookup',
 	preg_match('/db_fetch_cell_prepared\s*\(\s*\'SELECT version/s', $setup_contents) === 1
@@ -50,7 +58,7 @@ assert_true(
 );
 assert_true(
 	'slowlog.php uses prepared db_fetch_assoc calls',
-	preg_match_all('/\bdb_fetch_assoc_prepared\s*\(/', $slowlog_contents) >= 5
+	preg_match_all('/\bdb_fetch_assoc_prepared\s*\(/', $slowlog_contents, $slowlog_matches) >= 5
 );
 assert_true(
 	'slowlog_functions.php removed raw table insert interpolation',

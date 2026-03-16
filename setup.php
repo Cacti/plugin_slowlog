@@ -79,9 +79,8 @@ function slowlog_check_upgrade() {
 		return;
 	}
 
-	$current = slowlog_version();
-	$current = $current['version'];
 	$info    = slowlog_version();
+	$current = $info['version'];
 	$old     = db_fetch_cell_prepared('SELECT version
 		FROM plugin_config
 		WHERE directory = ?',
