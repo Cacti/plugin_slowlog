@@ -80,6 +80,15 @@ assert_true(
 	'slowlog_functions.php uses prepared insert for plugin_slowlog_details_tables',
 	preg_match('/db_execute_prepared\s*\(\s*\'INSERT INTO plugin_slowlog_details_tables/s', $helpers_contents) === 1
 );
+assert_true(
+	'slowlog_functions.php limits raw db_execute to parser replay paths',
+	preg_match_all('/\bdb_execute\s*\(/', $helpers_contents, $raw_execute_matches) === 3
+	&& preg_match_all('/db_execute\s*\(\s*\$sql_prefix\s*\./', $helpers_contents, $prefixed_execute_matches) === 3
+);
+assert_true(
+	'slowlog_functions.php limits raw db_fetch_assoc to schema discovery helpers',
+	preg_match_all('/\bdb_fetch_assoc\s*\(/', $helpers_contents, $raw_fetch_assoc_matches) === 2
+);
 
 echo "\n";
 echo "Results: $pass passed, $fail failed\n";
