@@ -1311,8 +1311,10 @@ function slowlog_details_filter() {
 							<select id='logid' onChange='applyFilter()'>
 								<option value='-1'<?php if (get_request_var('logid') == '-1') {?> selected<?php }?>><?php print __('Any', 'slowlog');?></option>
 								<?php
-								$logids = db_fetch_assoc('SELECT logid, CONCAT(description) AS name
-									FROM plugin_slowlog ORDER BY name');
+								$logids = db_fetch_assoc_prepared('SELECT logid, CONCAT(description) AS name
+									FROM plugin_slowlog
+									ORDER BY name',
+									array());
 
 								if (cacti_sizeof($logids)) {
 									foreach ($logids as $l) {
@@ -1330,7 +1332,10 @@ function slowlog_details_filter() {
 								<option value='-1'<?php if (get_request_var('mmethod') == '-1') {?> selected<?php }?>><?php print __('Any', 'slowlog');?></option>
 								<option value='-2'<?php if (get_request_var('mmethod') == '-2') {?> selected<?php }?>><?php print __('N/A', 'slowlog');?></option>
 								<?php
-								$methods = db_fetch_assoc('SELECT * FROM plugin_slowlog_methods ORDER BY method');
+								$methods = db_fetch_assoc_prepared('SELECT *
+									FROM plugin_slowlog_methods
+									ORDER BY method',
+									array());
 
 								if (cacti_sizeof($methods)) {
 									foreach ($methods as $m) {
@@ -1356,9 +1361,10 @@ function slowlog_details_filter() {
 										ORDER BY table_name',
 										array(get_request_var('logid')));
 								} else {
-									$tables = db_fetch_assoc('SELECT DISTINCT table_name
+									$tables = db_fetch_assoc_prepared('SELECT DISTINCT table_name
 										FROM plugin_slowlog_details_tables
-										ORDER BY table_name');
+										ORDER BY table_name',
+										array());
 								}
 
 								if (cacti_sizeof($tables)) {
@@ -1414,9 +1420,10 @@ function slowlog_details_filter() {
 										ORDER BY user',
 										array(get_request_var('logid')));
 								} else {
-									$users = db_fetch_assoc('SELECT DISTINCT user
+									$users = db_fetch_assoc_prepared('SELECT DISTINCT user
 										FROM plugin_slowlog_details
-										ORDER BY user');
+										ORDER BY user',
+										array());
 								}
 
 								if (cacti_sizeof($users)) {
@@ -1441,9 +1448,10 @@ function slowlog_details_filter() {
 										ORDER BY host',
 										array(get_request_var('logid')));
 								} else {
-									$hosts = db_fetch_assoc('SELECT DISTINCT host
+									$hosts = db_fetch_assoc_prepared('SELECT DISTINCT host
 										FROM plugin_slowlog_details
-										ORDER BY host');
+										ORDER BY host',
+										array());
 								}
 
 								if (cacti_sizeof($hosts)) {
@@ -1613,4 +1621,3 @@ function slowlog_details_filter() {
 	</tr>
 	<?php
 }
-
