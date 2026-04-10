@@ -1463,7 +1463,7 @@ function slowlog_details_filter() {
 						</td>
 						<td>
 							<span>
-								<input type='text' class='ui-state-default ui-corner-all' id='date1' size='18' value='<?php print get_request_var('date1');?>'>
+								<input type='text' class='ui-state-default ui-corner-all' id='date1' size='18' value='<?php print html_escape_request_var('date1'); ?>'>
 								<i id='startDate' class='calendar fa fa-calendar-alt' title='<?php print __esc('Start Date Selector', 'slowlog');?>'></i>
 							</span>
 						</td>
@@ -1472,7 +1472,7 @@ function slowlog_details_filter() {
 						</td>
 						<td>
 							<span>
-								<input type='text' class='ui-state-default ui-corner-all' id='date2' size='18' value='<?php print get_request_var('date2');?>'>
+								<input type='text' class='ui-state-default ui-corner-all' id='date2' size='18' value='<?php print html_escape_request_var('date2'); ?>'>
 								<i id='endDate' class='calendar fa fa-calendar-alt' title='<?php print __esc('End Date Selector', 'slowlog');?>'></i>
 							</span>
 						</td>
