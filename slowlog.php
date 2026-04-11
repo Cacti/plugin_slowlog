@@ -1059,7 +1059,7 @@ function slowlog_view() {
 	$sql_orderby = get_order_string();
 
 	if (get_request_var('filter') != '') {
-		$sql_where = ($sql_where != '' ? ' AND ': 'WHERE ') . "(description LIKE '%%" . get_request_var('filter') . "%%')";
+		$sql_where = ($sql_where != '' ? ' AND ': 'WHERE ') . '(description LIKE ?)';
 		$sql_params[] = '%' . get_request_var('filter') . '%';
 	}
 
@@ -1455,7 +1455,7 @@ function slowlog_details_filter() {
 						</td>
 						<td>
 							<span>
-								<input type='text' class='ui-state-default ui-corner-all' id='date1' size='18' value='<?php print get_request_var('date1');?>'>
+								<input type='text' class='ui-state-default ui-corner-all' id='date1' size='18' value='<?php print html_escape_request_var('date1');?>'>
 								<i id='startDate' class='calendar fa fa-calendar-alt' title='<?php print __esc('Start Date Selector', 'slowlog');?>'></i>
 							</span>
 						</td>
@@ -1464,7 +1464,7 @@ function slowlog_details_filter() {
 						</td>
 						<td>
 							<span>
-								<input type='text' class='ui-state-default ui-corner-all' id='date2' size='18' value='<?php print get_request_var('date2');?>'>
+								<input type='text' class='ui-state-default ui-corner-all' id='date2' size='18' value='<?php print html_escape_request_var('date2');?>'>
 								<i id='endDate' class='calendar fa fa-calendar-alt' title='<?php print __esc('End Date Selector', 'slowlog');?>'></i>
 							</span>
 						</td>
@@ -1506,8 +1506,8 @@ function slowlog_details_filter() {
 			<script type='text/javascript'>
 			var date1Open = false;
 			var date2Open = false;
-			var pageTab   = '<?php print get_request_var('tab');?>';
-			var logid     = <?php print get_request_var('logid');?>;
+			var pageTab   = <?php print json_encode(get_request_var('tab'));?>;
+			var logid     = <?php print (int)get_request_var('logid');?>;
 
 			function applyFilter() {
 				var strURL = 'slowlog.php?action=details&logid=' + logid;
