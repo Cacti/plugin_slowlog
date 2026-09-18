@@ -2,6 +2,8 @@
 
 --- 2.1 ---
 
+* security: Migrate remaining slowlog SQL helpers (setup, upgrade, and post-processing queries) to prepared statements
+* feature: Adopt a Pest-based test suite and Cacti CI workflow, replacing the standalone test scripts
 * security: Fix potential security exposure with unserialize() function
 * issue#2: Warnings issue when attempting to import a Slowlog from the CLI
 * issue: Add index to the main table to improve performance
