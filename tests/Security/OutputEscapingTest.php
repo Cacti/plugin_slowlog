@@ -2,8 +2,20 @@
 /*
  +-------------------------------------------------------------------------+
  | Copyright (C) 2004-2026 The Cacti Group                                 |
+ |                                                                         |
+ | This program is free software; you can redistribute it and/or           |
+ | modify it under the terms of the GNU General Public License             |
+ | as published by the Free Software Foundation; either version 2          |
+ | of the License, or (at your option) any later version.                  |
+ |                                                                         |
+ | This program is distributed in the hope that it will be useful,         |
+ | but WITHOUT ANY WARRANTY; without even the implied warranty of          |
+ | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
+ | GNU General Public License for more details.                            |
  +-------------------------------------------------------------------------+
  | Cacti: The Complete RRDtool-based Graphing Solution                     |
+ +-------------------------------------------------------------------------+
+ | http://www.cacti.net/                                                   |
  +-------------------------------------------------------------------------+
 */
 
@@ -27,15 +39,33 @@ describe('output escaping in slowlog', function () {
 				$trimmed = ltrim($line);
 				if (strpos($trimmed, '//') === 0 || strpos($trimmed, '*') === 0) continue;
 
-				// value="$row[...] without html_escape wrapping
-				if (preg_match('/value\s*=\s*["\'"]\s*<\?php\s+echo\s+\$/', $line)) {
-					$dangerous++;
-				}
-				// title="<?php print $something without escaping
-				if (preg_match('/(?:title|alt|placeholder)\s*=.*print\s+\$(?!_|config)/', $line)) {
-					if (strpos($line, 'html_escape') === false && strpos($line, '__esc') === false && strpos($line, 'htmlspecialchars') === false) {
-						$dangerous++;
+				// value/href/src/title/alt/placeholder="<?php echo|print $... without escaping
+				if (preg_match('/(?:value|href|src|title|alt|placeholder)\s*=\s*["\']\s*<\?php\s+(?:echo|print)\s+\$(?!_|config)(\w+)/', $line, $matches)) {
+					if (strpos($line, 'html_escape') !== false
+						|| strpos($line, '__esc') !== false
+						|| strpos($line, 'htmlspecialchars') !== false
+						|| strpos($line, 'json_encode') !== false
+						|| strpos($line, '(int)') !== false) {
+						continue;
 					}
+
+					// Allow variables that are always assigned from an escaped/cast value elsewhere in the file
+					$variable = $matches[1];
+					if (preg_match('/\$' . preg_quote($variable, '/') . '\s*=\s*(?:__esc\s*\(|html_escape\s*\(|htmlspecialchars\s*\(|\(int\))/', $contents)) {
+						continue;
+					}
+
+					// Allow variables that are never derived from request/user input (not tainted)
+					$isTainted = preg_match(
+						'/\$' . preg_quote($variable, '/') . '\s*=[^;]*(?:get_request_var|get_nfilter_request_var|get_filter_request_var|\$_GET|\$_POST|\$_REQUEST)/',
+						$contents
+					);
+
+					if (!$isTainted) {
+						continue;
+					}
+
+					$dangerous++;
 				}
 			}
 

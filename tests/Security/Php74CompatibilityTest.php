@@ -2,8 +2,20 @@
 /*
  +-------------------------------------------------------------------------+
  | Copyright (C) 2004-2026 The Cacti Group                                 |
+ |                                                                         |
+ | This program is free software; you can redistribute it and/or           |
+ | modify it under the terms of the GNU General Public License             |
+ | as published by the Free Software Foundation; either version 2          |
+ | of the License, or (at your option) any later version.                  |
+ |                                                                         |
+ | This program is distributed in the hope that it will be useful,         |
+ | but WITHOUT ANY WARRANTY; without even the implied warranty of          |
+ | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
+ | GNU General Public License for more details.                            |
  +-------------------------------------------------------------------------+
  | Cacti: The Complete RRDtool-based Graphing Solution                     |
+ +-------------------------------------------------------------------------+
+ | http://www.cacti.net/                                                   |
  +-------------------------------------------------------------------------+
 */
 
@@ -90,9 +102,8 @@ describe('PHP 7.4 compatibility in slowlog', function () {
 		}
 	});
 
-	it('uses array() not short syntax for new arrays', function () use ($files) {
-		// This is a style preference for 1.2.x consistency, not a hard requirement
-		// Just verify no mixed styles in the same file
+	it('does not mix array() and short [] array syntax', function () use ($files) {
+		// Flag files that mix both styles
 		foreach ($files as $f) {
 			$p = realpath(__DIR__ . '/../../' . $f);
 			if ($p === false) continue;
@@ -102,13 +113,9 @@ describe('PHP 7.4 compatibility in slowlog', function () {
 			$hasArrayFunc = preg_match('/\barray\s*\(/', $c);
 			$hasShortArray = preg_match('/=\s*\[/', $c);
 
-			// Flag files that mix both styles
-			if ($hasArrayFunc && $hasShortArray) {
-				// Allow mixed if the file existed before our changes
-				// This is informational, not a hard fail
-			}
+			expect($hasArrayFunc && $hasShortArray)->toBeFalse(
+				"{$f} mixes array() and short [] array syntax"
+			);
 		}
-
-		expect(true)->toBeTrue();
 	});
 });

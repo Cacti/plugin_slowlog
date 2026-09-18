@@ -267,22 +267,6 @@ if (!defined('MESSAGE_LEVEL_ERROR')) {
 	define('MESSAGE_LEVEL_ERROR', 1);
 }
 
-if (!function_exists('plugin_test_read_source')) {
-	function plugin_test_read_source($relative_file) {
-		$path = realpath(__DIR__ . '/../' . $relative_file);
-		if ($path === false) {
-			throw new RuntimeException("Unable to resolve required file: {$relative_file}");
-		}
-
-		$contents = file_get_contents($path);
-		if ($contents === false) {
-			throw new RuntimeException("Unable to read required file: {$relative_file}");
-		}
-
-		return $contents;
-	}
-}
-
 /**
  * Load a plugin source file at global scope.
  *
