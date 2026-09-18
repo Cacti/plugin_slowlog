@@ -22,6 +22,12 @@
  +-------------------------------------------------------------------------+
 */
 
+function slowlog_render_with_layout(callable $render_callback): void {
+	general_header();
+	$render_callback();
+	bottom_footer();
+}
+
 function get_cacti_tables() {
 	$databases = db_fetch_assoc('SHOW DATABASES');
 	$tables    = '';

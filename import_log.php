@@ -98,6 +98,6 @@ function display_help() {
 	print 'Options:' . PHP_EOL;
 	print '    --usecacti   - The logid when performing batch operations' . PHP_EOL;
 	print '    --logid=N    - The logid when performing batch operations' . PHP_EOL;
-	print '    --logfile=S  - The logfile assuming the current Cacti database' . PHP_EOL . PHP_EOL;;
+	print '    --logfile=S  - The logfile assuming the current Cacti database' . PHP_EOL . PHP_EOL;
 }
 
