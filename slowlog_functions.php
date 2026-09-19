@@ -45,6 +45,45 @@ function get_cacti_tables() {
 	return $tables;
 }
 
+/*
+ * Keeps plugin_slowlog_table_names (the deduplicated table_name dictionary) in sync with
+ * whatever get_table_associations()/the explicit table_names list just found for this logid.
+ * is_cacti_table is only touched when $usecacti is true (we have a live table list to compare
+ * against) - otherwise a row is added if missing, but any previously-determined
+ * is_cacti_table value is left alone rather than being reset to "unknown".
+ */
+function slowlog_sync_table_dictionary($logid, $usecacti = false) {
+	$tables = db_fetch_assoc_prepared('SELECT DISTINCT table_name
+		FROM plugin_slowlog_details_tables
+		WHERE logid = ?',
+		array($logid));
+
+	if (!cacti_sizeof($tables)) {
+		return;
+	}
+
+	if ($usecacti) {
+		$cacti_tables = array_flip(explode(' ', trim(get_cacti_tables())));
+	}
+
+	foreach($tables as $row) {
+		$t = $row['table_name'];
+
+		if ($usecacti) {
+			db_execute_prepared('INSERT INTO plugin_slowlog_table_names
+				(table_name, is_cacti_table)
+				VALUES (?, ?)
+				ON DUPLICATE KEY UPDATE is_cacti_table = VALUES(is_cacti_table)',
+				array($t, isset($cacti_tables[$t]) ? 1 : 0));
+		} else {
+			db_execute_prepared('INSERT IGNORE INTO plugin_slowlog_table_names
+				(table_name)
+				VALUES (?)',
+				array($t));
+		}
+	}
+}
+
 function import_logfile($logfile, $description = 'Imported using import_log utility', $length = 8192, $table_names = '', $usecacti = false, $batch = true) {
 	global $config;
 
@@ -453,6 +492,7 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
 
 		cacti_log(sprintf('STATS: Time:%0.2f, Post-Processing for Tables Complete for %s', $end-$start, $logid), false, 'SLOWLOG');
 
+		slowlog_sync_table_dictionary($logid, $usecacti);
 		slowlog_set_timeouts($logid);
 	}
 
