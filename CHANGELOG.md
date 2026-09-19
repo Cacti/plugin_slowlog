@@ -2,6 +2,7 @@
 
 --- Unreleased ---
 
+* bug: Rewrite the query tokenizer (get_table_associations()) as a regex/scanner-based parser - fixes dropped JOIN targets, dropped comma-separated FROM list members, and subqueries in WHERE/SET clauses not being followed
 * feature: Add `timeout` column to `plugin_slowlog_details` and new `plugin_slowlog_table_names` table-name dictionary (deduplicates table_name text, tracks whether it's a known Cacti table)
 * feature: Add MAX_EXECUTION_TIME, MAX_STATEMENT_TIME, UNION ALLS, INFILES, GROUP BY, COUNTS, and SHOWS to the method dictionary
 * refactor: Replace raw `CREATE TABLE` statements in `setup.php` with `api_plugin_db_table_create()`/`api_plugin_db_add_column()`, and re-run schema sync during upgrade instead of only on install
