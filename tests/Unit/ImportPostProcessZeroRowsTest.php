@@ -20,14 +20,12 @@
 */
 
 /*
- * KNOWN DEFECT regression test.
- *
- * import_post_process() only assigns $start inside `if ($records > 0) { ... }`,
- * but reads $end - $start in a cacti_log() call after that block regardless of
- * $records. When a logid has zero plugin_slowlog_details rows, that reference
- * to $start is undefined. This test documents the bug with a scoped error
- * handler rather than letting it fail the suite via phpunit.xml's
- * failOnWarning, so it stays visible until fixed.
+ * Regression test for a fixed bug: import_post_process() used to assign $start only
+ * inside `if ($records > 0) { ... }`, but read $end - $start in a cacti_log() call after
+ * that block regardless of $records, so a logid with zero plugin_slowlog_details rows
+ * triggered an undefined variable warning. The stray trailing log statement was removed
+ * (the correctly-scoped one inside the if-block already covers it). Guarded with a scoped
+ * error handler rather than relying on phpunit.xml's failOnWarning to catch a regression.
  */
 
 uses(TestCase::class);
@@ -38,7 +36,7 @@ beforeEach(function () {
 	slowlog_test_mock_db('db_fetch_cell_prepared', 'COUNT(*)', 0);
 });
 
-it('KNOWN DEFECT: warns on an undefined $start when a log has zero detail rows', function () {
+it('does not warn on an undefined $start when a log has zero detail rows', function () {
 	$captured = null;
 
 	set_error_handler(function ($errno, $errstr) use (&$captured) {
@@ -51,5 +49,5 @@ it('KNOWN DEFECT: warns on an undefined $start when a log has zero detail rows',
 
 	restore_error_handler();
 
-	expect($captured)->toContain('$start');
+	expect($captured)->toBeNull();
 });

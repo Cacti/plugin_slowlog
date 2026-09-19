@@ -448,6 +448,12 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
 				$i++;
 			}
 		}
+
+		$end = microtime(true);
+
+		cacti_log(sprintf('STATS: Time:%0.2f, Post-Processing for Tables Complete for %s', $end-$start, $logid), false, 'SLOWLOG');
+
+		slowlog_set_timeouts($logid);
 	}
 
 	db_execute_prepared('UPDATE plugin_slowlog
@@ -455,10 +461,6 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
 		import_status = 2
 		WHERE logid = ?',
 		array("All Tables Processed", $logid));
-
-	$end = microtime(true);
-
-	cacti_log(sprintf('STATS: Time:%0.2f, Post-Processing for Tables Complete for %s', $end-$start, $logid), false, 'SLOWLOG');
 }
 
 function slowlog_tabs() {
@@ -876,6 +878,51 @@ function slowlog_extract_tables_from_query($query, &$tables = null) {
 	slowlog_extract_join_targets($query, $tables);
 
 	return $tables;
+}
+
+/*
+ * Pulls the numeric timeout out of a query using a MAX_EXECUTION_TIME(N) optimizer hint
+ * (MySQL, milliseconds) or a max_statement_time=N wrapper (MariaDB, seconds), normalized to
+ * seconds so it's comparable to query_time/lock_time. Returns null when neither is present.
+ */
+function slowlog_extract_timeout_value($query) {
+	if (preg_match('/MAX_EXECUTION_TIME\s*\(\s*([0-9]+(?:\.[0-9]+)?)\s*\)/i', $query, $m)) {
+		return round($m[1] / 1000, 6);
+	}
+
+	if (preg_match('/MAX_STATEMENT_TIME\s*=\s*([0-9]+(?:\.[0-9]+)?)/i', $query, $m)) {
+		return (float) $m[1];
+	}
+
+	return null;
+}
+
+/* populates plugin_slowlog_details.timeout for any row using a MAX_EXECUTION_TIME/MAX_STATEMENT_TIME hint */
+function slowlog_set_timeouts($logid, $logentry = -1) {
+	$sql_where  = 'WHERE logid = ? AND (query LIKE ? OR query LIKE ?)';
+	$sql_params = array($logid, '%MAX_EXECUTION_TIME(%', '%MAX_STATEMENT_TIME%');
+
+	if ($logentry != -1) {
+		$sql_where   .= ' AND logentry = ?';
+		$sql_params[] = $logentry;
+	}
+
+	$rows = db_fetch_assoc_prepared("SELECT logentry, query
+		FROM plugin_slowlog_details
+		$sql_where",
+		$sql_params);
+
+	foreach($rows as $row) {
+		$timeout = slowlog_extract_timeout_value($row['query']);
+
+		if ($timeout !== null) {
+			db_execute_prepared('UPDATE plugin_slowlog_details
+				SET timeout = ?
+				WHERE logid = ?
+				AND logentry = ?',
+				array($timeout, $logid, $row['logentry']));
+		}
+	}
 }
 
 function parseTable($table) {
