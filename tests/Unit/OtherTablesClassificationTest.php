@@ -31,7 +31,7 @@ uses(TestCase::class);
 if (!function_exists('slowlog_test_method_calls')) {
 	function slowlog_test_method_calls(): array {
 		return array_values(array_filter($GLOBALS['__test_db_calls'], function ($call) {
-			return $call['fn'] === 'db_execute' && strpos($call['sql'], 'plugin_slowlog_details_methods') !== false;
+			return $call['fn'] === 'db_execute_prepared' && strpos($call['sql'], 'plugin_slowlog_details_methods') !== false;
 		}));
 	}
 
@@ -39,10 +39,8 @@ if (!function_exists('slowlog_test_method_calls')) {
 		$tuples = array();
 
 		foreach (slowlog_test_method_calls() as $call) {
-			preg_match_all('/\((\d+),\s*(\d+),\s*(\d+)\)/', $call['sql'], $m, PREG_SET_ORDER);
-
-			foreach ($m as $t) {
-				$tuples[] = array((int) $t[1], (int) $t[2], (int) $t[3]);
+			foreach (array_chunk($call['params'], 3) as $t) {
+				$tuples[] = array((int) $t[0], (int) $t[1], (int) $t[2]);
 			}
 		}
 
@@ -111,4 +109,48 @@ it("does not let the 'OTHER TABLES' fragment leak into ordinary query-text match
 	$source = file_get_contents(realpath(__DIR__ . '/../../slowlog_functions.php'));
 
 	expect($source)->toContain("\$row['method'] != 'OTHER TABLES'");
+});
+
+/*
+ * slowlog_classify_other_tables_against_list() is 'reference' mode's counterpart to
+ * slowlog_classify_other_tables(): same tagging, but compared against a caller-supplied list
+ * instead of the shared plugin_slowlog_table_names.is_cacti_table flag, so a per-import
+ * reference list never has to (and must not) overwrite that shared dictionary column.
+ */
+it('tags a logentry whose table is missing from the supplied reference list', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT DISTINCT table_name', array(
+		array('table_name' => 'host'),
+		array('table_name' => 'mystery_tbl'),
+	));
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'AND table_name IN', array(
+		array('logentry' => 2),
+	));
+
+	slowlog_classify_other_tables_against_list(1, array('host'));
+
+	expect(slowlog_test_method_tuples())->toBe(array(array(1, 2, 22)));
+});
+
+it('does nothing when every table is in the supplied reference list', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT DISTINCT table_name', array(
+		array('table_name' => 'host'),
+	));
+
+	slowlog_classify_other_tables_against_list(1, array('host', 'graph_local'));
+
+	expect(slowlog_test_method_calls())->toBe(array());
+});
+
+it('never writes to the shared table-name dictionary from a reference list', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT DISTINCT table_name', array(
+		array('table_name' => 'host'),
+	));
+
+	slowlog_classify_other_tables_against_list(1, array());
+
+	$dictionary_writes = array_values(array_filter($GLOBALS['__test_db_calls'], function ($call) {
+		return $call['fn'] === 'db_execute_prepared' && strpos($call['sql'], 'plugin_slowlog_table_names') !== false;
+	}));
+
+	expect($dictionary_writes)->toBe(array());
 });

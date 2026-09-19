@@ -40,17 +40,17 @@ if (!function_exists('slowlog_test_prepared_calls_matching')) {
 
 if (!function_exists('slowlog_test_method_insert_tuples')) {
 	function slowlog_test_method_insert_tuples(): array {
-		foreach ($GLOBALS['__test_db_calls'] as $call) {
-			if ($call['fn'] === 'db_execute' && strpos($call['sql'], 'plugin_slowlog_details_methods') !== false) {
-				preg_match_all('/\((\d+),\s*(\d+),\s*(\d+)\)/', $call['sql'], $m, PREG_SET_ORDER);
+		$tuples = array();
 
-				return array_map(function ($t) {
-					return array((int) $t[1], (int) $t[2], (int) $t[3]);
-				}, $m);
+		foreach ($GLOBALS['__test_db_calls'] as $call) {
+			if ($call['fn'] === 'db_execute_prepared' && strpos($call['sql'], 'plugin_slowlog_details_methods') !== false) {
+				foreach (array_chunk($call['params'], 3) as $t) {
+					$tuples[] = array((int) $t[0], (int) $t[1], (int) $t[2]);
+				}
 			}
 		}
 
-		return array();
+		return $tuples;
 	}
 }
 
@@ -74,6 +74,13 @@ beforeEach(function () {
 		array('method' => 'TRUNCATES',  'query' => 'TRUNCATE ', 'methodid' => 12),
 		array('method' => 'LOAD DATA',  'query' => 'LOAD DATA INFILE ', 'methodid' => 13),
 		array('method' => 'OUTFILES',   'query' => 'INTO OUTFILE ', 'methodid' => 14),
+		array('method' => 'INFILES',    'query' => 'INFILE ', 'methodid' => 15),
+		array('method' => 'GROUP BY',   'query' => 'GROUP BY ', 'methodid' => 16),
+		array('method' => 'COUNTS',     'query' => 'COUNT(', 'methodid' => 17),
+		array('method' => 'SHOWS',      'query' => 'SHOW ', 'methodid' => 18),
+		array('method' => 'UNION ALLS', 'query' => 'UNION ALL', 'methodid' => 19),
+		array('method' => 'MAX_EXECUTION_TIME', 'query' => 'MAX_EXECUTION_TIME(', 'methodid' => 20),
+		array('method' => 'MAX_STATEMENT_TIME', 'query' => 'MAX_STATEMENT_TIME', 'methodid' => 21),
 	));
 });
 
@@ -118,6 +125,32 @@ it('buckets a row matching no other method as OTHERS', function () {
 	expect(slowlog_test_method_insert_tuples())->toBe(array(array(1, 1, 8)));
 });
 
+it('classifies rows matching each of the method rows added by this PR', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT logentry, query', array(
+		array('logentry' => 1, 'query' => "load data infile 'x.txt' into table t"),
+		array('logentry' => 2, 'query' => 'select * from t group by id'),
+		array('logentry' => 3, 'query' => 'select count(*) from t'),
+		array('logentry' => 4, 'query' => 'show tables'),
+		array('logentry' => 5, 'query' => 'select * from t union all select * from u'),
+		array('logentry' => 6, 'query' => 'select /*+ MAX_EXECUTION_TIME(5000) */ * from t'),
+		array('logentry' => 7, 'query' => 'set statement max_statement_time=30 for select * from t'),
+	));
+
+	import_post_process(1, 'accounts');
+
+	$tuples = slowlog_test_method_insert_tuples();
+
+	// Every query here also matches other, pre-existing methods (e.g. SELECTS) - the
+	// point is just that the new method dictionary rows are actually reachable.
+	expect($tuples)->toContain(array(1, 1, 15)); // INFILES
+	expect($tuples)->toContain(array(1, 2, 16)); // GROUP BY
+	expect($tuples)->toContain(array(1, 3, 17)); // COUNTS
+	expect($tuples)->toContain(array(1, 4, 18)); // SHOWS
+	expect($tuples)->toContain(array(1, 5, 19)); // UNION ALLS
+	expect($tuples)->toContain(array(1, 6, 20)); // MAX_EXECUTION_TIME
+	expect($tuples)->toContain(array(1, 7, 21)); // MAX_STATEMENT_TIME
+});
+
 it('inserts the method classification with a single batched statement', function () {
 	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT logentry, query', array(
 		array('logentry' => 1, 'query' => 'select * from users'),
@@ -128,7 +161,7 @@ it('inserts the method classification with a single batched statement', function
 	import_post_process(1, 'accounts');
 
 	$calls = array_values(array_filter($GLOBALS['__test_db_calls'], function ($call) {
-		return $call['fn'] === 'db_execute' && strpos($call['sql'], 'plugin_slowlog_details_methods') !== false;
+		return $call['fn'] === 'db_execute_prepared' && strpos($call['sql'], 'plugin_slowlog_details_methods') !== false;
 	}));
 
 	expect($calls)->toHaveCount(1);

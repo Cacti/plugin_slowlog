@@ -46,12 +46,50 @@ function get_cacti_tables() {
 }
 
 /*
+ * Bulk-inserts (logid, logentry, methodid) rows into plugin_slowlog_details_methods in
+ * chunks. Fully parameterized - logid/logentry/methodid are always bound placeholders, never
+ * concatenated into the SQL text - so a value that reaches here without prior numeric
+ * validation (e.g. --logid from the CLI) can't alter the VALUES clause.
+ * $rows is an array of array($logid, $logentry, $methodid) tuples.
+ */
+function slowlog_bulk_insert_method_rows(array $rows) {
+	if (!cacti_sizeof($rows)) {
+		return;
+	}
+
+	$sql_prefix = 'INSERT INTO plugin_slowlog_details_methods (logid, logentry, methodid) VALUES ';
+	$sql_suffix = ' ON DUPLICATE KEY UPDATE methodid=VALUES(methodid)';
+
+	foreach(array_chunk($rows, 500) as $chunk) {
+		$placeholders = array();
+		$params       = array();
+
+		foreach($chunk as $row) {
+			$placeholders[] = '(?, ?, ?)';
+			$params[]       = (int) $row[0];
+			$params[]       = (int) $row[1];
+			$params[]       = (int) $row[2];
+		}
+
+		db_execute_prepared($sql_prefix . implode(', ', $placeholders) . $sql_suffix, $params);
+	}
+}
+
+/*
  * Keeps plugin_slowlog_table_names (the deduplicated table_name dictionary) in sync with
  * whatever table association just found for this logid. $known_tables is either null (we
  * have no reference list to compare against - a row is added if missing via INSERT IGNORE,
  * but any previously-determined is_cacti_table value is left alone rather than being reset to
- * "unknown") or an array of table names to compare against (the live Cacti DB's tables, or a
- * user-supplied reference list), in which case is_cacti_table is set/updated accordingly.
+ * "unknown") or an array of table names to compare against, in which case is_cacti_table is
+ * set/updated accordingly.
+ *
+ * Only ever pass the live Cacti DB's table list (i.e. 'cacti' table-detection mode) here -
+ * that's a stable, global source of truth safe to share across every log. Never pass a
+ * user-supplied 'reference' list: it's specific to one import, and a later reference import
+ * with a different list would silently flip this shared, global flag and corrupt
+ * classification for every other log that references the same table name. Use
+ * slowlog_classify_other_tables_against_list() for reference-mode classification instead,
+ * which compares per-log without touching this shared dictionary.
  */
 function slowlog_sync_table_dictionary($logid, $known_tables = null) {
 	$tables = db_fetch_assoc_prepared('SELECT DISTINCT table_name
@@ -116,19 +154,75 @@ function slowlog_classify_other_tables($logid) {
 		return;
 	}
 
-	$sql = array();
+	$method_rows = array();
 
 	foreach($rows as $row) {
-		$sql[] = '(' . $logid . ', ' . $row['logentry'] . ', ' . $methodid . ')';
+		$method_rows[] = array($logid, $row['logentry'], $methodid);
 	}
 
-	$sql_prefix = 'INSERT INTO plugin_slowlog_details_methods (logid, logentry, methodid) VALUES ';
-	$sql_suffix = ' ON DUPLICATE KEY UPDATE methodid=VALUES(methodid)';
-
-	foreach(array_chunk($sql, 500) as $chunk) {
-		db_execute($sql_prefix . implode(', ', $chunk) . $sql_suffix);
-	}
+	slowlog_bulk_insert_method_rows($method_rows);
 }
+
+/*
+ * Same 'OTHER TABLES' tagging as slowlog_classify_other_tables(), but compares this log's
+ * table associations directly against a caller-supplied reference list instead of the shared
+ * plugin_slowlog_table_names.is_cacti_table flag. Used for 'reference' table-detection mode,
+ * where the list is specific to one import and must never be written into that shared,
+ * global dictionary (see slowlog_sync_table_dictionary()).
+ */
+function slowlog_classify_other_tables_against_list($logid, array $reference_tables) {
+	$methodid = db_fetch_cell_prepared("SELECT methodid
+		FROM plugin_slowlog_methods
+		WHERE method = 'OTHER TABLES'",
+		array());
+
+	if (!$methodid) {
+		return;
+	}
+
+	$tables = db_fetch_assoc_prepared('SELECT DISTINCT table_name
+		FROM plugin_slowlog_details_tables
+		WHERE logid = ?',
+		array($logid));
+
+	if (!cacti_sizeof($tables)) {
+		return;
+	}
+
+	$known_lookup = array_flip($reference_tables);
+	$other_tables = array();
+
+	foreach($tables as $row) {
+		if (!isset($known_lookup[$row['table_name']])) {
+			$other_tables[] = $row['table_name'];
+		}
+	}
+
+	if (!cacti_sizeof($other_tables)) {
+		return;
+	}
+
+	$placeholders = implode(', ', array_fill(0, count($other_tables), '?'));
+
+	$rows = db_fetch_assoc_prepared('SELECT DISTINCT logentry
+		FROM plugin_slowlog_details_tables
+		WHERE logid = ?
+		AND table_name IN (' . $placeholders . ')',
+		array_merge(array($logid), $other_tables));
+
+	if (!cacti_sizeof($rows)) {
+		return;
+	}
+
+	$method_rows = array();
+
+	foreach($rows as $row) {
+		$method_rows[] = array($logid, $row['logentry'], $methodid);
+	}
+
+	slowlog_bulk_insert_method_rows($method_rows);
+}
+
 
 function import_logfile($logfile, $description = 'Imported using import_log utility', $length = 8192, $table_names = '', $usecacti = false, $batch = true, $table_mode = null) {
 	global $config;
@@ -385,6 +479,7 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 			$cmd = $config['base_path'] . "/plugins/slowlog/import_log.php --logid=$logid";
 			$cmd .= $usecacti ? ' --usecacti' : '';
 			$cmd .= $table_mode !== null ? ' --table-mode=' . cacti_escapeshellarg($table_mode) : '';
+			$cmd .= trim($table_names) !== '' ? ' --table-names=' . cacti_escapeshellarg(trim($table_names)) : '';
 
 			exec_background($php, $cmd);
 
@@ -457,10 +552,12 @@ function import_post_process($logid, $table_names = '', $usecacti = false, $tabl
 		$start = microtime(true);
 
 		/*
-		 * Classify every row by method in a single pass: one fetch of this logid's rows,
-		 * matched against each method's fragments in PHP (stripos - LIKE '%frag%' was
-		 * case-insensitive by default too), instead of one LIKE/NOT LIKE table scan per
-		 * method (~20 round trips previously for the default method dictionary).
+		 * Classify every row by method in a single pass: fetched in bounded chunks (rather
+		 * than materializing the whole log's query text in PHP at once, which for an
+		 * unbounded slow-query log could exhaust the worker's memory) and matched against
+		 * each method's fragments in PHP (stripos - LIKE '%frag%' was case-insensitive by
+		 * default too), instead of one LIKE/NOT LIKE table scan per method (~20 round trips
+		 * previously for the default method dictionary).
 		 */
 		$methods = db_fetch_assoc_prepared('SELECT *
 			FROM plugin_slowlog_methods
@@ -480,40 +577,43 @@ function import_post_process($logid, $table_names = '', $usecacti = false, $tabl
 			}
 		}
 
-		$detail_rows = db_fetch_assoc_prepared('SELECT logentry, query
-			FROM plugin_slowlog_details
-			WHERE logid = ?',
-			array($logid));
+		$method_chunk_size = 2000;
+		$last_logentry     = 0;
 
-		$method_sql = array();
+		do {
+			$detail_rows = db_fetch_assoc_prepared('SELECT logentry, query
+				FROM plugin_slowlog_details
+				WHERE logid = ?
+				AND logentry > ?
+				ORDER BY logentry
+				LIMIT ' . (int) $method_chunk_size,
+				array($logid, $last_logentry));
 
-		foreach($detail_rows as $row) {
-			$matched = false;
+			$batch_count = cacti_sizeof($detail_rows);
+			$method_rows = array();
 
-			foreach($method_fragments as $methodid => $fragments) {
-				foreach($fragments as $fragment) {
-					if (stripos($row['query'], $fragment) !== false) {
-						$method_sql[] = '(' . $logid . ', ' . $row['logentry'] . ', ' . $methodid . ')';
-						$matched = true;
+			foreach($detail_rows as $row) {
+				$last_logentry = $row['logentry'];
+				$matched       = false;
 
-						break;
+				foreach($method_fragments as $methodid => $fragments) {
+					foreach($fragments as $fragment) {
+						if (stripos($row['query'], $fragment) !== false) {
+							$method_rows[] = array($logid, $row['logentry'], $methodid);
+							$matched = true;
+
+							break;
+						}
 					}
+				}
+
+				if (!$matched && $others_methodid !== null) {
+					$method_rows[] = array($logid, $row['logentry'], $others_methodid);
 				}
 			}
 
-			if (!$matched && $others_methodid !== null) {
-				$method_sql[] = '(' . $logid . ', ' . $row['logentry'] . ', ' . $others_methodid . ')';
-			}
-		}
-
-		if (cacti_sizeof($method_sql)) {
-			$method_sql_prefix = 'INSERT INTO plugin_slowlog_details_methods (logid, logentry, methodid) VALUES ';
-			$method_sql_suffix = ' ON DUPLICATE KEY UPDATE methodid=VALUES(methodid)';
-
-			foreach(array_chunk($method_sql, 500) as $chunk) {
-				db_execute($method_sql_prefix . implode(', ', $chunk) . $method_sql_suffix);
-			}
-		}
+			slowlog_bulk_insert_method_rows($method_rows);
+		} while ($batch_count === $method_chunk_size);
 
 		$end = microtime(true);
 
@@ -582,10 +682,18 @@ function import_post_process($logid, $table_names = '', $usecacti = false, $tabl
 
 		cacti_log(sprintf('STATS: Time:%0.2f, Post-Processing for Tables Complete for %s', $end-$start, $logid), false, 'SLOWLOG');
 
-		slowlog_sync_table_dictionary($logid, $known_tables);
+		if ($table_mode == 'reference') {
+			// Registers any newly-seen table names, but never touches the shared
+			// is_cacti_table flag for them - that column must stay reserved for the live
+			// Cacti DB (see slowlog_sync_table_dictionary()'s doc comment).
+			slowlog_sync_table_dictionary($logid);
+			slowlog_classify_other_tables_against_list($logid, $known_tables);
+		} else {
+			slowlog_sync_table_dictionary($logid, $known_tables);
 
-		if ($known_tables !== null) {
-			slowlog_classify_other_tables($logid);
+			if ($known_tables !== null) {
+				slowlog_classify_other_tables($logid);
+			}
 		}
 
 		slowlog_set_timeouts($logid);
@@ -733,6 +841,120 @@ const SLOWLOG_JOIN_KEYWORD = '(?:INNER\s+JOIN|LEFT\s+(?:OUTER\s+)?JOIN|RIGHT\s+(
 
 function slowlog_normalize_query_text($query) {
 	return trim(preg_replace('/\s+/', ' ', (string) $query));
+}
+
+/*
+ * Replaces the content of single/double-quoted string literals with same-length filler
+ * (keeping the delimiters and any newlines intact), so keyword/pattern scanning elsewhere
+ * can't be fooled by SQL-looking text inside a string constant. Backtick-quoted identifiers
+ * are left untouched since they're table/column names, not string content.
+ */
+function slowlog_mask_quoted_strings($query) {
+	$len  = strlen($query);
+	$out  = '';
+	$i    = 0;
+	$in_s = null;
+
+	while ($i < $len) {
+		$ch = $query[$i];
+
+		if ($in_s !== null) {
+			if ($ch === '\\' && $i + 1 < $len) {
+				$out .= '  ';
+				$i   += 2;
+
+				continue;
+			}
+
+			if ($ch === $in_s) {
+				if ($i + 1 < $len && $query[$i + 1] === $in_s) {
+					// a doubled quote ('' or "") is an escaped quote, still inside the string
+					$out .= '  ';
+					$i   += 2;
+
+					continue;
+				}
+
+				$in_s = null;
+				$out .= $ch;
+				$i++;
+
+				continue;
+			}
+
+			$out .= ($ch === "\n" || $ch === "\t") ? $ch : ' ';
+			$i++;
+
+			continue;
+		}
+
+		if ($ch === "'" || $ch === '"') {
+			$in_s = $ch;
+			$out .= $ch;
+			$i++;
+
+			continue;
+		}
+
+		$out .= $ch;
+		$i++;
+	}
+
+	return $out;
+}
+
+/*
+ * Replaces --/#/\/* *\/ SQL comments with same-length filler. Run this after
+ * slowlog_mask_quoted_strings() so a comment-looking sequence inside a string literal isn't
+ * mistaken for a real comment.
+ */
+function slowlog_mask_sql_comments($query) {
+	$len = strlen($query);
+	$out = '';
+	$i   = 0;
+
+	while ($i < $len) {
+		if ($query[$i] === '-' && $i + 1 < $len && $query[$i + 1] === '-') {
+			$end = strpos($query, "\n", $i);
+			$end = ($end === false) ? $len : $end;
+			$out .= str_repeat(' ', $end - $i);
+			$i    = $end;
+
+			continue;
+		}
+
+		if ($query[$i] === '#') {
+			$end = strpos($query, "\n", $i);
+			$end = ($end === false) ? $len : $end;
+			$out .= str_repeat(' ', $end - $i);
+			$i    = $end;
+
+			continue;
+		}
+
+		if ($query[$i] === '/' && $i + 1 < $len && $query[$i + 1] === '*') {
+			$end = strpos($query, '*/', $i + 2);
+			$end = ($end === false) ? $len : $end + 2;
+			$out .= str_repeat(' ', $end - $i);
+			$i    = $end;
+
+			continue;
+		}
+
+		$out .= $query[$i];
+		$i++;
+	}
+
+	return $out;
+}
+
+/*
+ * Masks both string literals and comments (in that order) so the table/JOIN scanner below
+ * can't mistake SQL-looking text inside either one for a real clause - e.g.
+ * "SELECT 1 /* FROM admins * /" no longer looks like it references a table named admins.
+ */
+function slowlog_mask_strings_and_comments($query) {
+	return slowlog_mask_sql_comments(slowlog_mask_quoted_strings($query));
 }
 
 /*
@@ -979,7 +1201,7 @@ function slowlog_extract_tables_from_query($query, &$tables = null) {
 		$tables = array();
 	}
 
-	$query = slowlog_normalize_query_text($query);
+	$query = slowlog_normalize_query_text(slowlog_mask_strings_and_comments((string) $query));
 
 	if ($query === '') {
 		return $tables;
@@ -1049,15 +1271,21 @@ function slowlog_extract_tables_from_query($query, &$tables = null) {
 
 /*
  * Pulls the numeric timeout out of a query using a MAX_EXECUTION_TIME(N) optimizer hint
- * (MySQL, milliseconds) or a max_statement_time=N wrapper (MariaDB, seconds), normalized to
- * seconds so it's comparable to query_time/lock_time. Returns null when neither is present.
+ * (MySQL, milliseconds) or a MariaDB `SET STATEMENT max_statement_time=N FOR ...` wrapper
+ * (seconds), normalized to seconds so it's comparable to query_time/lock_time. Restricted to
+ * these specific syntactic forms - a SELECT-leading optimizer hint comment, or a leading SET
+ * STATEMENT wrapper - rather than matching the text anywhere in the query, so a string
+ * literal or an ordinary comment merely containing this text isn't mistaken for a real
+ * optimizer hint. Returns null when neither is present.
  */
 function slowlog_extract_timeout_value($query) {
-	if (preg_match('/MAX_EXECUTION_TIME\s*\(\s*([0-9]+(?:\.[0-9]+)?)\s*\)/i', $query, $m)) {
+	$query = slowlog_normalize_query_text(slowlog_mask_quoted_strings((string) $query));
+
+	if (preg_match('/^SELECT\s+\/\*\+.*?MAX_EXECUTION_TIME\s*\(\s*([0-9]+(?:\.[0-9]+)?)\s*\).*?\*\//is', $query, $m)) {
 		return round($m[1] / 1000, 6);
 	}
 
-	if (preg_match('/MAX_STATEMENT_TIME\s*=\s*([0-9]+(?:\.[0-9]+)?)/i', $query, $m)) {
+	if (preg_match('/^SET\s+STATEMENT\s+MAX_STATEMENT_TIME\s*=\s*([0-9]+(?:\.[0-9]+)?)\s+FOR\b/i', $query, $m)) {
 		return (float) $m[1];
 	}
 

@@ -44,7 +44,7 @@ if (!function_exists('slowlog_test_table_inserts')) {
 
 	function slowlog_test_other_tables_call_count(): int {
 		return count(array_filter($GLOBALS['__test_db_calls'], function ($call) {
-			return $call['fn'] === 'db_execute' && strpos($call['sql'], 'plugin_slowlog_details_methods') !== false;
+			return $call['fn'] === 'db_execute_prepared' && strpos($call['sql'], 'plugin_slowlog_details_methods') !== false;
 		}));
 	}
 }
@@ -68,6 +68,11 @@ beforeEach(function () {
 	));
 
 	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT DISTINCT dt.logentry', array(
+		array('logentry' => 1),
+	));
+
+	// slowlog_classify_other_tables_against_list()'s per-log comparison (reference mode).
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'AND table_name IN', array(
 		array('logentry' => 1),
 	));
 });
@@ -125,4 +130,23 @@ it('validates --table-mode against the 3 allowed values on the CLI', function ()
 	$source = file_get_contents(realpath(__DIR__ . '/../../import_log.php'));
 
 	expect($source)->toContain("in_array(\$value, array('cacti', 'reference', 'all'), true)");
+});
+
+it('wires a --table-names option into the import_log.php CLI and forwards it', function () {
+	$source = file_get_contents(realpath(__DIR__ . '/../../import_log.php'));
+
+	expect($source)->toContain("'table-names:'");
+	expect($source)->toContain('import_logfile($logfile, \'Imported using import_log.php\', -1, $table_names, $usecacti, false, $table_mode);');
+});
+
+it('rejects --table-mode=reference with --logfile when --table-names is missing', function () {
+	$source = file_get_contents(realpath(__DIR__ . '/../../import_log.php'));
+
+	expect($source)->toContain("\$table_mode === 'reference' && trim(\$table_names) === ''");
+});
+
+it('forwards the reference/list table names to the background worker', function () {
+	$source = file_get_contents(realpath(__DIR__ . '/../../slowlog_functions.php'));
+
+	expect($source)->toContain("\$cmd .= trim(\$table_names) !== '' ? ' --table-names=' . cacti_escapeshellarg(trim(\$table_names)) : '';");
 });

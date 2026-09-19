@@ -204,3 +204,23 @@ it('preserves the original case of table names', function () {
 it('finds nothing for a query with no table reference', function () {
 	expect(slowlog_test_run_tokenizer('select 1'))->toBe(array());
 });
+
+it('does not mistake a table-like word inside a /* */ comment for a real reference', function () {
+	expect(slowlog_test_run_tokenizer('select 1 /* FROM admins */'))->toBe(array());
+});
+
+it('does not mistake a table-like word inside a -- comment for a real reference', function () {
+	expect(slowlog_test_run_tokenizer("select 1 -- FROM admins\n"))->toBe(array());
+});
+
+it('does not mistake a table-like word inside a # comment for a real reference', function () {
+	expect(slowlog_test_run_tokenizer("select 1 # FROM admins\n"))->toBe(array());
+});
+
+it('does not mistake a table-like word inside a string literal for a real reference', function () {
+	expect(slowlog_test_run_tokenizer("select 'FROM admins' from users"))->toBe(array('users'));
+});
+
+it('still finds a real table reference alongside an unrelated comment', function () {
+	expect(slowlog_test_run_tokenizer('select * from users /* legacy FROM orders path */'))->toBe(array('users'));
+});

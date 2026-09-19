@@ -29,11 +29,12 @@ include(__DIR__ . '/slowlog_functions.php');
 $parms = $_SERVER['argv'];
 array_shift($parms);
 
-$logfile    = false;
-$logid      = false;
-$reprocess  = false;
-$usecacti   = false;
-$table_mode = null;
+$logfile     = false;
+$logid       = false;
+$reprocess   = false;
+$usecacti    = false;
+$table_mode  = null;
+$table_names = '';
 
 if (cacti_sizeof($parms)) {
 	$shortopts = 'VvHh';
@@ -44,6 +45,7 @@ if (cacti_sizeof($parms)) {
 		'reprocess:',
 		'usecacti',
 		'table-mode:',
+		'table-names:',
 		'version',
 		'help'
 	);
@@ -78,6 +80,10 @@ if (cacti_sizeof($parms)) {
 				}
 
 				break;
+			case 'table-names':
+				$table_names = $value;
+
+				break;
 			case 'version':
 			case 'V':
 			case 'v':
@@ -97,14 +103,20 @@ if (cacti_sizeof($parms)) {
 }
 
 if ($logfile !== false) {
-	import_logfile($logfile, 'Imported using import_log.php', -1, '', $usecacti, false, $table_mode);
+	if ($table_mode === 'reference' && trim($table_names) === '') {
+		print 'ERROR: --table-mode=reference requires --table-names="..." for a --logfile import' . PHP_EOL . PHP_EOL;
+		display_help();
+		exit(1);
+	}
+
+	import_logfile($logfile, 'Imported using import_log.php', -1, $table_names, $usecacti, false, $table_mode);
 } elseif ($logid !== false) {
-	import_post_process($logid, '', $usecacti, $table_mode);
+	import_post_process($logid, $table_names, $usecacti, $table_mode);
 } elseif ($reprocess !== false) {
 	if (strtolower($reprocess) == 'all') {
-		slowlog_reprocess_all('', $usecacti, $table_mode);
+		slowlog_reprocess_all($table_names, $usecacti, $table_mode);
 	} else {
-		slowlog_reprocess((int) $reprocess, '', $usecacti, $table_mode);
+		slowlog_reprocess((int) $reprocess, $table_names, $usecacti, $table_mode);
 	}
 }
 
@@ -130,6 +142,10 @@ function display_help() {
 	print '                        tables. cacti: use this Cacti DB (same as --usecacti);' . PHP_EOL;
 	print '                        reference: compare against the table list saved with the' . PHP_EOL;
 	print '                        import; all: detect everything, no OTHER TABLES grouping' . PHP_EOL;
-	print '                        (default).' . PHP_EOL . PHP_EOL;
+	print '                        (default).' . PHP_EOL;
+	print '    --table-names="t1 t2" - Space-separated reference table list for a --logfile' . PHP_EOL;
+	print '                        import; required with --table-mode=reference. Saved with' . PHP_EOL;
+	print '                        the import so --logid/--reprocess can reuse it later.' . PHP_EOL . PHP_EOL;
 }
+
 

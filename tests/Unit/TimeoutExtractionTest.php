@@ -41,6 +41,18 @@ it('reads a max_statement_time wrapper as seconds already', function () {
 	expect(slowlog_extract_timeout_value('SET STATEMENT max_statement_time=2.5 FOR SELECT * FROM users'))->toBe(2.5);
 });
 
+it('ignores MAX_EXECUTION_TIME-like text inside a string literal', function () {
+	expect(slowlog_extract_timeout_value("SELECT * FROM users WHERE note = 'MAX_EXECUTION_TIME(5000)'"))->toBeNull();
+});
+
+it('ignores MAX_EXECUTION_TIME-like text inside an ordinary (non-hint) comment', function () {
+	expect(slowlog_extract_timeout_value('SELECT * FROM users /* MAX_EXECUTION_TIME(5000) */'))->toBeNull();
+});
+
+it('ignores a MAX_STATEMENT_TIME-like column comparison outside the SET STATEMENT wrapper', function () {
+	expect(slowlog_extract_timeout_value('SELECT * FROM users WHERE max_statement_time = 30'))->toBeNull();
+});
+
 it('returns null when no timeout hint is present', function () {
 	expect(slowlog_extract_timeout_value('SELECT * FROM users'))->toBeNull();
 });
