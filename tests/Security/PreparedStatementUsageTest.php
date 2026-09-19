@@ -70,9 +70,9 @@ describe('prepared statement usage in slowlog', function () {
 		expect(preg_match('/db_execute_prepared\s*\(\s*\'INSERT INTO plugin_slowlog_details_tables/s', $helpers))->toBe(1);
 	});
 
-	it('limits raw db_execute calls to parser replay paths', function () use ($helpers) {
-		expect(preg_match_all('/\bdb_execute\s*\(/', $helpers))->toBe(3);
-		expect(preg_match_all('/db_execute\s*\(\s*\$sql_prefix\s*\./', $helpers))->toBe(3);
+	it('limits raw db_execute calls to bulk parser/classifier replay paths', function () use ($helpers) {
+		expect(preg_match_all('/\bdb_execute\s*\(/', $helpers))->toBe(5);
+		expect(preg_match_all('/db_execute\s*\(\s*\$(?:sql|method_sql)_prefix\s*\./', $helpers))->toBe(5);
 	});
 
 	it('limits raw db_fetch_assoc calls to schema discovery helpers', function () use ($helpers) {

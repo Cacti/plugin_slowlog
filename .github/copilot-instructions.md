@@ -54,7 +54,7 @@ All plugin tables are prefixed `plugin_slowlog` (see `plugin_slowlog_uninstall()
 ```
 plugin_slowlog, plugin_slowlog_details, plugin_slowlog_details_methods,
 plugin_slowlog_details_tables, plugin_slowlog_methods, plugin_slowlog_tables,
-plugin_slowlog_reserved_words
+plugin_slowlog_table_names, plugin_slowlog_reserved_words
 ```
 
 ## Code Style
@@ -97,10 +97,18 @@ arithmetic, strict `===` comparisons).
 ## Database Operations
 
 ### Table Creation
-Use `slowlog_setup_table_new()` (`setup.php`) with `api_plugin_db_table_create()`-style guarded `CREATE TABLE IF NOT EXISTS` statements.
+Use `slowlog_setup_table_new()` (`setup.php`) to build a Cacti table-definition array (`$data['columns']`,
+`$data['primary']`, `$data['keys']`, `$data['unique_keys']`, `$data['type']`, `$data['row_format']`,
+`$data['comment']`) and pass it to `api_plugin_db_table_create('slowlog', $table, $data)`. Never write raw
+`CREATE TABLE` SQL - `api_plugin_db_table_create()` is a no-op when the table already exists, so it is safe
+to call on every install/upgrade.
 
 ### Upgrade Handling
-Version-gate schema changes in `slowlog_check_upgrade()` (`setup.php`) against the stored `plugin_config` row.
+`slowlog_check_upgrade()` (`setup.php`) version-gates against the stored `plugin_config` row, then re-calls
+`slowlog_setup_table_new()` on a version change. New columns added to an existing table must also be applied
+via `api_plugin_db_add_column('slowlog', $table, $column)` inside `slowlog_setup_table_new()` (in addition to
+being listed in the table's `$data['columns']` for fresh installs) - it's a no-op when the column already
+exists, so re-running it on every upgrade is the mechanism that carries existing installs forward.
 
 ## Internationalization
 

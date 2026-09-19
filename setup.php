@@ -43,13 +43,14 @@ function slowlog_version() {
 }
 
 function plugin_slowlog_uninstall() {
-	db_execute('DROP TABLE IF EXISTS `plugin_slowlog`');
-	db_execute('DROP TABLE IF EXISTS `plugin_slowlog_details`');
-	db_execute('DROP TABLE IF EXISTS `plugin_slowlog_details_methods`');
-	db_execute('DROP TABLE IF EXISTS `plugin_slowlog_details_tables`');
-	db_execute('DROP TABLE IF EXISTS `plugin_slowlog_methods`');
-	db_execute('DROP TABLE IF EXISTS `plugin_slowlog_tables`');
-	db_execute('DROP TABLE IF EXISTS `plugin_slowlog_reserved_words`');
+	api_plugin_drop_table('plugin_slowlog');
+	api_plugin_drop_table('plugin_slowlog_details');
+	api_plugin_drop_table('plugin_slowlog_details_methods');
+	api_plugin_drop_table('plugin_slowlog_details_tables');
+	api_plugin_drop_table('plugin_slowlog_methods');
+	api_plugin_drop_table('plugin_slowlog_tables');
+	api_plugin_drop_table('plugin_slowlog_table_names');
+	api_plugin_drop_table('plugin_slowlog_reserved_words');
 }
 
 function plugin_slowlog_check_config() {
@@ -101,6 +102,8 @@ function slowlog_check_upgrade() {
 
 		db_execute('DELETE FROM plugin_hooks WHERE function="slowlog_page_head"');
 
+		// Re-running the table/column API calls is safe - they're no-ops when already applied.
+		slowlog_setup_table_new();
 	}
 }
 
@@ -110,107 +113,149 @@ function slowlog_check_dependencies() {
 }
 
 function slowlog_setup_table_new() {
-	db_execute("CREATE TABLE IF NOT EXISTS `plugin_slowlog` (
-		`logid` int(10) unsigned NOT NULL auto_increment COMMENT 'The unique id for this log entry',
-		`description` varchar(128) NOT NULL default '' COMMENT 'The description for the slow log',
-		`import_date` timestamp NOT NULL default CURRENT_TIMESTAMP COMMENT 'The date the log was uploaded',
-		`import_lines` int(10) unsigned NOT NULL default '0' COMMENT 'The number of lines in the log',
-		`import_status` int(10) unsigned NOT NULL default '0' COMMENT 'The status of the import process',
-		`import_text_status` varchar(40) NOT NULL default '' COMMENT 'The text status of the import process',
-		`import_tables` text NOT NULL default '',
-		`start_time` timestamp NOT NULL default '0000-00-00 00:00:00' COMMENT 'The start time for the log',
-		`end_time` timestamp NOT NULL default '0000-00-00 00:00:00' COMMENT 'The end time for the log',
-		PRIMARY KEY (`logid`))
-		ENGINE=InnoDB
-		ROW_FORMAT=Dynamic
-		COMMENT='Each Slow Log Can be Tracked';");
+	$data = array();
+	$data['columns'][] = array('name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true, 'comment' => 'The unique id for this log entry');
+	$data['columns'][] = array('name' => 'description', 'type' => 'varchar(128)', 'NULL' => false, 'default' => '', 'comment' => 'The description for the slow log');
+	$data['columns'][] = array('name' => 'import_date', 'type' => 'timestamp', 'NULL' => false, 'default' => 'CURRENT_TIMESTAMP', 'comment' => 'The date the log was uploaded');
+	$data['columns'][] = array('name' => 'import_lines', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'default' => 0, 'comment' => 'The number of lines in the log');
+	$data['columns'][] = array('name' => 'import_status', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'default' => 0, 'comment' => 'The status of the import process');
+	$data['columns'][] = array('name' => 'import_text_status', 'type' => 'varchar(40)', 'NULL' => false, 'default' => '', 'comment' => 'The text status of the import process');
+	$data['columns'][] = array('name' => 'import_tables', 'type' => 'text', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'start_time', 'type' => 'timestamp', 'NULL' => false, 'default' => '0000-00-00 00:00:00', 'comment' => 'The start time for the log');
+	$data['columns'][] = array('name' => 'end_time', 'type' => 'timestamp', 'NULL' => false, 'default' => '0000-00-00 00:00:00', 'comment' => 'The end time for the log');
+	$data['primary']    = 'logid';
+	$data['type']       = 'InnoDB';
+	$data['row_format'] = 'Dynamic';
+	$data['comment']    = 'Each Slow Log Can be Tracked';
 
-	db_execute("CREATE TABLE IF NOT EXISTS `plugin_slowlog_details` (
-		`logentry` bigint(20) unsigned NOT NULL auto_increment,
-		`logid` int(10) unsigned NOT NULL,
-		`date` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-		`user` varchar(20) NOT NULL,
-		`host` varchar(255) NOT NULL,
-		`ip_address` varchar(15) NOT NULL,
-		`query_time` int(10) unsigned NOT NULL,
-		`lock_time` int(10) unsigned NOT NULL,
-		`thread_id` bigint(20) unsigned NOT NULL DEFAULT 0,
-		`schema` varchar(20) NOT NULL DEFAULT '',
-		`qc_hit` int(10) unsigned NOT NULL DEFAULT 0,
-		`rows_sent` int(10) unsigned NOT NULL,
-		`rows_examined` int(10) unsigned NOT NULL,
-		`rows_affected` int(10) unsigned NOT NULL DEFAULT 0,
-		`bytes_sent` bigint unsigned NOT NULL DEFAULT 0,
-		`oquery` text NOT NULL,
-		`query` text NOT NULL,
-		PRIMARY KEY  (`logentry`),
-		KEY `logid` (`logid`),
-		KEY `user` (`user`),
-		KEY `host` (`host`))
-		ENGINE=Aria
-		ROW_FORMAT=Page
-		COMMENT='Provides statistics on your slow query log';");
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog', $data);
 
-	db_execute("CREATE TABLE IF NOT EXISTS `plugin_slowlog_details_methods` (
-		`id` int(10) unsigned NOT NULL auto_increment,
-		`logid` int(10) unsigned NOT NULL,
-		`logentry` int(10) unsigned NOT NULL,
-		`methodid` int(10) unsigned NOT NULL,
-		PRIMARY KEY  USING BTREE (`logid`,`logentry`,`methodid`),
-		KEY `id` (`id`))
-		ENGINE=Aria
-		ROW_FORMAT=Page");
+	$data = array();
+	$data['columns'][] = array('name' => 'logentry', 'type' => 'bigint(20)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true);
+	$data['columns'][] = array('name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false);
+	$data['columns'][] = array('name' => 'date', 'type' => 'timestamp', 'NULL' => false, 'default' => 'CURRENT_TIMESTAMP', 'on_update' => 'CURRENT_TIMESTAMP');
+	$data['columns'][] = array('name' => 'user', 'type' => 'varchar(20)', 'NULL' => false);
+	$data['columns'][] = array('name' => 'host', 'type' => 'varchar(255)', 'NULL' => false);
+	$data['columns'][] = array('name' => 'ip_address', 'type' => 'varchar(15)', 'NULL' => false);
+	$data['columns'][] = array('name' => 'query_time', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false);
+	$data['columns'][] = array('name' => 'lock_time', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false);
+	$data['columns'][] = array('name' => 'thread_id', 'type' => 'bigint(20)', 'unsigned' => true, 'NULL' => false, 'default' => 0);
+	$data['columns'][] = array('name' => 'schema', 'type' => 'varchar(20)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'qc_hit', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'default' => 0);
+	$data['columns'][] = array('name' => 'rows_sent', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false);
+	$data['columns'][] = array('name' => 'rows_examined', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false);
+	$data['columns'][] = array('name' => 'rows_affected', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'default' => 0);
+	$data['columns'][] = array('name' => 'bytes_sent', 'type' => 'bigint(20)', 'unsigned' => true, 'NULL' => false, 'default' => 0);
+	$data['columns'][] = array('name' => 'oquery', 'type' => 'text', 'NULL' => false);
+	$data['columns'][] = array('name' => 'query', 'type' => 'text', 'NULL' => false);
+	$data['columns'][] = array('name' => 'timeout', 'type' => 'double', 'NULL' => false, 'default' => 0, 'comment' => 'The timeout value detected in the query, if any');
+	$data['primary']    = 'logentry';
+	$data['keys'][]     = array('name' => 'logid', 'columns' => array('logid'));
+	$data['keys'][]     = array('name' => 'user', 'columns' => array('user'));
+	$data['keys'][]     = array('name' => 'host', 'columns' => array('host'));
+	$data['type']       = 'Aria';
+	$data['row_format'] = 'Page';
+	$data['comment']    = 'Provides statistics on your slow query log';
 
-	db_execute("CREATE TABLE IF NOT EXISTS `plugin_slowlog_details_tables` (
-		`tableid` int(10) unsigned NOT NULL auto_increment,
-		`logid` int(10) unsigned NOT NULL,
-		`logentry` int(10) unsigned NOT NULL,
-		`table_name` varchar(45) NOT NULL,
-		PRIMARY KEY  (`logid`,`logentry`,`table_name`),
-		KEY `tableid` (`tableid`))
-		ENGINE=Aria
-		ROW_FORMAT=Page");
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog_details', $data);
 
-	db_execute("CREATE TABLE IF NOT EXISTS `plugin_slowlog_methods` (
-		`method` varchar(45) NOT NULL,
-		`query` varchar(45) NOT NULL,
-		`methodid` int(10) unsigned NOT NULL auto_increment,
-		PRIMARY KEY  (`method`,`query`),
-		KEY `methodid` (`methodid`))
-		ENGINE=InnoDB
-		ROW_FORMAT=Dynamic");
+	// New column since 2.1 - re-issuing this on every upgrade is safe, it's a no-op once applied.
+	api_plugin_db_add_column('slowlog', 'plugin_slowlog_details', array('name' => 'timeout', 'type' => 'double', 'NULL' => false, 'default' => 0, 'comment' => 'The timeout value detected in the query, if any', 'after' => 'query'));
 
-	db_execute("CREATE TABLE IF NOT EXISTS `plugin_slowlog_tables` (
-		`logid` int(10) unsigned NOT NULL,
-		`table_name` varchar(45) NOT NULL,
-		PRIMARY KEY  (`logid`,`table_name`))
-		ENGINE=InnoDB
-		ROW_FORMAT=Dynamic");
+	$data = array();
+	$data['columns'][] = array('name' => 'id', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true);
+	$data['columns'][] = array('name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false);
+	$data['columns'][] = array('name' => 'logentry', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false);
+	$data['columns'][] = array('name' => 'methodid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false);
+	$data['primary']    = array('logid', 'logentry', 'methodid');
+	$data['keys'][]     = array('name' => 'id', 'columns' => array('id'));
+	$data['type']       = 'Aria';
+	$data['row_format'] = 'Page';
 
-	db_execute("INSERT INTO `plugin_slowlog_methods` VALUES
-		('INSERTS','INSERT INTO,INSERT IGNORE INTO',1),
-		('REPLACES','REPLACE INTO,REPLACE IGNORE INTO',2),
-		('DELETES','DELETE ',3),
-		('SELECTS','SELECT ',4),
-		('DISTINCTS','SELECT DISTINCT',5),
-		('UNIONS','UNION',6),
-		('JOINS','JOIN ',7),
-		('OTHERS','OTHERS',8),
-		('UPDATES','UPDATE ',9),
-		('RENAMES', 'RENAME TABLE', 10),
-		('FLUSHES', 'FLUSH TABLE', 11),
-		('TRUNCATES', 'TRUNCATE ', 12),
-		('LOAD DATA', 'LOAD DATA INFILE ', 13),
-		('OUTFILES', 'INTO OUTFILE ', 14)");
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog_details_methods', $data);
 
-	db_execute("CREATE TABLE IF NOT EXISTS `plugin_slowlog_reserved_words` (
-		`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-		`word` varchar(30) NOT NULL,
-		PRIMARY KEY  (`id`, `word`))
-		ENGINE=InnoDB
-		ROW_FORMAT=Dynamic");
+	$data = array();
+	$data['columns'][] = array('name' => 'tableid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true);
+	$data['columns'][] = array('name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false);
+	$data['columns'][] = array('name' => 'logentry', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false);
+	$data['columns'][] = array('name' => 'table_name', 'type' => 'varchar(45)', 'NULL' => false);
+	$data['primary']    = array('logid', 'logentry', 'table_name');
+	$data['keys'][]     = array('name' => 'tableid', 'columns' => array('tableid'));
+	$data['type']       = 'Aria';
+	$data['row_format'] = 'Page';
 
-	if (file_exists(__DIR__ . '/keywords.txt')) {
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog_details_tables', $data);
+
+	$data = array();
+	$data['columns'][] = array('name' => 'method', 'type' => 'varchar(45)', 'NULL' => false);
+	$data['columns'][] = array('name' => 'query', 'type' => 'varchar(45)', 'NULL' => false);
+	$data['columns'][] = array('name' => 'methodid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true);
+	$data['primary']    = array('method', 'query');
+	$data['keys'][]     = array('name' => 'methodid', 'columns' => array('methodid'));
+	$data['type']       = 'InnoDB';
+	$data['row_format'] = 'Dynamic';
+
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog_methods', $data);
+
+	$data = array();
+	$data['columns'][] = array('name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false);
+	$data['columns'][] = array('name' => 'table_name', 'type' => 'varchar(45)', 'NULL' => false);
+	$data['primary']    = array('logid', 'table_name');
+	$data['type']       = 'InnoDB';
+	$data['row_format'] = 'Dynamic';
+
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog_tables', $data);
+
+	// Dictionary of every distinct table name seen across all imports, recording whether it's
+	// a known Cacti table once instead of re-deriving that per logentry every time.
+	$data = array();
+	$data['columns'][] = array('name' => 'tableid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true);
+	$data['columns'][] = array('name' => 'table_name', 'type' => 'varchar(45)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'is_cacti_table', 'type' => 'tinyint(1)', 'unsigned' => true, 'NULL' => false, 'default' => 0);
+	$data['primary']     = 'tableid';
+	$data['unique_keys'][] = array('name' => 'table_name', 'columns' => array('table_name'));
+	$data['type']       = 'InnoDB';
+	$data['row_format'] = 'Dynamic';
+	$data['comment']    = 'Dictionary of table names seen in imported slow query logs';
+
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog_table_names', $data);
+
+	db_execute('INSERT IGNORE INTO `plugin_slowlog_methods` VALUES
+		(\'INSERTS\',\'INSERT INTO,INSERT IGNORE INTO\',1),
+		(\'REPLACES\',\'REPLACE INTO,REPLACE IGNORE INTO\',2),
+		(\'DELETES\',\'DELETE \',3),
+		(\'SELECTS\',\'SELECT \',4),
+		(\'DISTINCTS\',\'SELECT DISTINCT\',5),
+		(\'UNIONS\',\'UNION\',6),
+		(\'JOINS\',\'JOIN \',7),
+		(\'OTHERS\',\'OTHERS\',8),
+		(\'UPDATES\',\'UPDATE \',9),
+		(\'RENAMES\', \'RENAME TABLE\', 10),
+		(\'FLUSHES\', \'FLUSH TABLE\', 11),
+		(\'TRUNCATES\', \'TRUNCATE \', 12),
+		(\'LOAD DATA\', \'LOAD DATA INFILE \', 13),
+		(\'OUTFILES\', \'INTO OUTFILE \', 14),
+		(\'INFILES\', \'INFILE \', 15),
+		(\'GROUP BY\', \'GROUP BY \', 16),
+		(\'COUNTS\', \'COUNT(\', 17),
+		(\'SHOWS\', \'SHOW \', 18),
+		(\'UNION ALLS\', \'UNION ALL\', 19),
+		(\'MAX_EXECUTION_TIME\', \'MAX_EXECUTION_TIME(\', 20),
+		(\'MAX_STATEMENT_TIME\', \'MAX_STATEMENT_TIME\', 21),
+		(\'OTHER TABLES\', \'OTHER TABLES\', 22)');
+
+	$data = array();
+	$data['columns'][] = array('name' => 'id', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true);
+	$data['columns'][] = array('name' => 'word', 'type' => 'varchar(30)', 'NULL' => false);
+	$data['primary']    = array('id', 'word');
+	$data['type']       = 'InnoDB';
+	$data['row_format'] = 'Dynamic';
+
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog_reserved_words', $data);
+
+	// The (id, word) primary key doesn't prevent duplicate words on a re-run, since id is
+	// auto-incrementing - only load once, when the table is still empty.
+	if (file_exists(__DIR__ . '/keywords.txt') && !db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_slowlog_reserved_words')) {
 		$words = file(__DIR__ . '/keywords.txt');
 
 		if (cacti_sizeof($words)) {

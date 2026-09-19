@@ -45,7 +45,92 @@ function get_cacti_tables() {
 	return $tables;
 }
 
-function import_logfile($logfile, $description = 'Imported using import_log utility', $length = 8192, $table_names = '', $usecacti = false, $batch = true) {
+/*
+ * Keeps plugin_slowlog_table_names (the deduplicated table_name dictionary) in sync with
+ * whatever table association just found for this logid. $known_tables is either null (we
+ * have no reference list to compare against - a row is added if missing via INSERT IGNORE,
+ * but any previously-determined is_cacti_table value is left alone rather than being reset to
+ * "unknown") or an array of table names to compare against (the live Cacti DB's tables, or a
+ * user-supplied reference list), in which case is_cacti_table is set/updated accordingly.
+ */
+function slowlog_sync_table_dictionary($logid, $known_tables = null) {
+	$tables = db_fetch_assoc_prepared('SELECT DISTINCT table_name
+		FROM plugin_slowlog_details_tables
+		WHERE logid = ?',
+		array($logid));
+
+	if (!cacti_sizeof($tables)) {
+		return;
+	}
+
+	if ($known_tables !== null) {
+		$known_lookup = array_flip($known_tables);
+	}
+
+	foreach($tables as $row) {
+		$t = $row['table_name'];
+
+		if ($known_tables !== null) {
+			db_execute_prepared('INSERT INTO plugin_slowlog_table_names
+				(table_name, is_cacti_table)
+				VALUES (?, ?)
+				ON DUPLICATE KEY UPDATE is_cacti_table = VALUES(is_cacti_table)',
+				array($t, isset($known_lookup[$t]) ? 1 : 0));
+		} else {
+			db_execute_prepared('INSERT IGNORE INTO plugin_slowlog_table_names
+				(table_name)
+				VALUES (?)',
+				array($t));
+		}
+	}
+}
+
+/*
+ * Tags any logentry that references at least one table not recognized as a Cacti table
+ * (per plugin_slowlog_table_names.is_cacti_table, just refreshed by
+ * slowlog_sync_table_dictionary()) with the 'OTHER TABLES' method - a separate concept from
+ * the 'OTHERS' method, which flags a query that didn't match any known SQL construct at all.
+ * Only meaningful once is_cacti_table has actually been determined, so import_post_process()
+ * only calls this for the 'cacti'/'reference' table modes (i.e. whenever a reference list of
+ * known tables was actually available), never for 'list'/'all'.
+ */
+function slowlog_classify_other_tables($logid) {
+	$methodid = db_fetch_cell_prepared("SELECT methodid
+		FROM plugin_slowlog_methods
+		WHERE method = 'OTHER TABLES'",
+		array());
+
+	if (!$methodid) {
+		return;
+	}
+
+	$rows = db_fetch_assoc_prepared('SELECT DISTINCT dt.logentry
+		FROM plugin_slowlog_details_tables AS dt
+		INNER JOIN plugin_slowlog_table_names AS tn
+		ON tn.table_name = dt.table_name
+		WHERE dt.logid = ?
+		AND tn.is_cacti_table = 0',
+		array($logid));
+
+	if (!cacti_sizeof($rows)) {
+		return;
+	}
+
+	$sql = array();
+
+	foreach($rows as $row) {
+		$sql[] = '(' . $logid . ', ' . $row['logentry'] . ', ' . $methodid . ')';
+	}
+
+	$sql_prefix = 'INSERT INTO plugin_slowlog_details_methods (logid, logentry, methodid) VALUES ';
+	$sql_suffix = ' ON DUPLICATE KEY UPDATE methodid=VALUES(methodid)';
+
+	foreach(array_chunk($sql, 500) as $chunk) {
+		db_execute($sql_prefix . implode(', ', $chunk) . $sql_suffix);
+	}
+}
+
+function import_logfile($logfile, $description = 'Imported using import_log utility', $length = 8192, $table_names = '', $usecacti = false, $batch = true, $table_mode = null) {
 	global $config;
 
 	ini_set('max_execution_time', 0);
@@ -297,14 +382,18 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 
 			$php = cacti_escapeshellcmd(read_config_option('path_php_binary'));
 
-			exec_background($php, $config['base_path'] . "/plugins/slowlog/import_log.php --logid=$logid" . ($usecacti ? ' --usecacti':''));
+			$cmd = $config['base_path'] . "/plugins/slowlog/import_log.php --logid=$logid";
+			$cmd .= $usecacti ? ' --usecacti' : '';
+			$cmd .= $table_mode !== null ? ' --table-mode=' . cacti_escapeshellarg($table_mode) : '';
+
+			exec_background($php, $cmd);
 
 			db_execute_prepared('UPDATE plugin_slowlog
 				SET import_text_status = ?
 				WHERE logid = ?',
 				array('Post Processing with Table Detection', $logid));
 		} else {
-			import_post_process($logid, $table_names);
+			import_post_process($logid, $table_names, $usecacti, $table_mode);
 		}
 	} else {
 		print "FATAL: Can not find file '$logfile'\n";
@@ -346,7 +435,19 @@ function is_reserved_word($token) {
 	}
 }
 
-function import_post_process($logid, $table_names = '', $usecacti = false) {
+function import_post_process($logid, $table_names = '', $usecacti = false, $table_mode = null) {
+	// Preserve legacy precedence (explicit list wins, then usecacti, then auto-detect) when a
+	// caller doesn't pass $table_mode explicitly - only the new 3-option UI ever passes it.
+	if ($table_mode === null) {
+		if ($table_names != '') {
+			$table_mode = 'list';
+		} elseif ($usecacti) {
+			$table_mode = 'cacti';
+		} else {
+			$table_mode = 'all';
+		}
+	}
+
 	$records = db_fetch_cell_prepared('SELECT COUNT(*)
 		FROM plugin_slowlog_details
 		WHERE logid = ?',
@@ -355,45 +456,62 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
 	if ($records > 0) {
 		$start = microtime(true);
 
-		// perform fairly fast
+		/*
+		 * Classify every row by method in a single pass: one fetch of this logid's rows,
+		 * matched against each method's fragments in PHP (stripos - LIKE '%frag%' was
+		 * case-insensitive by default too), instead of one LIKE/NOT LIKE table scan per
+		 * method (~20 round trips previously for the default method dictionary).
+		 */
 		$methods = db_fetch_assoc_prepared('SELECT *
 			FROM plugin_slowlog_methods
 			ORDER BY method',
 			array());
 
+		$method_fragments = array();
+		$others_methodid   = null;
+
 		foreach($methods as $row) {
-			if ($row['method'] != 'OTHERS') {
-				$queries = explode(',', $row['query']);
+			// OTHERS is the "matched nothing else" bucket; OTHER TABLES is classified
+			// separately below (by table recognition, not a query text fragment).
+			if ($row['method'] == 'OTHERS') {
+				$others_methodid = $row['methodid'];
+			} elseif ($row['method'] != 'OTHER TABLES') {
+				$method_fragments[$row['methodid']] = explode(',', $row['query']);
+			}
+		}
 
-				foreach($queries as $q) {
-					db_execute_prepared('INSERT INTO plugin_slowlog_details_methods
-						(logid, logentry, methodid)
-						SELECT ? AS logid, logentry, ? AS methodid
-						FROM plugin_slowlog_details
-						WHERE logid = ?
-						AND query LIKE ?',
-						array($logid, $row['methodid'], $logid, '%' . $q . '%'));
-				}
-			} else {
-				$sql_where    = 'WHERE logid = ?';
-				$sql_params   = array();
-				$sql_params[] = $logid;
+		$detail_rows = db_fetch_assoc_prepared('SELECT logentry, query
+			FROM plugin_slowlog_details
+			WHERE logid = ?',
+			array($logid));
 
-				foreach($methods as $method) {
-					$queries = explode(',', $method['query']);
+		$method_sql = array();
 
-					foreach($queries as $q) {
-						$sql_where .= ' AND query NOT LIKE ?';
-						$sql_params[] = '%' . $q . '%';
+		foreach($detail_rows as $row) {
+			$matched = false;
+
+			foreach($method_fragments as $methodid => $fragments) {
+				foreach($fragments as $fragment) {
+					if (stripos($row['query'], $fragment) !== false) {
+						$method_sql[] = '(' . $logid . ', ' . $row['logentry'] . ', ' . $methodid . ')';
+						$matched = true;
+
+						break;
 					}
 				}
+			}
 
-				db_execute_prepared("INSERT INTO plugin_slowlog_details_methods
-					(logid, logentry, methodid)
-					SELECT ? AS logid, logentry, ? AS methodid
-					FROM plugin_slowlog_details
-					$sql_where",
-					array_merge(array($logid, $row['methodid']), $sql_params));
+			if (!$matched && $others_methodid !== null) {
+				$method_sql[] = '(' . $logid . ', ' . $row['logentry'] . ', ' . $others_methodid . ')';
+			}
+		}
+
+		if (cacti_sizeof($method_sql)) {
+			$method_sql_prefix = 'INSERT INTO plugin_slowlog_details_methods (logid, logentry, methodid) VALUES ';
+			$method_sql_suffix = ' ON DUPLICATE KEY UPDATE methodid=VALUES(methodid)';
+
+			foreach(array_chunk($method_sql, 500) as $chunk) {
+				db_execute($method_sql_prefix . implode(', ', $chunk) . $method_sql_suffix);
 			}
 		}
 
@@ -404,11 +522,22 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
 		$start = microtime(true);
 
 		// perform table name analysis
-		$tables = array();
-		if ($table_names != '') {
+		$tables       = array();
+		$known_tables = null;
+
+		if ($table_mode == 'list') {
 			$tables = explode(' ', trim($table_names));
-		} elseif ($usecacti) {
-			$tables = explode(' ', db_fetch_cell_prepared('SELECT import_tables FROM plugin_slowlog WHERE logid = ?', array($logid)));
+		} elseif ($table_mode == 'cacti') {
+			// must run the tokenizer here (not the old known-tables-only LIKE scan) so that
+			// tables NOT in get_cacti_tables() are actually discovered and can be classified
+			// as OTHER TABLES below - scanning only for known tables can never find "other".
+			get_table_associations($logid);
+
+			$known_tables = explode(' ', trim(get_cacti_tables()));
+		} elseif ($table_mode == 'reference') {
+			get_table_associations($logid);
+
+			$known_tables = explode(' ', trim(db_fetch_cell_prepared('SELECT import_tables FROM plugin_slowlog WHERE logid = ?', array($logid))));
 		} else {
 			get_table_associations($logid);
 		}
@@ -448,6 +577,18 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
 				$i++;
 			}
 		}
+
+		$end = microtime(true);
+
+		cacti_log(sprintf('STATS: Time:%0.2f, Post-Processing for Tables Complete for %s', $end-$start, $logid), false, 'SLOWLOG');
+
+		slowlog_sync_table_dictionary($logid, $known_tables);
+
+		if ($known_tables !== null) {
+			slowlog_classify_other_tables($logid);
+		}
+
+		slowlog_set_timeouts($logid);
 	}
 
 	db_execute_prepared('UPDATE plugin_slowlog
@@ -455,10 +596,38 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
 		import_status = 2
 		WHERE logid = ?',
 		array("All Tables Processed", $logid));
+}
 
-	$end = microtime(true);
+/*
+ * Re-runs method/table/timeout classification for a logid that's already been imported,
+ * without needing the original logfile - e.g. after new methods/tables are added to the
+ * schema, or the tokenizer itself is improved. Clears the previously-derived associations
+ * first since import_post_process()'s method inserts aren't safe to run twice otherwise.
+ */
+function slowlog_reprocess($logid, $table_names = '', $usecacti = false, $table_mode = null) {
+	db_execute_prepared('DELETE FROM plugin_slowlog_details_methods WHERE logid = ?', array($logid));
+	db_execute_prepared('DELETE FROM plugin_slowlog_details_tables WHERE logid = ?', array($logid));
+	db_execute_prepared('DELETE FROM plugin_slowlog_tables WHERE logid = ?', array($logid));
+	db_execute_prepared('UPDATE plugin_slowlog_details SET timeout = 0 WHERE logid = ?', array($logid));
 
-	cacti_log(sprintf('STATS: Time:%0.2f, Post-Processing for Tables Complete for %s', $end-$start, $logid), false, 'SLOWLOG');
+	db_execute_prepared('UPDATE plugin_slowlog
+		SET import_status = 1,
+		import_text_status = ?
+		WHERE logid = ?',
+		array('Reprocessing', $logid));
+
+	cacti_log("NOTE: Reprocessing logid $logid", false, 'SLOWLOG');
+
+	import_post_process($logid, $table_names, $usecacti, $table_mode);
+}
+
+/* slowlog_reprocess() for every logid currently in plugin_slowlog */
+function slowlog_reprocess_all($table_names = '', $usecacti = false, $table_mode = null) {
+	$logids = db_fetch_assoc_prepared('SELECT logid FROM plugin_slowlog', array());
+
+	foreach($logids as $row) {
+		slowlog_reprocess($row['logid'], $table_names, $usecacti, $table_mode);
+	}
 }
 
 function slowlog_tabs() {
@@ -504,8 +673,6 @@ function slowlog_tabs() {
 }
 
 function get_table_associations($logid, $logentry = -1) {
-	load_reserved_words();
-
 	$sql = array();
 	$sql_prefix = 'INSERT INTO plugin_slowlog_details_tables (logid, logentry, table_name) VALUES ';
 	$sql_suffix = 'ON DUPLICATE KEY UPDATE table_name=VALUES(table_name)';
@@ -523,894 +690,14 @@ function get_table_associations($logid, $logentry = -1) {
 	}
 
 	foreach($rows as $row) {
-		$tokens = preg_split('/\s+/', $row['query']);
-
-		$query = $row['query'];
-		slowlog_debug('--------------------------------------------------------------------');
-		slowlog_debug(substr($row['query'],0,4000));
-
-		$in_delete   = false;
-		$in_show     = false;
-		$in_select   = false;
-		$in_from     = false;
-		$in_as       = false;
-		$in_join     = false;
-		$in_on       = false;
-		$in_using    = false;
-		$in_where    = false;
-		$in_having   = false;
-		$in_limit    = false;
-		$in_order    = false;
-		$in_groupby  = false;
-
-		$in_update   = false;
-		$in_table    = false;
-		$in_modify   = false;
-		$in_change   = false;
-		$in_set      = false;
-		$in_insert   = false;
-		$in_into     = false;
-		$in_values   = false;
-		$in_truncate = false;
-		$in_with     = false;
-
-		$table_mod   = false;
-
-		$tables = array();
-
-		foreach($tokens as $index => $t) {
-			$t = trim(strtolower($t));
-			$bparen = false;
-			$eparen = false;
-
-			if (substr($t, 0, 1) == '(') {
-				$bparen = true;
-				//slowlog_debug('Bparen: ' . $t);
-			} elseif (substr($t, 0, 1) == ')') {
-				$eparen = true;
-			}
-
-			$t = trim($t, ')(');
-
-			if ($t == '') {
-				continue;
-			}
-
-			//slowlog_debug('Token: ' . $t);
-
-			switch($t) {
-				case 'delete':
-					slowlog_debug('In DELETE');
-
-					$in_delete   = true;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_limit    = false;
-					$in_order    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'show':
-					slowlog_debug('In SHOW');
-
-					$in_delete   = false;
-					$in_show     = true;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_limit    = false;
-					$in_order    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'select':
-					slowlog_debug('In SELECT');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = true;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_limit    = false;
-					$in_order    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'from':
-					if (!$in_select && !$in_as && !$in_delete && !$in_show) {
-						break;
-					}
-
-					slowlog_debug('In FROM');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = true;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_limit    = false;
-					$in_order    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'as':
-					//slowlog_debug('In AS');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = true;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_limit    = false;
-					$in_order    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'join':
-				case 'strait_join':
-					slowlog_debug('In JOIN');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = true;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_order    = false;
-					$in_limit    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'on':
-					slowlog_debug('In ON');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = true;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_order    = false;
-					$in_limit    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					if (strtolower($tokens[$index + 1]) == 'duplicate') {
-						break 2;
-					}
-
-					break;
-				case 'using':
-					slowlog_debug('In USING');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = true;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_order    = false;
-					$in_limit    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'where':
-					slowlog_debug('In WHERE');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = true;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_order    = false;
-					$in_limit    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'group':
-					slowlog_debug('In GROUP');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = true;
-					$in_having   = false;
-					$in_order    = false;
-					$in_limit    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'having':
-					slowlog_debug('In HAVING');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = true;
-					$in_order    = false;
-					$in_limit    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'order':
-					slowlog_debug('In ORDER');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_order    = true;
-					$in_limit    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'limit':
-					slowlog_debug('In LIMIT');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_order    = false;
-					$in_limit    = true;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'insert':
-					slowlog_debug('In INSERT');
-
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_order    = false;
-					$in_limit    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = true;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'into':
-					slowlog_debug('In INTO');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_order    = false;
-					$in_limit    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = true;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'truncate':
-					slowlog_debug('In TRUNCATE');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_order    = false;
-					$in_limit    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = true;
-					$in_with     = false;
-
-					break;
-				case 'update':
-					if ($in_values) {
-						break;
-					}
-
-					slowlog_debug('In UPDATE');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_order    = false;
-					$in_limit    = false;
-
-					$in_update   = true;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'set':
-					slowlog_debug('In SET');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_order    = false;
-					$in_limit    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = true;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'table':
-				case 'tables':
-					slowlog_debug('In TABLE');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_order    = false;
-					$in_limit    = false;
-
-					$in_update   = false;
-					$in_table    = true;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'modify':
-					slowlog_debug('In MODIFY');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_order    = false;
-					$in_limit    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = true;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'change':
-					slowlog_debug('In CHANGE');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_order    = false;
-					$in_limit    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = true;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'values':
-					slowlog_debug('In VALUES');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_order    = false;
-					$in_limit    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = true;
-					$in_truncate = false;
-					$in_with     = false;
-
-					break;
-				case 'with':
-					slowlog_debug('In WITH');
-
-					$in_delete   = false;
-					$in_show     = false;
-					$in_select   = false;
-					$in_from     = false;
-					$in_as       = false;
-					$in_join     = false;
-					$in_on       = false;
-					$in_using    = false;
-					$in_where    = false;
-					$in_groupby  = false;
-					$in_having   = false;
-					$in_order    = false;
-					$in_limit    = false;
-
-					$in_update   = false;
-					$in_table    = false;
-					$in_modify   = false;
-					$in_change   = false;
-					$in_set      = false;
-					$in_insert   = false;
-					$in_into     = false;
-					$in_values   = false;
-					$in_truncate = false;
-					$in_with     = true;
-
-					break;
-				default:
-					if ($in_select) {
-						$table_mod = false;
-						break;
-					} elseif ($in_where) {
-						$table_mod = false;
-						break;
-					} elseif ($in_groupby) {
-						$table_mod = false;
-						break;
-					} elseif ($in_having) {
-						$table_mod = false;
-						break;
-					} elseif ($in_order) {
-						$table_mod = false;
-						break;
-					} elseif ($in_limit) {
-						$table_mod = false;
-						break;
-					} elseif ($in_on) {
-						$table_mod = false;
-						break;
-					} elseif ($in_using) {
-						$table_mod = false;
-						break;
-					} elseif ($in_set) {
-						$table_mod = false;
-						break;
-					} elseif ($in_insert) {
-						$table_mod = false;
-						break;
-					} elseif ($in_as) {
-						$table_mod = false;
-						break;
-					} elseif ($in_values) {
-						$table_mod = false;
-						break;
-					} elseif ($in_with) {
-						$table_mod = false;
-						break;
-					} elseif ($in_modify) {
-						$table_mod = false;
-						break;
-					} elseif ($in_change) {
-						$table_mod = false;
-						break;
-					} elseif ($in_from) {
-						if (is_reserved_word($t)) {
-							$table_mod = true;
-							$table_mod = true;
-						} elseif ($t == ',') {
-							$table_mod = false;
-						} elseif ($t != '' && !is_reserved_word($t) && !$table_mod) {
-							$table = trim($t, ')( ');
-
-							if (substr($table, -1) == ',') {
-								$table_mod = false;
-							} else {
-								$table_mod = true;
-							}
-
-							$table = trim($table, ',');
-
-							if (strpos($table, ',') !== false) {
-								$tparts = explode(',', $table);
-								foreach($tparts as $table) {
-									$table = parseTable($table);
-									$tables[$table] = $table;
-								}
-							} else {
-								$table = parseTable($t);
-								$tables[$table] = $table;
-							}
-
-							slowlog_debug('FROM: ' . $table);
-						}
-					} elseif ($in_into) {
-						if (is_reserved_word($t) && $t != 'table') {
-							slowlog_debug("RES WORD: " . $t);
-							$table_mod = true;
-						} elseif ($bparen) {
-							$table_mod = true;
-						} elseif ($t == 'table') {
-							$table_mod = false;
-						} elseif (!$table_mod) {
-							if ($t != '' && !is_reserved_word($t)) {
-								$table = parseTable($t);
-								$tables[$table] = $table;
-								slowlog_debug('INTO: ' . $table);
-								$table_mod = true;
-							} elseif (is_reserved_word($t)) {
-								$table_mod = false;
-							} else {
-								$table_mod = true;
-							}
-						}
-					} elseif ($in_join) {
-						if ($t != '' && !is_reserved_word($t) && !$table_mod) {
-							$table = parseTable($t);
-							$tables[$table] = $table;
-							slowlog_debug('JOIN: ' . $table);
-							$table_mod = true;
-						}
-					} elseif ($in_update) {
-						if ($t == 'force' || $t == 'index') {
-							$table_mod = true;
-						} elseif ($t == 'inner' || $t == 'left' || $t == 'right' || $t == 'outer') {
-							$table_mod = false;
-						} elseif (!$table_mod) {
-							if ($t != '' && !is_reserved_word($t)) {
-								$table = parseTable($t);
-								$tables[$table] = $table;
-								slowlog_debug('UPDATE: ' . $table);
-							} elseif (is_reserved_word($t)) {
-								$table_mod = false;
-							} else {
-								$table_mod = true;
-							}
-						}
-					} elseif ($in_truncate) {
-						$table_mod = false;
-						if (is_reserved_word($t)) {
-							$table_mod = false;
-						} elseif ($t != '') {
-							$table = parseTable($t);
-							$tables[$table] = $table;
-							slowlog_debug('TRUNCATE: ' . $t);
-						} else {
-							$table_mod = true;
-						}
-					} elseif ($in_table) {
-						if (is_reserved_word($t)) {
-							$table_mod = false;
-						} elseif ($t != '' && !$table_mod) {
-							$table = parseTable($t);
-							$tables[$table] = $table;
-							slowlog_debug('TABLE: ' . $t);
-
-							$table_mod = true;
-						}
-
-					} else {
-						slowlog_debug('Something: ' . $t);
-					}
-			}
-		}
+		$tables = slowlog_extract_tables_from_query($row['query']);
 
 		if (cacti_sizeof($tables)) {
 			foreach($tables as $t) {
 				$sql[] = '(' . $logid . ', ' . $row['logentry'] . ', ' . db_qstr($t) . ')';
 			}
 		} else {
-			slowlog_debug("No tables found!!!: $query");
+			slowlog_debug('No tables found: ' . substr($row['query'], 0, 4000));
 		}
 	}
 
@@ -1421,6 +708,386 @@ function get_table_associations($logid, $logentry = -1) {
 
 		foreach($sqls as $sql) {
 			db_execute($sql_prefix . implode(', ', $sql) . $sql_suffix);
+		}
+	}
+}
+
+/*
+ * Regex/scanner based query tokenizer, replacing the old per-token state machine.
+ *
+ * Rather than walking the query one whitespace-delimited token at a time and toggling
+ * dozens of "in_xxx" flags, this dispatches on the statement's leading keyword and then
+ * pulls out every FROM clause and every JOIN target directly with targeted patterns. A
+ * small hand-rolled scanner (slowlog_scan_clause_span/slowlog_match_balanced_parens) tracks
+ * parenthesis depth so a FROM/JOIN clause is bounded correctly even when it contains a
+ * derived table (subquery). Every table name found - including ones nested inside
+ * subqueries, whether reached via the primary dispatch or not - is added to a de-duplicating
+ * associative array, so overlapping/redundant discovery of the same table is harmless.
+ */
+
+/* keywords that end a FROM/JOIN table-reference-list clause at the current nesting depth */
+const SLOWLOG_CLAUSE_BOUNDARY = '(?:WHERE|GROUP\s+BY|HAVING|ORDER\s+BY|LIMIT|UNION|INNER\s+JOIN|LEFT\s+(?:OUTER\s+)?JOIN|RIGHT\s+(?:OUTER\s+)?JOIN|FULL\s+(?:OUTER\s+)?JOIN|CROSS\s+JOIN|STRAIGHT_JOIN|JOIN|ON|USING|INTO\s+OUTFILE|PROCEDURE|FOR\s+UPDATE|LOCK\s+IN)';
+
+/* any flavor of JOIN keyword, used both to split a table-ref-list and to find join targets */
+const SLOWLOG_JOIN_KEYWORD = '(?:INNER\s+JOIN|LEFT\s+(?:OUTER\s+)?JOIN|RIGHT\s+(?:OUTER\s+)?JOIN|FULL\s+(?:OUTER\s+)?JOIN|CROSS\s+JOIN|STRAIGHT_JOIN|JOIN)';
+
+function slowlog_normalize_query_text($query) {
+	return trim(preg_replace('/\s+/', ' ', (string) $query));
+}
+
+/*
+ * Splits $text on a top-level delimiter, i.e. one that isn't nested inside parens - so a
+ * comma inside a function call or a derived table doesn't split a table-reference list.
+ */
+function slowlog_split_top_level($text, $delim = ',') {
+	$parts   = array();
+	$depth   = 0;
+	$current = '';
+	$len     = strlen($text);
+
+	for ($i = 0; $i < $len; $i++) {
+		$ch = $text[$i];
+
+		if ($ch === '(') {
+			$depth++;
+		} elseif ($ch === ')') {
+			$depth--;
+		}
+
+		if ($ch === $delim && $depth === 0) {
+			$parts[] = $current;
+			$current = '';
+		} else {
+			$current .= $ch;
+		}
+	}
+
+	if (trim($current) !== '') {
+		$parts[] = $current;
+	}
+
+	return $parts;
+}
+
+/*
+ * $text must start with '('. Returns array(innerContent, remainderAfterClosingParen), or
+ * false if the leading '(' has no matching close (malformed input).
+ */
+function slowlog_match_balanced_parens($text) {
+	if (preg_match('/\((?:[^()]|(?R))*\)/', $text, $m, PREG_OFFSET_CAPTURE) && $m[0][1] === 0) {
+		$whole = $m[0][0];
+
+		return array(substr($whole, 1, -1), substr($text, strlen($whole)));
+	}
+
+	return false;
+}
+
+/* grabs a leading `schema`.`table`/schema.table/table identifier off of $text */
+function slowlog_first_identifier($text) {
+	$text = ltrim($text);
+
+	if (preg_match('/^`[^`]+`(?:\.`[^`]+`)?|^[A-Za-z0-9_$]+(?:\.[A-Za-z0-9_$]+)?/', $text, $m)) {
+		return parseTable($m[0]);
+	}
+
+	return '';
+}
+
+/*
+ * Finds the end offset (exclusive) of a clause starting at $start: the first depth-0
+ * SLOWLOG_CLAUSE_BOUNDARY keyword, an unmatched ')', a ';', or end of string - whichever
+ * comes first. Depth is relative to $start, so a derived table's own inner keywords don't
+ * end the clause early.
+ */
+function slowlog_scan_clause_span($text, $start) {
+	$depth = 0;
+	$len   = strlen($text);
+	$i     = $start;
+
+	while ($i < $len) {
+		$ch = $text[$i];
+
+		if ($ch === '(') {
+			$depth++;
+			$i++;
+			continue;
+		}
+
+		if ($ch === ')') {
+			if ($depth === 0) {
+				return $i;
+			}
+
+			$depth--;
+			$i++;
+			continue;
+		}
+
+		if ($ch === ';') {
+			return $i;
+		}
+
+		if ($depth === 0 && preg_match('/\G\s+' . SLOWLOG_CLAUSE_BOUNDARY . '\b/i', $text, $bm, 0, $i)) {
+			return $i;
+		}
+
+		$i++;
+	}
+
+	return $len;
+}
+
+/* a single item of a comma-separated table-reference list, e.g. "t1 a" or "(SELECT ...) x" */
+function slowlog_extract_single_table_ref($text, &$tables) {
+	$text = trim($text);
+
+	if ($text === '') {
+		return;
+	}
+
+	if ($text[0] === '(') {
+		$balanced = slowlog_match_balanced_parens($text);
+
+		if ($balanced !== false) {
+			slowlog_extract_tables_from_query($balanced[0], $tables);
+
+			return;
+		}
+	}
+
+	$id = slowlog_first_identifier($text);
+
+	if ($id !== '') {
+		$tables[$id] = $id;
+	}
+}
+
+/* the continuation of a table-reference list after its first JOIN keyword has been consumed */
+function slowlog_extract_join_chain($text, &$tables) {
+	while (true) {
+		$text = ltrim($text);
+
+		if ($text === '') {
+			return;
+		}
+
+		if ($text[0] === '(') {
+			$balanced = slowlog_match_balanced_parens($text);
+
+			if ($balanced === false) {
+				return;
+			}
+
+			slowlog_extract_tables_from_query($balanced[0], $tables);
+			$text = $balanced[1];
+		} else {
+			$id = slowlog_first_identifier($text);
+
+			if ($id !== '') {
+				$tables[$id] = $id;
+			}
+
+			if (!preg_match('/\s+' . SLOWLOG_JOIN_KEYWORD . '\s+/i', $text, $m, PREG_OFFSET_CAPTURE)) {
+				return;
+			}
+
+			$text = substr($text, $m[0][1] + strlen($m[0][0]));
+		}
+	}
+}
+
+/* a comma-separated table-reference list, e.g. a FROM clause or an UPDATE target list */
+function slowlog_extract_table_ref_list($text, &$tables) {
+	$text = trim($text);
+
+	if ($text === '') {
+		return;
+	}
+
+	foreach (slowlog_split_top_level($text, ',') as $part) {
+		$part = trim($part);
+
+		if ($part === '') {
+			continue;
+		}
+
+		if (preg_match('/^(.*?)\s+' . SLOWLOG_JOIN_KEYWORD . '\s+(.*)$/is', $part, $m)) {
+			slowlog_extract_single_table_ref($m[1], $tables);
+			slowlog_extract_join_chain($m[2], $tables);
+		} else {
+			slowlog_extract_single_table_ref($part, $tables);
+		}
+	}
+}
+
+/*
+ * Finds every FROM keyword in $query - at any nesting depth - and extracts its
+ * table-reference list. Overlap with subqueries discovered elsewhere (e.g. via a JOIN
+ * target) is intentional and harmless, since $tables is a de-duplicating set.
+ */
+function slowlog_extract_from_clauses($query, &$tables) {
+	$offset = 0;
+	$len    = strlen($query);
+
+	while ($offset < $len && preg_match('/\bFROM\b/i', $query, $m, PREG_OFFSET_CAPTURE, $offset)) {
+		$pos   = $m[0][1];
+		$start = $pos + 4;
+		$end   = slowlog_scan_clause_span($query, $start);
+
+		slowlog_extract_table_ref_list(substr($query, $start, $end - $start), $tables);
+
+		$offset = max($end, $pos + 4);
+	}
+}
+
+/* finds every JOIN keyword in $query and extracts the table (or derived subquery) it targets */
+function slowlog_extract_join_targets($query, &$tables) {
+	if (!preg_match_all('/\b' . SLOWLOG_JOIN_KEYWORD . '\s+/i', $query, $m, PREG_OFFSET_CAPTURE)) {
+		return;
+	}
+
+	foreach ($m[0] as $match) {
+		$after = ltrim(substr($query, $match[1] + strlen($match[0])));
+
+		if ($after !== '' && $after[0] === '(') {
+			$balanced = slowlog_match_balanced_parens($after);
+
+			if ($balanced !== false) {
+				slowlog_extract_tables_from_query($balanced[0], $tables);
+				continue;
+			}
+		}
+
+		$id = slowlog_first_identifier($after);
+
+		if ($id !== '') {
+			$tables[$id] = $id;
+		}
+	}
+}
+
+/*
+ * Determines every table referenced by a (normalized, single-line) SQL statement:
+ * SELECT/DELETE FROM lists, JOINs (including chains and derived tables), INSERT/REPLACE
+ * INTO, UPDATE ... SET (including JOIN'd targets), TRUNCATE TABLE, RENAME TABLE ... TO ...,
+ * FLUSH TABLE(S), LOAD DATA ... INTO TABLE, and SHOW TABLES/COLUMNS/INDEX/CREATE TABLE.
+ * Subqueries are followed recursively wherever they're found.
+ */
+function slowlog_extract_tables_from_query($query, &$tables = null) {
+	if ($tables === null) {
+		$tables = array();
+	}
+
+	$query = slowlog_normalize_query_text($query);
+
+	if ($query === '') {
+		return $tables;
+	}
+
+	if (preg_match('/^(?:INSERT|REPLACE)\s+(?:IGNORE\s+)?INTO\s+/i', $query, $m)) {
+		$id = slowlog_first_identifier(substr($query, strlen($m[0])));
+
+		if ($id !== '') {
+			$tables[$id] = $id;
+		}
+	} elseif (preg_match('/^UPDATE\s+(.*?)\s+SET\b/is', $query, $m)) {
+		slowlog_extract_table_ref_list($m[1], $tables);
+	} elseif (preg_match('/^TRUNCATE\s+(?:TABLE\s+)?/i', $query, $m)) {
+		$id = slowlog_first_identifier(substr($query, strlen($m[0])));
+
+		if ($id !== '') {
+			$tables[$id] = $id;
+		}
+	} elseif (preg_match('/^RENAME\s+TABLE\s+(.*)$/i', $query, $m)) {
+		foreach (slowlog_split_top_level($m[1], ',') as $pair) {
+			if (preg_match('/^\s*(.+?)\s+TO\s+(.+)\s*$/i', $pair, $pm)) {
+				$from = slowlog_first_identifier($pm[1]);
+				$to   = slowlog_first_identifier($pm[2]);
+
+				if ($from !== '') { $tables[$from] = $from; }
+				if ($to !== '')   { $tables[$to]   = $to; }
+			}
+		}
+	} elseif (preg_match('/^FLUSH\s+TABLES?\s+(.*)$/i', $query, $m)) {
+		$rest = preg_replace('/\s+WITH\s+READ\s+LOCK\s*$/i', '', $m[1]);
+
+		foreach (slowlog_split_top_level($rest, ',') as $t) {
+			$id = slowlog_first_identifier($t);
+
+			if ($id !== '') {
+				$tables[$id] = $id;
+			}
+		}
+	} elseif (preg_match('/^LOAD\s+DATA\b/i', $query) && preg_match('/\bINTO\s+TABLE\s+/i', $query, $m, PREG_OFFSET_CAPTURE)) {
+		$id = slowlog_first_identifier(substr($query, $m[0][1] + strlen($m[0][0])));
+
+		if ($id !== '') {
+			$tables[$id] = $id;
+		}
+	} elseif (preg_match('/^SHOW\s+CREATE\s+TABLE\s+/i', $query, $m)) {
+		$id = slowlog_first_identifier(substr($query, strlen($m[0])));
+
+		if ($id !== '') {
+			$tables[$id] = $id;
+		}
+	} elseif (preg_match('/^SHOW\s+(?:FULL\s+)?(?:TABLES|COLUMNS|FIELDS|INDEX(?:ES)?|KEYS)\s+(?:FROM|IN)\s+/i', $query, $m)) {
+		$id = slowlog_first_identifier(substr($query, strlen($m[0])));
+
+		if ($id !== '') {
+			$tables[$id] = $id;
+		}
+	}
+
+	// Always look for FROM clauses and JOINs too - covers INSERT ... SELECT ... FROM,
+	// subqueries in a WHERE/SET/etc, and multi-table DELETE/UPDATE ... JOIN forms.
+	slowlog_extract_from_clauses($query, $tables);
+	slowlog_extract_join_targets($query, $tables);
+
+	return $tables;
+}
+
+/*
+ * Pulls the numeric timeout out of a query using a MAX_EXECUTION_TIME(N) optimizer hint
+ * (MySQL, milliseconds) or a max_statement_time=N wrapper (MariaDB, seconds), normalized to
+ * seconds so it's comparable to query_time/lock_time. Returns null when neither is present.
+ */
+function slowlog_extract_timeout_value($query) {
+	if (preg_match('/MAX_EXECUTION_TIME\s*\(\s*([0-9]+(?:\.[0-9]+)?)\s*\)/i', $query, $m)) {
+		return round($m[1] / 1000, 6);
+	}
+
+	if (preg_match('/MAX_STATEMENT_TIME\s*=\s*([0-9]+(?:\.[0-9]+)?)/i', $query, $m)) {
+		return (float) $m[1];
+	}
+
+	return null;
+}
+
+/* populates plugin_slowlog_details.timeout for any row using a MAX_EXECUTION_TIME/MAX_STATEMENT_TIME hint */
+function slowlog_set_timeouts($logid, $logentry = -1) {
+	$sql_where  = 'WHERE logid = ? AND (query LIKE ? OR query LIKE ?)';
+	$sql_params = array($logid, '%MAX_EXECUTION_TIME(%', '%MAX_STATEMENT_TIME%');
+
+	if ($logentry != -1) {
+		$sql_where   .= ' AND logentry = ?';
+		$sql_params[] = $logentry;
+	}
+
+	$rows = db_fetch_assoc_prepared("SELECT logentry, query
+		FROM plugin_slowlog_details
+		$sql_where",
+		$sql_params);
+
+	foreach($rows as $row) {
+		$timeout = slowlog_extract_timeout_value($row['query']);
+
+		if ($timeout !== null) {
+			db_execute_prepared('UPDATE plugin_slowlog_details
+				SET timeout = ?
+				WHERE logid = ?
+				AND logentry = ?',
+				array($timeout, $logid, $row['logentry']));
 		}
 	}
 }
