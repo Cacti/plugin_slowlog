@@ -394,45 +394,60 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
 	if ($records > 0) {
 		$start = microtime(true);
 
-		// perform fairly fast
+		/*
+		 * Classify every row by method in a single pass: one fetch of this logid's rows,
+		 * matched against each method's fragments in PHP (stripos - LIKE '%frag%' was
+		 * case-insensitive by default too), instead of one LIKE/NOT LIKE table scan per
+		 * method (~20 round trips previously for the default method dictionary).
+		 */
 		$methods = db_fetch_assoc_prepared('SELECT *
 			FROM plugin_slowlog_methods
 			ORDER BY method',
 			array());
 
+		$method_fragments = array();
+		$others_methodid   = null;
+
 		foreach($methods as $row) {
 			if ($row['method'] != 'OTHERS') {
-				$queries = explode(',', $row['query']);
-
-				foreach($queries as $q) {
-					db_execute_prepared('INSERT INTO plugin_slowlog_details_methods
-						(logid, logentry, methodid)
-						SELECT ? AS logid, logentry, ? AS methodid
-						FROM plugin_slowlog_details
-						WHERE logid = ?
-						AND query LIKE ?',
-						array($logid, $row['methodid'], $logid, '%' . $q . '%'));
-				}
+				$method_fragments[$row['methodid']] = explode(',', $row['query']);
 			} else {
-				$sql_where    = 'WHERE logid = ?';
-				$sql_params   = array();
-				$sql_params[] = $logid;
+				$others_methodid = $row['methodid'];
+			}
+		}
 
-				foreach($methods as $method) {
-					$queries = explode(',', $method['query']);
+		$detail_rows = db_fetch_assoc_prepared('SELECT logentry, query
+			FROM plugin_slowlog_details
+			WHERE logid = ?',
+			array($logid));
 
-					foreach($queries as $q) {
-						$sql_where .= ' AND query NOT LIKE ?';
-						$sql_params[] = '%' . $q . '%';
+		$method_sql = array();
+
+		foreach($detail_rows as $row) {
+			$matched = false;
+
+			foreach($method_fragments as $methodid => $fragments) {
+				foreach($fragments as $fragment) {
+					if (stripos($row['query'], $fragment) !== false) {
+						$method_sql[] = '(' . $logid . ', ' . $row['logentry'] . ', ' . $methodid . ')';
+						$matched = true;
+
+						break;
 					}
 				}
+			}
 
-				db_execute_prepared("INSERT INTO plugin_slowlog_details_methods
-					(logid, logentry, methodid)
-					SELECT ? AS logid, logentry, ? AS methodid
-					FROM plugin_slowlog_details
-					$sql_where",
-					array_merge(array($logid, $row['methodid']), $sql_params));
+			if (!$matched && $others_methodid !== null) {
+				$method_sql[] = '(' . $logid . ', ' . $row['logentry'] . ', ' . $others_methodid . ')';
+			}
+		}
+
+		if (cacti_sizeof($method_sql)) {
+			$method_sql_prefix = 'INSERT INTO plugin_slowlog_details_methods (logid, logentry, methodid) VALUES ';
+			$method_sql_suffix = ' ON DUPLICATE KEY UPDATE methodid=VALUES(methodid)';
+
+			foreach(array_chunk($method_sql, 500) as $chunk) {
+				db_execute($method_sql_prefix . implode(', ', $chunk) . $method_sql_suffix);
 			}
 		}
 

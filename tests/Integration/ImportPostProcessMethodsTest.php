@@ -20,11 +20,12 @@
 */
 
 /*
- * import_post_process() classifies each detail row by method (via a series
- * of LIKE/NOT LIKE db_execute_prepared calls) and by table. This exercises
- * that classification through the mock database using the exact method
- * dictionary setup.php seeds into plugin_slowlog_methods, and asserts the
- * generated SQL/params instead of needing a real MySQL/MariaDB instance.
+ * import_post_process() classifies each detail row by method in a single PHP-side pass
+ * (one fetch of the logid's rows, matched against each method's comma-separated fragments
+ * via stripos(), then one batched INSERT) rather than one LIKE/NOT LIKE table scan per
+ * method. This exercises that classification through the mock database using the exact
+ * method dictionary setup.php seeds into plugin_slowlog_methods, and asserts the generated
+ * SQL/params instead of needing a real MySQL/MariaDB instance.
  */
 
 uses(TestCase::class);
@@ -34,6 +35,22 @@ if (!function_exists('slowlog_test_prepared_calls_matching')) {
 		return array_values(array_filter($calls, function ($call) use ($needle) {
 			return $call['fn'] === 'db_execute_prepared' && strpos($call['sql'], $needle) !== false;
 		}));
+	}
+}
+
+if (!function_exists('slowlog_test_method_insert_tuples')) {
+	function slowlog_test_method_insert_tuples(): array {
+		foreach ($GLOBALS['__test_db_calls'] as $call) {
+			if ($call['fn'] === 'db_execute' && strpos($call['sql'], 'plugin_slowlog_details_methods') !== false) {
+				preg_match_all('/\((\d+),\s*(\d+),\s*(\d+)\)/', $call['sql'], $m, PREG_SET_ORDER);
+
+				return array_map(function ($t) {
+					return array((int) $t[1], (int) $t[2], (int) $t[3]);
+				}, $m);
+			}
+		}
+
+		return array();
 	}
 }
 
@@ -60,47 +77,62 @@ beforeEach(function () {
 	));
 });
 
-it('inserts a methodid mapping row per LIKE fragment for a simple method', function () {
-	import_post_process(1, 'accounts');
-
-	$calls = slowlog_test_prepared_calls_matching($GLOBALS['__test_db_calls'], 'plugin_slowlog_details_methods');
-
-	$select = array_values(array_filter($calls, function ($call) {
-		return $call['params'][1] === 4; // SELECTS methodid
-	}));
-
-	expect($select)->toHaveCount(1);
-	expect($select[0]['params'])->toBe(array(1, 4, 1, '%SELECT %'));
-});
-
-it('inserts one mapping row per comma-separated query fragment', function () {
-	import_post_process(1, 'accounts');
-
-	$calls = slowlog_test_prepared_calls_matching($GLOBALS['__test_db_calls'], 'plugin_slowlog_details_methods');
-
-	$inserts = array_values(array_filter($calls, function ($call) {
-		return $call['params'][1] === 1; // INSERTS methodid
-	}));
-
-	expect($inserts)->toHaveCount(2);
-	expect(array_column($inserts, 'params'))->toBe(array(
-		array(1, 1, 1, '%INSERT INTO%'),
-		array(1, 1, 1, '%INSERT IGNORE INTO%'),
+it('classifies a row that matches a simple method', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT logentry, query', array(
+		array('logentry' => 1, 'query' => 'select * from users'),
 	));
-});
 
-it('excludes every other method fragment from the OTHERS bucket', function () {
 	import_post_process(1, 'accounts');
 
-	$calls = slowlog_test_prepared_calls_matching($GLOBALS['__test_db_calls'], 'plugin_slowlog_details_methods');
+	expect(slowlog_test_method_insert_tuples())->toBe(array(array(1, 1, 4)));
+});
 
-	$others = array_values(array_filter($calls, function ($call) {
-		return $call['params'][1] === 8; // OTHERS methodid
+it('classifies a row matching either alternative of a comma-separated method', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT logentry, query', array(
+		array('logentry' => 1, 'query' => 'insert into users values (1)'),
+		array('logentry' => 2, 'query' => 'insert ignore into users values (1)'),
+	));
+
+	import_post_process(1, 'accounts');
+
+	expect(slowlog_test_method_insert_tuples())->toBe(array(array(1, 1, 1), array(1, 2, 1)));
+});
+
+it('gives a row multiple methodid rows when it matches more than one method', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT logentry, query', array(
+		array('logentry' => 1, 'query' => 'select a.id from a join b on a.id=b.id'),
+	));
+
+	import_post_process(1, 'accounts');
+
+	expect(slowlog_test_method_insert_tuples())->toBe(array(array(1, 1, 4), array(1, 1, 7)));
+});
+
+it('buckets a row matching no other method as OTHERS', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT logentry, query', array(
+		array('logentry' => 1, 'query' => 'analyze table users'),
+	));
+
+	import_post_process(1, 'accounts');
+
+	expect(slowlog_test_method_insert_tuples())->toBe(array(array(1, 1, 8)));
+});
+
+it('inserts the method classification with a single batched statement', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT logentry, query', array(
+		array('logentry' => 1, 'query' => 'select * from users'),
+		array('logentry' => 2, 'query' => 'insert into users values (1)'),
+		array('logentry' => 3, 'query' => 'analyze table users'),
+	));
+
+	import_post_process(1, 'accounts');
+
+	$calls = array_values(array_filter($GLOBALS['__test_db_calls'], function ($call) {
+		return $call['fn'] === 'db_execute' && strpos($call['sql'], 'plugin_slowlog_details_methods') !== false;
 	}));
 
-	expect($others)->toHaveCount(1);
-	expect(substr_count($others[0]['sql'], 'NOT LIKE'))->toBe(16);
-	expect($others[0]['params'])->toContain('%SELECT %', '%UPDATE %', '%JOIN %');
+	expect($calls)->toHaveCount(1);
+	expect($calls[0]['sql'])->toContain('ON DUPLICATE KEY UPDATE methodid=VALUES(methodid)');
 });
 
 it('records the table dictionary row and its detail associations', function () {
