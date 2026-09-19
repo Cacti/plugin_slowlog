@@ -125,7 +125,10 @@ function slowlog_test_db_result($fn, $sql, $params, $default) {
 	$GLOBALS['__test_db_calls'][] = array('fn' => $fn, 'sql' => $sql, 'params' => $params);
 
 	if (!empty($GLOBALS['__test_db_fixtures'][$fn])) {
-		foreach ($GLOBALS['__test_db_fixtures'][$fn] as $fixture) {
+		// Most-recently-registered fixture wins, so a test can override a
+		// beforeEach() default for the same match without it winning by
+		// being checked first.
+		foreach (array_reverse($GLOBALS['__test_db_fixtures'][$fn]) as $fixture) {
 			$matched = is_callable($fixture['match'])
 				? $fixture['match']($sql, $params)
 				: (strpos($sql, $fixture['match']) !== false);
