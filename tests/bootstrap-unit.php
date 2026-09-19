@@ -80,55 +80,120 @@ $GLOBALS['config'] = array(
 	'cacti_server_os' => 'unix',
 );
 
-$GLOBALS['__test_db_calls'] = array();
+$GLOBALS['__test_db_calls']    = array();
+$GLOBALS['__test_db_fixtures'] = array();
+
+/**
+ * Queues a canned result for the next matching stubbed db_* call(s).
+ *
+ * This is the "mock database" for functional tests: instead of connecting to
+ * a real MySQL/MariaDB server, a test seeds the exact rows/values a given
+ * db_fetch_ or db_execute stub should hand back when it sees a matching SQL
+ * statement, then calls the real plugin function and asserts on behavior.
+ *
+ * @param string          $fn     Stubbed function name, e.g. 'db_fetch_assoc_prepared'.
+ * @param string|callable $match  Substring the SQL must contain, or a callable(string $sql, array $params): bool.
+ * @param mixed           $result Value to hand back when matched.
+ *
+ * @return void
+ */
+function slowlog_test_mock_db($fn, $match, $result) {
+	$GLOBALS['__test_db_fixtures'][$fn][] = array('match' => $match, 'result' => $result);
+}
+
+/**
+ * Clears queued db_* fixtures and the call log. Safe to call between tests.
+ *
+ * @return void
+ */
+function slowlog_test_reset_db_mocks() {
+	$GLOBALS['__test_db_fixtures'] = array();
+	$GLOBALS['__test_db_calls']    = array();
+}
+
+/**
+ * Records a stubbed db_* call and resolves it against any queued fixtures.
+ *
+ * @param string $fn      Stubbed function name.
+ * @param string $sql     SQL text passed to the stub.
+ * @param array  $params  Bind parameters passed to the stub (empty for non-prepared calls).
+ * @param mixed  $default Value to return when no fixture matches.
+ *
+ * @return mixed
+ */
+function slowlog_test_db_result($fn, $sql, $params, $default) {
+	$GLOBALS['__test_db_calls'][] = array('fn' => $fn, 'sql' => $sql, 'params' => $params);
+
+	if (!empty($GLOBALS['__test_db_fixtures'][$fn])) {
+		foreach ($GLOBALS['__test_db_fixtures'][$fn] as $fixture) {
+			$matched = is_callable($fixture['match'])
+				? $fixture['match']($sql, $params)
+				: (strpos($sql, $fixture['match']) !== false);
+
+			if ($matched) {
+				return $fixture['result'];
+			}
+		}
+	}
+
+	return $default;
+}
 
 if (!function_exists('db_execute')) {
 	function db_execute($sql) {
-		$GLOBALS['__test_db_calls'][] = array('fn' => 'db_execute', 'sql' => $sql, 'params' => array());
-		return true;
+		return slowlog_test_db_result('db_execute', $sql, array(), true);
 	}
 }
 
 if (!function_exists('db_execute_prepared')) {
 	function db_execute_prepared($sql, $params = array()) {
-		$GLOBALS['__test_db_calls'][] = array('fn' => 'db_execute_prepared', 'sql' => $sql, 'params' => $params);
-		return true;
+		return slowlog_test_db_result('db_execute_prepared', $sql, $params, true);
 	}
 }
 
 if (!function_exists('db_fetch_assoc')) {
 	function db_fetch_assoc($sql) {
-		return array();
+		return slowlog_test_db_result('db_fetch_assoc', $sql, array(), array());
 	}
 }
 
 if (!function_exists('db_fetch_assoc_prepared')) {
 	function db_fetch_assoc_prepared($sql, $params = array()) {
-		return array();
+		return slowlog_test_db_result('db_fetch_assoc_prepared', $sql, $params, array());
 	}
 }
 
 if (!function_exists('db_fetch_row')) {
 	function db_fetch_row($sql) {
-		return array();
+		return slowlog_test_db_result('db_fetch_row', $sql, array(), array());
 	}
 }
 
 if (!function_exists('db_fetch_row_prepared')) {
 	function db_fetch_row_prepared($sql, $params = array()) {
-		return array();
+		return slowlog_test_db_result('db_fetch_row_prepared', $sql, $params, array());
 	}
 }
 
 if (!function_exists('db_fetch_cell')) {
 	function db_fetch_cell($sql) {
-		return '';
+		return slowlog_test_db_result('db_fetch_cell', $sql, array(), '');
 	}
 }
 
 if (!function_exists('db_fetch_cell_prepared')) {
 	function db_fetch_cell_prepared($sql, $params = array()) {
-		return '';
+		return slowlog_test_db_result('db_fetch_cell_prepared', $sql, $params, '');
+	}
+}
+
+if (!function_exists('db_qstr')) {
+	function db_qstr($string) {
+		if ($string === null) {
+			return 'NULL';
+		}
+
+		return "'" . addslashes($string) . "'";
 	}
 }
 
@@ -193,6 +258,26 @@ if (!function_exists('cacti_log')) {
 if (!function_exists('cacti_sizeof')) {
 	function cacti_sizeof($array) {
 		return is_array($array) ? count($array) : 0;
+	}
+}
+
+if (!function_exists('array_rekey')) {
+	function array_rekey($array, $index, $columns = null) {
+		$result = array();
+
+		foreach ((array) $array as $row) {
+			$key = is_array($index) ? implode(':', array_intersect_key($row, array_flip($index))) : $row[$index];
+
+			if ($columns === null) {
+				$result[$key] = $row;
+			} elseif (is_array($columns)) {
+				$result[$key] = array_intersect_key($row, array_flip($columns));
+			} else {
+				$result[$key] = $row[$columns];
+			}
+		}
+
+		return $result;
 	}
 }
 
