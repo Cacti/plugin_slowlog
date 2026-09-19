@@ -463,6 +463,38 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
 		array("All Tables Processed", $logid));
 }
 
+/*
+ * Re-runs method/table/timeout classification for a logid that's already been imported,
+ * without needing the original logfile - e.g. after new methods/tables are added to the
+ * schema, or the tokenizer itself is improved. Clears the previously-derived associations
+ * first since import_post_process()'s method inserts aren't safe to run twice otherwise.
+ */
+function slowlog_reprocess($logid, $table_names = '', $usecacti = false) {
+	db_execute_prepared('DELETE FROM plugin_slowlog_details_methods WHERE logid = ?', array($logid));
+	db_execute_prepared('DELETE FROM plugin_slowlog_details_tables WHERE logid = ?', array($logid));
+	db_execute_prepared('DELETE FROM plugin_slowlog_tables WHERE logid = ?', array($logid));
+	db_execute_prepared('UPDATE plugin_slowlog_details SET timeout = 0 WHERE logid = ?', array($logid));
+
+	db_execute_prepared('UPDATE plugin_slowlog
+		SET import_status = 1,
+		import_text_status = ?
+		WHERE logid = ?',
+		array('Reprocessing', $logid));
+
+	cacti_log("NOTE: Reprocessing logid $logid", false, 'SLOWLOG');
+
+	import_post_process($logid, $table_names, $usecacti);
+}
+
+/* slowlog_reprocess() for every logid currently in plugin_slowlog */
+function slowlog_reprocess_all($table_names = '', $usecacti = false) {
+	$logids = db_fetch_assoc_prepared('SELECT logid FROM plugin_slowlog', array());
+
+	foreach($logids as $row) {
+		slowlog_reprocess($row['logid'], $table_names, $usecacti);
+	}
+}
+
 function slowlog_tabs() {
 	global $config;
 

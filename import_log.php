@@ -31,6 +31,7 @@ array_shift($parms);
 
 $logfile    = false;
 $logid      = false;
+$reprocess  = false;
 $usecacti   = false;
 
 if (cacti_sizeof($parms)) {
@@ -39,6 +40,7 @@ if (cacti_sizeof($parms)) {
 	$longopts = array(
 		'logfile:',
 		'logid:',
+		'reprocess:',
 		'usecacti',
 		'version',
 		'help'
@@ -54,6 +56,10 @@ if (cacti_sizeof($parms)) {
 				break;
 			case 'logid':
 				$logid = $value;
+
+				break;
+			case 'reprocess':
+				$reprocess = $value;
 
 				break;
 			case 'usecacti':
@@ -82,6 +88,12 @@ if ($logfile !== false) {
 	import_logfile($logfile, 'Imported using import_log.php', -1, '', $usecacti, false);
 } elseif ($logid !== false) {
 	import_post_process($logid, '', $usecacti);
+} elseif ($reprocess !== false) {
+	if (strtolower($reprocess) == 'all') {
+		slowlog_reprocess_all('', $usecacti);
+	} else {
+		slowlog_reprocess((int) $reprocess, '', $usecacti);
+	}
 }
 
 /*  display_version - displays version information */
@@ -93,11 +105,14 @@ function display_version() {
 function display_help() {
 	display_version();
 
-	print PHP_EOL . 'usage: import_log.php [ --usecacti ] --logid=N | --logfile=S' . PHP_EOL . PHP_EOL;
+	print PHP_EOL . 'usage: import_log.php [ --usecacti ] --logid=N | --logfile=S | --reprocess=N|all' . PHP_EOL . PHP_EOL;
 	print 'Cacti utility for auditing the MySQL/MariaDB slow log file.' . PHP_EOL;
 	print 'Options:' . PHP_EOL;
 	print '    --usecacti   - The logid when performing batch operations' . PHP_EOL;
 	print '    --logid=N    - The logid when performing batch operations' . PHP_EOL;
-	print '    --logfile=S  - The logfile assuming the current Cacti database' . PHP_EOL . PHP_EOL;
+	print '    --logfile=S  - The logfile assuming the current Cacti database' . PHP_EOL;
+	print '    --reprocess=N|all - Re-run method/table/timeout classification for an existing' . PHP_EOL;
+	print '                        logid (or every logid), e.g. after new methods/tables are' . PHP_EOL;
+	print '                        added. Does not need the original logfile.' . PHP_EOL . PHP_EOL;
 }
 
