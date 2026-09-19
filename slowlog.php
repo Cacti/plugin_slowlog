@@ -104,13 +104,21 @@ function form_save() {
 			/* file upload */
 			$csv_data = file($_FILES['import_file']['tmp_name']);
 
+			$table_mode = get_nfilter_request_var('table_mode');
+
+			if (!in_array($table_mode, array('cacti', 'reference', 'all'), true)) {
+				$table_mode = 'all';
+			}
+
 			/* obtain debug information if it's set */
 			$debug_data = import_logfile(
 				$_FILES['import_file']['tmp_name'],
 				get_nfilter_request_var('description'),
 				get_nfilter_request_var('length'),
 				get_nfilter_request_var('table_names'),
-				get_nfilter_request_var('usecacti')
+				$table_mode == 'cacti',
+				true,
+				$table_mode
 			);
 
 			if (cacti_sizeof($debug_data) > 0) {
@@ -274,16 +282,21 @@ function slowlog_import() {
 			'friendly_name' => __('Slowlog Table Names [ optional ]', 'slowlog'),
 			'description' => __('Leave Blank for Auto Detection which runs must faster.', 'slowlog'),
 		),
-		'usecacti' => array(
-			'method' => 'checkbox',
-			'friendly_name' => __('Use This Cacti Database', 'slowlog'),
-			'description' => __('Slowlog needs to know the tables names used in your slowlog.  If it\'s the Cacti database on this system, simply check the checkbox.  Otherwise, you will have to paste the output as show below under \'Tables of Interest\', or leave blank to have the Post-process detect the Tables.', 'slowlog'),
-			'value' => '',
+		'table_mode' => array(
+			'method' => 'drop_array',
+			'friendly_name' => __('Cacti Table Detection', 'slowlog'),
+			'description' => __('How to tell Cacti-native tables apart from other tables referenced in the slow query log. Defaults to detecting every table with no grouping.', 'slowlog'),
+			'value' => 'all',
+			'array' => array(
+				'all'       => __('Detect all tables (no \'OTHER TABLES\' grouping)', 'slowlog'),
+				'cacti'     => __('Use this Cacti Database; group other tables as \'OTHER TABLES\'', 'slowlog'),
+				'reference' => __('Detect all tables; group tables not in the list below as \'OTHER TABLES\'', 'slowlog'),
+			),
 		),
 		'table_names' => array(
 			'method' => 'textarea',
 			'friendly_name' => __('Tables of Interest'),
-			'description' => __('Please provide a space delimited list of tables that you are interested in.  If you provide this list of tables the MySQL Slow Query Log will be scanned for these entries and more details statistics will be provided.  In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e "show tables" <i><b>database</b></i> | grep -v Tables_in` | tr \'\n\' \' \'<br><br>The values of \'<i><b>user</b></i>\', \'<i><b>password</b></i>\', and \'<i><b>database</b></i>\' are replaced with your values.'),
+			'description' => __('Only used by the \'Detect all tables; group ... as OTHER TABLES\' option above. Please provide a space delimited list of known tables to compare against. In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e "show tables" <i><b>database</b></i> | grep -v Tables_in` | tr \'\n\' \' \'<br><br>The values of \'<i><b>user</b></i>\', \'<i><b>password</b></i>\', and \'<i><b>database</b></i>\' are replaced with your values.'),
 			'class' => 'textAreaNotes',
 			'value' => '',
 			'textarea_rows' => '5',

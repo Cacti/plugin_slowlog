@@ -334,6 +334,26 @@ if (!function_exists('sql_save')) {
 	}
 }
 
+if (!function_exists('cacti_escapeshellcmd')) {
+	function cacti_escapeshellcmd($command) {
+		return escapeshellcmd($command);
+	}
+}
+
+if (!function_exists('cacti_escapeshellarg')) {
+	function cacti_escapeshellarg($arg) {
+		return escapeshellarg($arg);
+	}
+}
+
+if (!function_exists('exec_background')) {
+	function exec_background($command, $args = '') {
+		$GLOBALS['__test_db_calls'][] = array('fn' => 'exec_background', 'sql' => trim($command . ' ' . $args), 'params' => array());
+
+		return true;
+	}
+}
+
 if (!defined('CACTI_PATH_BASE')) {
 	define('CACTI_PATH_BASE', $GLOBALS['config']['base_path']);
 }
@@ -356,6 +376,10 @@ if (!defined('POLLER_VERBOSITY_NONE')) {
 
 if (!defined('MESSAGE_LEVEL_ERROR')) {
 	define('MESSAGE_LEVEL_ERROR', 1);
+}
+
+if (!defined('MESSAGE_LEVEL_INFO')) {
+	define('MESSAGE_LEVEL_INFO', 4);
 }
 
 /**

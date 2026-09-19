@@ -33,6 +33,7 @@ $logfile    = false;
 $logid      = false;
 $reprocess  = false;
 $usecacti   = false;
+$table_mode = null;
 
 if (cacti_sizeof($parms)) {
 	$shortopts = 'VvHh';
@@ -42,6 +43,7 @@ if (cacti_sizeof($parms)) {
 		'logid:',
 		'reprocess:',
 		'usecacti',
+		'table-mode:',
 		'version',
 		'help'
 	);
@@ -66,6 +68,16 @@ if (cacti_sizeof($parms)) {
 				$usecacti = true;
 
 				break;
+			case 'table-mode':
+				if (in_array($value, array('cacti', 'reference', 'all'), true)) {
+					$table_mode = $value;
+				} else {
+					print "ERROR: Invalid --table-mode value '$value', must be cacti, reference, or all" . PHP_EOL . PHP_EOL;
+					display_help();
+					exit(1);
+				}
+
+				break;
 			case 'version':
 			case 'V':
 			case 'v':
@@ -85,14 +97,14 @@ if (cacti_sizeof($parms)) {
 }
 
 if ($logfile !== false) {
-	import_logfile($logfile, 'Imported using import_log.php', -1, '', $usecacti, false);
+	import_logfile($logfile, 'Imported using import_log.php', -1, '', $usecacti, false, $table_mode);
 } elseif ($logid !== false) {
-	import_post_process($logid, '', $usecacti);
+	import_post_process($logid, '', $usecacti, $table_mode);
 } elseif ($reprocess !== false) {
 	if (strtolower($reprocess) == 'all') {
-		slowlog_reprocess_all('', $usecacti);
+		slowlog_reprocess_all('', $usecacti, $table_mode);
 	} else {
-		slowlog_reprocess((int) $reprocess, '', $usecacti);
+		slowlog_reprocess((int) $reprocess, '', $usecacti, $table_mode);
 	}
 }
 
@@ -105,7 +117,7 @@ function display_version() {
 function display_help() {
 	display_version();
 
-	print PHP_EOL . 'usage: import_log.php [ --usecacti ] --logid=N | --logfile=S | --reprocess=N|all' . PHP_EOL . PHP_EOL;
+	print PHP_EOL . 'usage: import_log.php [ --usecacti | --table-mode=cacti|reference|all ] --logid=N | --logfile=S | --reprocess=N|all' . PHP_EOL . PHP_EOL;
 	print 'Cacti utility for auditing the MySQL/MariaDB slow log file.' . PHP_EOL;
 	print 'Options:' . PHP_EOL;
 	print '    --usecacti   - The logid when performing batch operations' . PHP_EOL;
@@ -113,6 +125,11 @@ function display_help() {
 	print '    --logfile=S  - The logfile assuming the current Cacti database' . PHP_EOL;
 	print '    --reprocess=N|all - Re-run method/table/timeout classification for an existing' . PHP_EOL;
 	print '                        logid (or every logid), e.g. after new methods/tables are' . PHP_EOL;
-	print '                        added. Does not need the original logfile.' . PHP_EOL . PHP_EOL;
+	print '                        added. Does not need the original logfile.' . PHP_EOL;
+	print '    --table-mode=cacti|reference|all - How to distinguish Cacti tables from other' . PHP_EOL;
+	print '                        tables. cacti: use this Cacti DB (same as --usecacti);' . PHP_EOL;
+	print '                        reference: compare against the table list saved with the' . PHP_EOL;
+	print '                        import; all: detect everything, no OTHER TABLES grouping' . PHP_EOL;
+	print '                        (default).' . PHP_EOL . PHP_EOL;
 }
 

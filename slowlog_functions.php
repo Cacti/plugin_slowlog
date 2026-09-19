@@ -47,12 +47,13 @@ function get_cacti_tables() {
 
 /*
  * Keeps plugin_slowlog_table_names (the deduplicated table_name dictionary) in sync with
- * whatever get_table_associations()/the explicit table_names list just found for this logid.
- * is_cacti_table is only touched when $usecacti is true (we have a live table list to compare
- * against) - otherwise a row is added if missing, but any previously-determined
- * is_cacti_table value is left alone rather than being reset to "unknown".
+ * whatever table association just found for this logid. $known_tables is either null (we
+ * have no reference list to compare against - a row is added if missing via INSERT IGNORE,
+ * but any previously-determined is_cacti_table value is left alone rather than being reset to
+ * "unknown") or an array of table names to compare against (the live Cacti DB's tables, or a
+ * user-supplied reference list), in which case is_cacti_table is set/updated accordingly.
  */
-function slowlog_sync_table_dictionary($logid, $usecacti = false) {
+function slowlog_sync_table_dictionary($logid, $known_tables = null) {
 	$tables = db_fetch_assoc_prepared('SELECT DISTINCT table_name
 		FROM plugin_slowlog_details_tables
 		WHERE logid = ?',
@@ -62,19 +63,19 @@ function slowlog_sync_table_dictionary($logid, $usecacti = false) {
 		return;
 	}
 
-	if ($usecacti) {
-		$cacti_tables = array_flip(explode(' ', trim(get_cacti_tables())));
+	if ($known_tables !== null) {
+		$known_lookup = array_flip($known_tables);
 	}
 
 	foreach($tables as $row) {
 		$t = $row['table_name'];
 
-		if ($usecacti) {
+		if ($known_tables !== null) {
 			db_execute_prepared('INSERT INTO plugin_slowlog_table_names
 				(table_name, is_cacti_table)
 				VALUES (?, ?)
 				ON DUPLICATE KEY UPDATE is_cacti_table = VALUES(is_cacti_table)',
-				array($t, isset($cacti_tables[$t]) ? 1 : 0));
+				array($t, isset($known_lookup[$t]) ? 1 : 0));
 		} else {
 			db_execute_prepared('INSERT IGNORE INTO plugin_slowlog_table_names
 				(table_name)
@@ -89,8 +90,9 @@ function slowlog_sync_table_dictionary($logid, $usecacti = false) {
  * (per plugin_slowlog_table_names.is_cacti_table, just refreshed by
  * slowlog_sync_table_dictionary()) with the 'OTHER TABLES' method - a separate concept from
  * the 'OTHERS' method, which flags a query that didn't match any known SQL construct at all.
- * Only meaningful once is_cacti_table has actually been determined, so this is a no-op
- * unless $usecacti was used.
+ * Only meaningful once is_cacti_table has actually been determined, so import_post_process()
+ * only calls this for the 'cacti'/'reference' table modes (i.e. whenever a reference list of
+ * known tables was actually available), never for 'list'/'all'.
  */
 function slowlog_classify_other_tables($logid) {
 	$methodid = db_fetch_cell_prepared("SELECT methodid
@@ -128,7 +130,7 @@ function slowlog_classify_other_tables($logid) {
 	}
 }
 
-function import_logfile($logfile, $description = 'Imported using import_log utility', $length = 8192, $table_names = '', $usecacti = false, $batch = true) {
+function import_logfile($logfile, $description = 'Imported using import_log utility', $length = 8192, $table_names = '', $usecacti = false, $batch = true, $table_mode = null) {
 	global $config;
 
 	ini_set('max_execution_time', 0);
@@ -380,14 +382,18 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 
 			$php = cacti_escapeshellcmd(read_config_option('path_php_binary'));
 
-			exec_background($php, $config['base_path'] . "/plugins/slowlog/import_log.php --logid=$logid" . ($usecacti ? ' --usecacti':''));
+			$cmd = $config['base_path'] . "/plugins/slowlog/import_log.php --logid=$logid";
+			$cmd .= $usecacti ? ' --usecacti' : '';
+			$cmd .= $table_mode !== null ? ' --table-mode=' . cacti_escapeshellarg($table_mode) : '';
+
+			exec_background($php, $cmd);
 
 			db_execute_prepared('UPDATE plugin_slowlog
 				SET import_text_status = ?
 				WHERE logid = ?',
 				array('Post Processing with Table Detection', $logid));
 		} else {
-			import_post_process($logid, $table_names);
+			import_post_process($logid, $table_names, $usecacti, $table_mode);
 		}
 	} else {
 		print "FATAL: Can not find file '$logfile'\n";
@@ -429,7 +435,19 @@ function is_reserved_word($token) {
 	}
 }
 
-function import_post_process($logid, $table_names = '', $usecacti = false) {
+function import_post_process($logid, $table_names = '', $usecacti = false, $table_mode = null) {
+	// Preserve legacy precedence (explicit list wins, then usecacti, then auto-detect) when a
+	// caller doesn't pass $table_mode explicitly - only the new 3-option UI ever passes it.
+	if ($table_mode === null) {
+		if ($table_names != '') {
+			$table_mode = 'list';
+		} elseif ($usecacti) {
+			$table_mode = 'cacti';
+		} else {
+			$table_mode = 'all';
+		}
+	}
+
 	$records = db_fetch_cell_prepared('SELECT COUNT(*)
 		FROM plugin_slowlog_details
 		WHERE logid = ?',
@@ -504,11 +522,18 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
 		$start = microtime(true);
 
 		// perform table name analysis
-		$tables = array();
-		if ($table_names != '') {
+		$tables       = array();
+		$known_tables = null;
+
+		if ($table_mode == 'list') {
 			$tables = explode(' ', trim($table_names));
-		} elseif ($usecacti) {
-			$tables = explode(' ', db_fetch_cell_prepared('SELECT import_tables FROM plugin_slowlog WHERE logid = ?', array($logid)));
+		} elseif ($table_mode == 'cacti') {
+			$tables       = explode(' ', trim(db_fetch_cell_prepared('SELECT import_tables FROM plugin_slowlog WHERE logid = ?', array($logid))));
+			$known_tables = explode(' ', trim(get_cacti_tables()));
+		} elseif ($table_mode == 'reference') {
+			get_table_associations($logid);
+
+			$known_tables = explode(' ', trim(db_fetch_cell_prepared('SELECT import_tables FROM plugin_slowlog WHERE logid = ?', array($logid))));
 		} else {
 			get_table_associations($logid);
 		}
@@ -553,9 +578,9 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
 
 		cacti_log(sprintf('STATS: Time:%0.2f, Post-Processing for Tables Complete for %s', $end-$start, $logid), false, 'SLOWLOG');
 
-		slowlog_sync_table_dictionary($logid, $usecacti);
+		slowlog_sync_table_dictionary($logid, $known_tables);
 
-		if ($usecacti) {
+		if ($known_tables !== null) {
 			slowlog_classify_other_tables($logid);
 		}
 
@@ -575,7 +600,7 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
  * schema, or the tokenizer itself is improved. Clears the previously-derived associations
  * first since import_post_process()'s method inserts aren't safe to run twice otherwise.
  */
-function slowlog_reprocess($logid, $table_names = '', $usecacti = false) {
+function slowlog_reprocess($logid, $table_names = '', $usecacti = false, $table_mode = null) {
 	db_execute_prepared('DELETE FROM plugin_slowlog_details_methods WHERE logid = ?', array($logid));
 	db_execute_prepared('DELETE FROM plugin_slowlog_details_tables WHERE logid = ?', array($logid));
 	db_execute_prepared('DELETE FROM plugin_slowlog_tables WHERE logid = ?', array($logid));
@@ -589,15 +614,15 @@ function slowlog_reprocess($logid, $table_names = '', $usecacti = false) {
 
 	cacti_log("NOTE: Reprocessing logid $logid", false, 'SLOWLOG');
 
-	import_post_process($logid, $table_names, $usecacti);
+	import_post_process($logid, $table_names, $usecacti, $table_mode);
 }
 
 /* slowlog_reprocess() for every logid currently in plugin_slowlog */
-function slowlog_reprocess_all($table_names = '', $usecacti = false) {
+function slowlog_reprocess_all($table_names = '', $usecacti = false, $table_mode = null) {
 	$logids = db_fetch_assoc_prepared('SELECT logid FROM plugin_slowlog', array());
 
 	foreach($logids as $row) {
-		slowlog_reprocess($row['logid'], $table_names, $usecacti);
+		slowlog_reprocess($row['logid'], $table_names, $usecacti, $table_mode);
 	}
 }
 

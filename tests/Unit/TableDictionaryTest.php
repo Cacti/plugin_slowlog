@@ -44,8 +44,8 @@ beforeEach(function () {
 	));
 });
 
-it('adds a dictionary row without touching is_cacti_table when not using the live Cacti DB', function () {
-	slowlog_sync_table_dictionary(1, false);
+it('adds a dictionary row without touching is_cacti_table when there is no reference list', function () {
+	slowlog_sync_table_dictionary(1, null);
 
 	$calls = slowlog_test_dictionary_calls();
 
@@ -59,11 +59,8 @@ it('adds a dictionary row without touching is_cacti_table when not using the liv
 	expect(array_column($calls, 'params'))->toBe(array(array('host'), array('mystery_table')));
 });
 
-it('flags known Cacti tables and marks the rest as not-Cacti when using the live Cacti DB', function () {
-	slowlog_test_mock_db('db_fetch_assoc', 'SHOW DATABASES', array(array('Database' => 'cacti')));
-	slowlog_test_mock_db('db_fetch_assoc', 'SHOW TABLES FROM', array(array('Tables_in_cacti' => 'host')));
-
-	slowlog_sync_table_dictionary(1, true);
+it('flags tables found in the supplied reference list and marks the rest as not-Cacti', function () {
+	slowlog_sync_table_dictionary(1, array('host', 'graph_local'));
 
 	$calls = slowlog_test_dictionary_calls();
 
@@ -76,7 +73,7 @@ it('flags known Cacti tables and marks the rest as not-Cacti when using the live
 it('does nothing when the log has no associated tables', function () {
 	slowlog_test_mock_db('db_fetch_assoc_prepared', 'FROM plugin_slowlog_details_tables', array());
 
-	slowlog_sync_table_dictionary(1, true);
+	slowlog_sync_table_dictionary(1, array('host'));
 
 	expect(slowlog_test_dictionary_calls())->toBe(array());
 });
@@ -84,5 +81,5 @@ it('does nothing when the log has no associated tables', function () {
 it('is invoked as part of the normal post-processing pipeline', function () {
 	$source = file_get_contents(realpath(__DIR__ . '/../../slowlog_functions.php'));
 
-	expect($source)->toContain('slowlog_sync_table_dictionary($logid, $usecacti);');
+	expect($source)->toContain('slowlog_sync_table_dictionary($logid, $known_tables);');
 });
