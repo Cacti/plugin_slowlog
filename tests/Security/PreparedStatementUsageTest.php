@@ -71,8 +71,8 @@ describe('prepared statement usage in slowlog', function () {
 	});
 
 	it('limits raw db_execute calls to bulk parser/classifier replay paths', function () use ($helpers) {
-		expect(preg_match_all('/\bdb_execute\s*\(/', $helpers))->toBe(3);
-		expect(preg_match_all('/db_execute\s*\(\s*\$(?:sql|method_sql)_prefix\s*\./', $helpers))->toBe(3);
+		expect(preg_match_all('/\bdb_execute\s*\(/', $helpers))->toBe(2);
+		expect(preg_match_all('/db_execute\s*\(\s*\$(?:sql|method_sql)_prefix\s*\./', $helpers))->toBe(2);
 	});
 
 	it('limits raw db_fetch_assoc calls to schema discovery helpers', function () use ($helpers) {

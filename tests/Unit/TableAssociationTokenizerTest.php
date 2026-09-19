@@ -24,8 +24,9 @@
  * (slowlog_extract_tables_from_query() et al). These tests exercise it
  * through the mock database (tests/bootstrap-unit.php): a fixture stands in
  * for a single `plugin_slowlog_details` row per case, then the resulting
- * `db_execute()` INSERT ... plugin_slowlog_details_tables call is captured
- * and its table names extracted.
+ * `slowlog_bulk_insert_table_rows()` parameterized `db_execute_prepared()`
+ * INSERT ... plugin_slowlog_details_tables call is captured and its table
+ * names extracted from the bound params.
  *
  * This previously used a per-token state machine that dropped JOIN targets
  * and comma-separated FROM list members - the cases below that exercise
@@ -39,11 +40,10 @@ if (!function_exists('slowlog_test_extract_table_names')) {
 		$tables = array();
 
 		foreach ($calls as $call) {
-			if ($call['fn'] === 'db_execute' && strpos($call['sql'], 'plugin_slowlog_details_tables') !== false) {
-				if (preg_match_all("/\\(\\d+,\\s*\\d+,\\s*'([^']*)'\\)/", $call['sql'], $matches)) {
-					foreach ($matches[1] as $table) {
-						$tables[] = $table;
-					}
+			if ($call['fn'] === 'db_execute_prepared' && strpos($call['sql'], 'plugin_slowlog_details_tables') !== false) {
+				// params are a flat (logid, logentry, table_name) tuple list
+				for ($i = 2; $i < count($call['params']); $i += 3) {
+					$tables[] = $call['params'][$i];
 				}
 			}
 		}
