@@ -211,12 +211,18 @@ if (!function_exists('db_column_exists')) {
 
 if (!function_exists('api_plugin_db_add_column')) {
 	function api_plugin_db_add_column($plugin, $table, $data) {
-		return true;
+		return slowlog_test_db_result('api_plugin_db_add_column', $table, array($plugin, $table, $data), true);
 	}
 }
 
 if (!function_exists('api_plugin_db_table_create')) {
 	function api_plugin_db_table_create($plugin, $table, $data) {
+		return slowlog_test_db_result('api_plugin_db_table_create', $table, array($plugin, $table, $data), true);
+	}
+}
+
+if (!function_exists('api_plugin_drop_table')) {
+	function api_plugin_drop_table($table) {
 		return true;
 	}
 }
