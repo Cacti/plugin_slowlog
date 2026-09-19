@@ -528,7 +528,11 @@ function import_post_process($logid, $table_names = '', $usecacti = false, $tabl
 		if ($table_mode == 'list') {
 			$tables = explode(' ', trim($table_names));
 		} elseif ($table_mode == 'cacti') {
-			$tables       = explode(' ', trim(db_fetch_cell_prepared('SELECT import_tables FROM plugin_slowlog WHERE logid = ?', array($logid))));
+			// must run the tokenizer here (not the old known-tables-only LIKE scan) so that
+			// tables NOT in get_cacti_tables() are actually discovered and can be classified
+			// as OTHER TABLES below - scanning only for known tables can never find "other".
+			get_table_associations($logid);
+
 			$known_tables = explode(' ', trim(get_cacti_tables()));
 		} elseif ($table_mode == 'reference') {
 			get_table_associations($logid);

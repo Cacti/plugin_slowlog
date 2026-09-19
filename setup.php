@@ -206,9 +206,8 @@ function slowlog_setup_table_new() {
 
 	api_plugin_db_table_create('slowlog', 'plugin_slowlog_tables', $data);
 
-	// Dictionary of every distinct table name seen across all imports, so table_name text
-	// doesn't need to be duplicated per logentry, and whether it's a known Cacti table is
-	// recorded once instead of being re-derived every time.
+	// Dictionary of every distinct table name seen across all imports, recording whether it's
+	// a known Cacti table once instead of re-deriving that per logentry every time.
 	$data = array();
 	$data['columns'][] = array('name' => 'tableid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true);
 	$data['columns'][] = array('name' => 'table_name', 'type' => 'varchar(45)', 'NULL' => false, 'default' => '');

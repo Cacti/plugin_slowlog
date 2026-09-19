@@ -3,8 +3,10 @@
 --- Unreleased ---
 
 * bug: Rewrite the query tokenizer (get_table_associations()) as a regex/scanner-based parser - fixes dropped JOIN targets, dropped comma-separated FROM list members, and subqueries in WHERE/SET clauses not being followed
-* feature: Add `timeout` column to `plugin_slowlog_details` and new `plugin_slowlog_table_names` table-name dictionary (deduplicates table_name text, tracks whether it's a known Cacti table)
-* feature: Add MAX_EXECUTION_TIME, MAX_STATEMENT_TIME, UNION ALLS, INFILES, GROUP BY, COUNTS, and SHOWS to the method dictionary
+* feature: Add `timeout` column to `plugin_slowlog_details` and new `plugin_slowlog_table_names` dictionary table tracking whether each table seen in an import is a known Cacti table
+* feature: Add MAX_EXECUTION_TIME, MAX_STATEMENT_TIME, UNION ALLS, INFILES, GROUP BY, COUNTS, SHOWS, and OTHER TABLES to the method dictionary
+* feature: Replace the "Use this Cacti Database" import checkbox with a 3-option table-detection dropdown (detect all tables [default], use this Cacti Database, or compare against a reference list), grouping non-matching tables under the new OTHER TABLES method
+* bug: "Use this Cacti Database" table detection now runs the tokenizer so tables outside the local Cacti schema are actually discovered and can be grouped as OTHER TABLES, instead of only ever scanning for tables already known to be in the Cacti schema
 * refactor: Replace raw `CREATE TABLE` statements in `setup.php` with `api_plugin_db_table_create()`/`api_plugin_db_add_column()`, and re-run schema sync during upgrade instead of only on install
 
 --- 2.1 ---

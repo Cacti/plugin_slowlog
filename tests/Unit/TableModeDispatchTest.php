@@ -93,10 +93,10 @@ it('uses the explicit table list when table_names is given (legacy behavior)', f
 it('uses the live Cacti DB and classifies OTHER TABLES when usecacti is true', function () {
 	import_post_process(1, '', true);
 
-	expect(array_column(slowlog_test_table_inserts(), 'params'))->toBe(array(
-		array(1, 'host'),
-		array(1, 'graph_local'),
-	));
+	// 'cacti' mode must run the tokenizer (like 'all'/'reference'), not the old
+	// known-tables-only LIKE scan, otherwise a table NOT in get_cacti_tables() could never
+	// be discovered and OTHER TABLES could never actually be classified.
+	expect(slowlog_test_table_inserts())->toBe(array());
 	expect(slowlog_test_other_tables_call_count())->toBe(1);
 });
 
