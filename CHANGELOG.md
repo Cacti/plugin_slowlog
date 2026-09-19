@@ -1,5 +1,20 @@
 ## ChangeLog
 
+--- 2.2 ---
+
+* bug: Rewrite the query tokenizer (get_table_associations()) as a regex/scanner-based parser - fixes dropped JOIN targets, dropped comma-separated FROM list members, and subqueries in WHERE/SET clauses not being followed
+* feature: Add `timeout` column to `plugin_slowlog_details` and new `plugin_slowlog_table_names` dictionary table tracking whether each table seen in an import is a known Cacti table
+* feature: Add MAX_EXECUTION_TIME, MAX_STATEMENT_TIME, UNION ALLS, INFILES, GROUP BY, COUNTS, SHOWS, and OTHER TABLES to the method dictionary
+* feature: Replace the "Use this Cacti Database" import checkbox with a 3-option table-detection dropdown (detect all tables [default], use this Cacti Database, or compare against a reference list), grouping non-matching tables under the new OTHER TABLES method
+* bug: "Use this Cacti Database" table detection now runs the tokenizer so tables outside the local Cacti schema are actually discovered and can be grouped as OTHER TABLES, instead of only ever scanning for tables already known to be in the Cacti schema
+* refactor: Replace raw `CREATE TABLE` statements in `setup.php` with `api_plugin_db_table_create()`/`api_plugin_db_add_column()`, and re-run schema sync during upgrade instead of only on install
+* bug: Bump the plugin version so `slowlog_check_upgrade()` actually re-runs schema sync for existing 2.1 installs instead of silently skipping it forever
+* security: Parameterize the bulk `plugin_slowlog_details_methods`/OTHER TABLES inserts instead of interpolating logid/logentry/methodid into raw SQL
+* bug: Classify method associations in bounded chunks instead of loading an entire log's query text into memory at once
+* bug: `get_table_associations()`'s FROM/JOIN scanner and the MAX_EXECUTION_TIME/MAX_STATEMENT_TIME timeout regexes now ignore string literals and comments, instead of mistaking SQL-looking text inside either one for a real table reference or timeout hint
+* bug: 'reference' mode table classification no longer overwrites the shared `plugin_slowlog_table_names.is_cacti_table` flag with a per-import reference list - it's compared per-log instead, so one reference import can no longer corrupt OTHER TABLES classification for another log that shares a table name
+* bug: Add a `--table-names` CLI option and forward the table list to the background post-processing worker, so `--table-mode=reference`/list-mode imports no longer silently lose their reference list via `--logfile` or batch/background processing
+
 --- 2.1 ---
 
 * security: Migrate remaining slowlog SQL helpers (setup, upgrade, and post-processing queries) to prepared statements

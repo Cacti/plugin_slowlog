@@ -28,7 +28,7 @@ abstract class TestCase extends PHPUnit\Framework\TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		$GLOBALS['__test_db_calls'] = array();
+		slowlog_test_reset_db_mocks();
 	}
 
 	/**

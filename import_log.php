@@ -29,9 +29,12 @@ include(__DIR__ . '/slowlog_functions.php');
 $parms = $_SERVER['argv'];
 array_shift($parms);
 
-$logfile    = false;
-$logid      = false;
-$usecacti   = false;
+$logfile     = false;
+$logid       = false;
+$reprocess   = false;
+$usecacti    = false;
+$table_mode  = null;
+$table_names = '';
 
 if (cacti_sizeof($parms)) {
 	$shortopts = 'VvHh';
@@ -39,7 +42,10 @@ if (cacti_sizeof($parms)) {
 	$longopts = array(
 		'logfile:',
 		'logid:',
+		'reprocess:',
 		'usecacti',
+		'table-mode:',
+		'table-names:',
 		'version',
 		'help'
 	);
@@ -56,8 +62,26 @@ if (cacti_sizeof($parms)) {
 				$logid = $value;
 
 				break;
+			case 'reprocess':
+				$reprocess = $value;
+
+				break;
 			case 'usecacti':
 				$usecacti = true;
+
+				break;
+			case 'table-mode':
+				if (in_array($value, array('cacti', 'reference', 'all'), true)) {
+					$table_mode = $value;
+				} else {
+					print "ERROR: Invalid --table-mode value '$value', must be cacti, reference, or all" . PHP_EOL . PHP_EOL;
+					display_help();
+					exit(1);
+				}
+
+				break;
+			case 'table-names':
+				$table_names = $value;
 
 				break;
 			case 'version':
@@ -79,9 +103,25 @@ if (cacti_sizeof($parms)) {
 }
 
 if ($logfile !== false) {
-	import_logfile($logfile, 'Imported using import_log.php', -1, '', $usecacti, false);
+	if ($table_mode === 'reference' && trim($table_names) === '') {
+		print 'ERROR: --table-mode=reference requires --table-names="..." for a --logfile import' . PHP_EOL . PHP_EOL;
+		display_help();
+		exit(1);
+	}
+
+	import_logfile($logfile, 'Imported using import_log.php', -1, $table_names, $usecacti, false, $table_mode);
 } elseif ($logid !== false) {
-	import_post_process($logid, '', $usecacti);
+	import_post_process($logid, $table_names, $usecacti, $table_mode);
+} elseif ($reprocess !== false) {
+	if (strtolower($reprocess) == 'all') {
+		slowlog_reprocess_all($table_names, $usecacti, $table_mode);
+	} elseif (preg_match('/^[1-9][0-9]*$/', trim((string) $reprocess))) {
+		slowlog_reprocess((int) $reprocess, $table_names, $usecacti, $table_mode);
+	} else {
+		print "ERROR: Invalid --reprocess value '$reprocess', must be a positive integer logid or 'all'" . PHP_EOL . PHP_EOL;
+		display_help();
+		exit(1);
+	}
 }
 
 /*  display_version - displays version information */
@@ -93,11 +133,23 @@ function display_version() {
 function display_help() {
 	display_version();
 
-	print PHP_EOL . 'usage: import_log.php [ --usecacti ] --logid=N | --logfile=S' . PHP_EOL . PHP_EOL;
+	print PHP_EOL . 'usage: import_log.php [ --usecacti | --table-mode=cacti|reference|all ] --logid=N | --logfile=S | --reprocess=N|all' . PHP_EOL . PHP_EOL;
 	print 'Cacti utility for auditing the MySQL/MariaDB slow log file.' . PHP_EOL;
 	print 'Options:' . PHP_EOL;
 	print '    --usecacti   - The logid when performing batch operations' . PHP_EOL;
 	print '    --logid=N    - The logid when performing batch operations' . PHP_EOL;
-	print '    --logfile=S  - The logfile assuming the current Cacti database' . PHP_EOL . PHP_EOL;
+	print '    --logfile=S  - The logfile assuming the current Cacti database' . PHP_EOL;
+	print '    --reprocess=N|all - Re-run method/table/timeout classification for an existing' . PHP_EOL;
+	print '                        logid (or every logid), e.g. after new methods/tables are' . PHP_EOL;
+	print '                        added. Does not need the original logfile.' . PHP_EOL;
+	print '    --table-mode=cacti|reference|all - How to distinguish Cacti tables from other' . PHP_EOL;
+	print '                        tables. cacti: use this Cacti DB (same as --usecacti);' . PHP_EOL;
+	print '                        reference: compare against the table list saved with the' . PHP_EOL;
+	print '                        import; all: detect everything, no OTHER TABLES grouping' . PHP_EOL;
+	print '                        (default).' . PHP_EOL;
+	print '    --table-names="t1 t2" - Space-separated reference table list for a --logfile' . PHP_EOL;
+	print '                        import; required with --table-mode=reference. Saved with' . PHP_EOL;
+	print '                        the import so --logid/--reprocess can reuse it later.' . PHP_EOL . PHP_EOL;
 }
+
 
