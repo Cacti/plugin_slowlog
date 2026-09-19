@@ -84,6 +84,50 @@ function slowlog_sync_table_dictionary($logid, $usecacti = false) {
 	}
 }
 
+/*
+ * Tags any logentry that references at least one table not recognized as a Cacti table
+ * (per plugin_slowlog_table_names.is_cacti_table, just refreshed by
+ * slowlog_sync_table_dictionary()) with the 'OTHER TABLES' method - a separate concept from
+ * the 'OTHERS' method, which flags a query that didn't match any known SQL construct at all.
+ * Only meaningful once is_cacti_table has actually been determined, so this is a no-op
+ * unless $usecacti was used.
+ */
+function slowlog_classify_other_tables($logid) {
+	$methodid = db_fetch_cell_prepared("SELECT methodid
+		FROM plugin_slowlog_methods
+		WHERE method = 'OTHER TABLES'",
+		array());
+
+	if (!$methodid) {
+		return;
+	}
+
+	$rows = db_fetch_assoc_prepared('SELECT DISTINCT dt.logentry
+		FROM plugin_slowlog_details_tables AS dt
+		INNER JOIN plugin_slowlog_table_names AS tn
+		ON tn.table_name = dt.table_name
+		WHERE dt.logid = ?
+		AND tn.is_cacti_table = 0',
+		array($logid));
+
+	if (!cacti_sizeof($rows)) {
+		return;
+	}
+
+	$sql = array();
+
+	foreach($rows as $row) {
+		$sql[] = '(' . $logid . ', ' . $row['logentry'] . ', ' . $methodid . ')';
+	}
+
+	$sql_prefix = 'INSERT INTO plugin_slowlog_details_methods (logid, logentry, methodid) VALUES ';
+	$sql_suffix = ' ON DUPLICATE KEY UPDATE methodid=VALUES(methodid)';
+
+	foreach(array_chunk($sql, 500) as $chunk) {
+		db_execute($sql_prefix . implode(', ', $chunk) . $sql_suffix);
+	}
+}
+
 function import_logfile($logfile, $description = 'Imported using import_log utility', $length = 8192, $table_names = '', $usecacti = false, $batch = true) {
 	global $config;
 
@@ -409,10 +453,12 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
 		$others_methodid   = null;
 
 		foreach($methods as $row) {
-			if ($row['method'] != 'OTHERS') {
-				$method_fragments[$row['methodid']] = explode(',', $row['query']);
-			} else {
+			// OTHERS is the "matched nothing else" bucket; OTHER TABLES is classified
+			// separately below (by table recognition, not a query text fragment).
+			if ($row['method'] == 'OTHERS') {
 				$others_methodid = $row['methodid'];
+			} elseif ($row['method'] != 'OTHER TABLES') {
+				$method_fragments[$row['methodid']] = explode(',', $row['query']);
 			}
 		}
 
@@ -508,6 +554,11 @@ function import_post_process($logid, $table_names = '', $usecacti = false) {
 		cacti_log(sprintf('STATS: Time:%0.2f, Post-Processing for Tables Complete for %s', $end-$start, $logid), false, 'SLOWLOG');
 
 		slowlog_sync_table_dictionary($logid, $usecacti);
+
+		if ($usecacti) {
+			slowlog_classify_other_tables($logid);
+		}
+
 		slowlog_set_timeouts($logid);
 	}
 

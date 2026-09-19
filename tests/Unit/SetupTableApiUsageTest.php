@@ -103,7 +103,7 @@ it('seeds the new methods introduced for this feature', function () {
 	$seed = slowlog_test_calls_to($GLOBALS['__test_db_calls'], 'db_execute');
 	$sql  = $seed[0]['sql'];
 
-	foreach (array('INFILES', 'GROUP BY', 'COUNTS', 'SHOWS', 'UNION ALLS', 'MAX_EXECUTION_TIME', 'MAX_STATEMENT_TIME') as $method) {
+	foreach (array('INFILES', 'GROUP BY', 'COUNTS', 'SHOWS', 'UNION ALLS', 'MAX_EXECUTION_TIME', 'MAX_STATEMENT_TIME', 'OTHER TABLES') as $method) {
 		expect($sql)->toContain("'" . $method . "'");
 	}
 });

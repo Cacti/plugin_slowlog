@@ -242,7 +242,8 @@ function slowlog_setup_table_new() {
 		(\'SHOWS\', \'SHOW \', 18),
 		(\'UNION ALLS\', \'UNION ALL\', 19),
 		(\'MAX_EXECUTION_TIME\', \'MAX_EXECUTION_TIME(\', 20),
-		(\'MAX_STATEMENT_TIME\', \'MAX_STATEMENT_TIME\', 21)');
+		(\'MAX_STATEMENT_TIME\', \'MAX_STATEMENT_TIME\', 21),
+		(\'OTHER TABLES\', \'OTHER TABLES\', 22)');
 
 	$data = array();
 	$data['columns'][] = array('name' => 'id', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true);
