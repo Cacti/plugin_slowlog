@@ -76,6 +76,35 @@ function slowlog_bulk_insert_method_rows(array $rows) {
 }
 
 /*
+ * Bulk-inserts (logid, logentry, table_name) rows into plugin_slowlog_details_tables in
+ * chunks. Fully parameterized for the same reason as slowlog_bulk_insert_method_rows() -
+ * logid/logentry are always bound placeholders, never concatenated into the SQL text.
+ * $rows is an array of array($logid, $logentry, $table_name) tuples.
+ */
+function slowlog_bulk_insert_table_rows(array $rows) {
+	if (!cacti_sizeof($rows)) {
+		return;
+	}
+
+	$sql_prefix = 'INSERT INTO plugin_slowlog_details_tables (logid, logentry, table_name) VALUES ';
+	$sql_suffix = ' ON DUPLICATE KEY UPDATE table_name=VALUES(table_name)';
+
+	foreach(array_chunk($rows, 500) as $chunk) {
+		$placeholders = array();
+		$params       = array();
+
+		foreach($chunk as $row) {
+			$placeholders[] = '(?, ?, ?)';
+			$params[]       = (int) $row[0];
+			$params[]       = (int) $row[1];
+			$params[]       = (string) $row[2];
+		}
+
+		db_execute_prepared($sql_prefix . implode(', ', $placeholders) . $sql_suffix, $params);
+	}
+}
+
+/*
  * Keeps plugin_slowlog_table_names (the deduplicated table_name dictionary) in sync with
  * whatever table association just found for this logid. $known_tables is either null (we
  * have no reference list to compare against - a row is added if missing via INSERT IGNORE,
@@ -228,6 +257,13 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 	global $config;
 
 	ini_set('max_execution_time', 0);
+
+	// Normalize the legacy --usecacti flag to explicit 'cacti' mode before
+	// auto-populating $table_names, so import_post_process() infers 'cacti'
+	// mode (external-table discovery) instead of 'list' mode.
+	if ($table_mode === null && $usecacti) {
+		$table_mode = 'cacti';
+	}
 
 	if ($table_names == '' && $usecacti) {
 		$table_names = get_cacti_tables();
@@ -781,9 +817,7 @@ function slowlog_tabs() {
 }
 
 function get_table_associations($logid, $logentry = -1) {
-	$sql = array();
-	$sql_prefix = 'INSERT INTO plugin_slowlog_details_tables (logid, logentry, table_name) VALUES ';
-	$sql_suffix = 'ON DUPLICATE KEY UPDATE table_name=VALUES(table_name)';
+	$rows_out = array();
 
 	if ($logentry == -1) {
 		$rows = db_fetch_assoc_prepared('SELECT *
@@ -802,21 +836,17 @@ function get_table_associations($logid, $logentry = -1) {
 
 		if (cacti_sizeof($tables)) {
 			foreach($tables as $t) {
-				$sql[] = '(' . $logid . ', ' . $row['logentry'] . ', ' . db_qstr($t) . ')';
+				$rows_out[] = array($logid, $row['logentry'], $t);
 			}
 		} else {
 			slowlog_debug('No tables found: ' . substr($row['query'], 0, 4000));
 		}
 	}
 
-	if (cacti_sizeof($sql)) {
-		cacti_log('Post Processing Tables associated: ' . cacti_sizeof($sql), false, 'SLOWLOG');
+	if (cacti_sizeof($rows_out)) {
+		cacti_log('Post Processing Tables associated: ' . cacti_sizeof($rows_out), false, 'SLOWLOG');
 
-		$sqls = array_chunk($sql, 500);
-
-		foreach($sqls as $sql) {
-			db_execute($sql_prefix . implode(', ', $sql) . $sql_suffix);
-		}
+		slowlog_bulk_insert_table_rows($rows_out);
 	}
 }
 
@@ -914,7 +944,11 @@ function slowlog_mask_sql_comments($query) {
 	$i   = 0;
 
 	while ($i < $len) {
-		if ($query[$i] === '-' && $i + 1 < $len && $query[$i + 1] === '-') {
+		// MySQL/MariaDB only treat "--" as a comment starter when the second
+		// dash is followed by whitespace/a control character (or end of
+		// string) - otherwise "a--b" is a valid expression, not a comment.
+		if ($query[$i] === '-' && $i + 1 < $len && $query[$i + 1] === '-' &&
+			($i + 2 >= $len || ctype_space($query[$i + 2]))) {
 			$end = strpos($query, "\n", $i);
 			$end = ($end === false) ? $len : $end;
 			$out .= str_repeat(' ', $end - $i);
@@ -1102,6 +1136,11 @@ function slowlog_extract_join_chain($text, &$tables) {
 			}
 
 			slowlog_extract_tables_from_query($balanced[0], $tables);
+
+			// $balanced[1] begins with the derived table's own "[AS] alias ON
+			// ..." - that alias names the subquery just extracted, not a real
+			// table, so fall through to the JOIN-keyword search below instead
+			// of looping back and mistaking the alias for an identifier.
 			$text = $balanced[1];
 		} else {
 			$id = slowlog_first_identifier($text);
@@ -1109,13 +1148,13 @@ function slowlog_extract_join_chain($text, &$tables) {
 			if ($id !== '') {
 				$tables[$id] = $id;
 			}
-
-			if (!preg_match('/\s+' . SLOWLOG_JOIN_KEYWORD . '\s+/i', $text, $m, PREG_OFFSET_CAPTURE)) {
-				return;
-			}
-
-			$text = substr($text, $m[0][1] + strlen($m[0][0]));
 		}
+
+		if (!preg_match('/\s+' . SLOWLOG_JOIN_KEYWORD . '\s+/i', $text, $m, PREG_OFFSET_CAPTURE)) {
+			return;
+		}
+
+		$text = substr($text, $m[0][1] + strlen($m[0][0]));
 	}
 }
 
@@ -1186,6 +1225,36 @@ function slowlog_extract_join_targets($query, &$tables) {
 		if ($id !== '') {
 			$tables[$id] = $id;
 		}
+	}
+}
+
+/*
+ * Finds a top-level "USING <table_ref_list>" clause (the multi-table DELETE FROM ... USING
+ * form) and extracts every table it lists, including comma-separated ones. A JOIN's
+ * "USING (col1, col2)" column list is skipped instead, since it's always immediately
+ * followed by an open paren rather than a bare identifier.
+ */
+function slowlog_extract_using_clause_tables($query, &$tables) {
+	$offset = 0;
+	$len    = strlen($query);
+
+	while ($offset < $len && preg_match('/\bUSING\b/i', $query, $m, PREG_OFFSET_CAPTURE, $offset)) {
+		$pos    = $m[0][1];
+		$after  = substr($query, $pos + 5);
+		$padlen = strlen($after) - strlen(ltrim($after));
+		$start  = $pos + 5 + $padlen;
+
+		if ($start >= $len || $query[$start] === '(') {
+			$offset = $pos + 5;
+
+			continue;
+		}
+
+		$end = slowlog_scan_clause_span($query, $start);
+
+		slowlog_extract_table_ref_list(substr($query, $start, $end - $start), $tables);
+
+		$offset = max($end, $pos + 5);
 	}
 }
 
@@ -1265,6 +1334,7 @@ function slowlog_extract_tables_from_query($query, &$tables = null) {
 	// subqueries in a WHERE/SET/etc, and multi-table DELETE/UPDATE ... JOIN forms.
 	slowlog_extract_from_clauses($query, $tables);
 	slowlog_extract_join_targets($query, $tables);
+	slowlog_extract_using_clause_tables($query, $tables);
 
 	return $tables;
 }

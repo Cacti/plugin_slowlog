@@ -115,8 +115,12 @@ if ($logfile !== false) {
 } elseif ($reprocess !== false) {
 	if (strtolower($reprocess) == 'all') {
 		slowlog_reprocess_all($table_names, $usecacti, $table_mode);
-	} else {
+	} elseif (preg_match('/^[1-9][0-9]*$/', trim((string) $reprocess))) {
 		slowlog_reprocess((int) $reprocess, $table_names, $usecacti, $table_mode);
+	} else {
+		print "ERROR: Invalid --reprocess value '$reprocess', must be a positive integer logid or 'all'" . PHP_EOL . PHP_EOL;
+		display_help();
+		exit(1);
 	}
 }
 

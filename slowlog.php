@@ -110,6 +110,13 @@ function form_save() {
 				$table_mode = 'all';
 			}
 
+			if ($table_mode == 'reference' && trim(get_nfilter_request_var('table_names')) == '') {
+				raise_message('slowlog_reference_names_required', __('ERROR: \'Detect all tables; group ... as OTHER TABLES\' requires a list of Tables of Interest.', 'slowlog'), MESSAGE_LEVEL_ERROR);
+
+				header('Location: slowlog.php');
+				exit;
+			}
+
 			/* obtain debug information if it's set */
 			$debug_data = import_logfile(
 				$_FILES['import_file']['tmp_name'],
