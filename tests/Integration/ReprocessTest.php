@@ -52,6 +52,7 @@ it('clears the previously-derived method, table, and timeout state before reproc
 	expect(slowlog_test_calls_matching($calls, 'DELETE FROM plugin_slowlog_details_methods'))->toHaveCount(1);
 	expect(slowlog_test_calls_matching($calls, 'DELETE FROM plugin_slowlog_details_tables'))->toHaveCount(1);
 	expect(slowlog_test_calls_matching($calls, 'DELETE FROM plugin_slowlog_tables'))->toHaveCount(1);
+	expect(slowlog_test_calls_matching($calls, 'DELETE FROM plugin_slowlog_stats'))->toHaveCount(1);
 	expect(slowlog_test_calls_matching($calls, 'SET timeout = 0'))->toHaveCount(1);
 
 	foreach (slowlog_test_calls_matching($calls, 'DELETE FROM plugin_slowlog_details_methods') as $call) {

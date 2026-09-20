@@ -81,6 +81,13 @@ beforeEach(function () {
 		array('method' => 'UNION ALLS', 'query' => 'UNION ALL', 'methodid' => 19),
 		array('method' => 'MAX_EXECUTION_TIME', 'query' => 'MAX_EXECUTION_TIME(', 'methodid' => 20),
 		array('method' => 'MAX_STATEMENT_TIME', 'query' => 'MAX_STATEMENT_TIME', 'methodid' => 21),
+		array('method' => 'FORCE INDEX', 'query' => 'FORCE INDEX', 'methodid' => 23),
+		array('method' => 'ALTERS', 'query' => 'ALTER TABLE', 'methodid' => 24),
+		array('method' => 'DROPS', 'query' => 'DROP TABLE,DROP TEMPORARY TABLE', 'methodid' => 25),
+		array('method' => 'ANALYZES', 'query' => 'ANALYZE TABLE,ANALYZE NO_WRITE_TO_BINLOG TABLE,ANALYZE LOCAL TABLE', 'methodid' => 26),
+		array('method' => 'OPTIMIZES', 'query' => 'OPTIMIZE TABLE,OPTIMIZE NO_WRITE_TO_BINLOG TABLE,OPTIMIZE LOCAL TABLE', 'methodid' => 27),
+		array('method' => 'CREATES', 'query' => 'CREATE TABLE', 'methodid' => 28),
+		array('method' => 'CREATE TEMPS', 'query' => 'CREATE TEMPORARY TABLE', 'methodid' => 29),
 	));
 });
 
@@ -149,6 +156,66 @@ it('classifies rows matching each of the method rows added by this PR', function
 	expect($tuples)->toContain(array(1, 5, 19)); // UNION ALLS
 	expect($tuples)->toContain(array(1, 6, 20)); // MAX_EXECUTION_TIME
 	expect($tuples)->toContain(array(1, 7, 21)); // MAX_STATEMENT_TIME
+});
+
+it('classifies a query using a FORCE INDEX hint under the FORCE INDEX method', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT logentry, query', array(
+		array('logentry' => 1, 'query' => "update grid_jobs_pendreasons force index (clusterid_end_time) set end_time='2023-02-07 22:17:07' where clusterid='86'"),
+	));
+
+	import_post_process(1, 'accounts');
+
+	expect(slowlog_test_method_insert_tuples())->toContain(array(1, 1, 23));
+});
+
+it('classifies rows matching each of the ALTERS/DROPS/ANALYZES/OPTIMIZES methods', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT logentry, query', array(
+		array('logentry' => 1, 'query' => 'alter table users add column age int'),
+		array('logentry' => 2, 'query' => 'drop table if exists tmp_users'),
+		array('logentry' => 3, 'query' => 'drop temporary table tmp_users'),
+		array('logentry' => 4, 'query' => 'analyze table users'),
+		array('logentry' => 5, 'query' => 'analyze no_write_to_binlog table users'),
+		array('logentry' => 6, 'query' => 'optimize table users'),
+		array('logentry' => 7, 'query' => 'optimize no_write_to_binlog table users'),
+	));
+
+	import_post_process(1, 'accounts');
+
+	$tuples = slowlog_test_method_insert_tuples();
+
+	expect($tuples)->toContain(array(1, 1, 24)); // ALTERS
+	expect($tuples)->toContain(array(1, 2, 25)); // DROPS
+	expect($tuples)->toContain(array(1, 3, 25)); // DROPS (DROP TEMPORARY TABLE)
+	expect($tuples)->toContain(array(1, 4, 26)); // ANALYZES
+	expect($tuples)->toContain(array(1, 5, 26)); // ANALYZES (NO_WRITE_TO_BINLOG)
+	expect($tuples)->toContain(array(1, 6, 27)); // OPTIMIZES
+	expect($tuples)->toContain(array(1, 7, 27)); // OPTIMIZES (NO_WRITE_TO_BINLOG)
+});
+
+it('classifies a permanent CREATE TABLE under CREATES but not CREATE TEMPS', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT logentry, query', array(
+		array('logentry' => 1, 'query' => 'create table archive like users'),
+	));
+
+	import_post_process(1, 'accounts');
+
+	$tuples = slowlog_test_method_insert_tuples();
+
+	expect($tuples)->toContain(array(1, 1, 28)); // CREATES
+	expect($tuples)->not->toContain(array(1, 1, 29)); // CREATE TEMPS
+});
+
+it('classifies a CREATE TEMPORARY TABLE under CREATE TEMPS but not CREATES', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT logentry, query', array(
+		array('logentry' => 1, 'query' => 'create temporary table users_temp like users'),
+	));
+
+	import_post_process(1, 'accounts');
+
+	$tuples = slowlog_test_method_insert_tuples();
+
+	expect($tuples)->toContain(array(1, 1, 29)); // CREATE TEMPS
+	expect($tuples)->not->toContain(array(1, 1, 28)); // CREATES
 });
 
 it('inserts the method classification with a single batched statement', function () {

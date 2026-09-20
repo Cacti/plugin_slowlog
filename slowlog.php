@@ -348,6 +348,108 @@ function slowlog_import() {
 	form_save_button('', 'import', 'import', false);
 }
 
+/*
+ * Shared unit/suffix labels for each summable metric, used by both the raw-totals chart
+ * (slowlog_get_chart_object()) and the box-whisker distribution chart
+ * (slowlog_get_stats_chart_object()) so the two stay in sync.
+ */
+function slowlog_chart_measures() {
+	return array(
+		'count' => array(
+			'unit'   => __esc('Queries', 'slowlog'),
+			'suffix' => __esc('Total Queries', 'slowlog')
+		),
+		'rows_sent' => array(
+			'unit'   => __esc('Rows', 'slowlog'),
+			'suffix' => __esc('Rows Returned', 'slowlog')
+		),
+		'rows_examined' => array(
+			'unit'   => __esc('Rows', 'slowlog'),
+			'suffix' => __esc('Rows Examined', 'slowlog')
+		),
+		'lock_time' => array(
+			'unit'   => __esc('Seconds', 'slowlog'),
+			'suffix' => __esc('Lock Seconds', 'slowlog')
+		),
+		'query_time' => array(
+			'unit'   => __esc('Seconds', 'slowlog'),
+			'suffix' => __esc('Query Seconds', 'slowlog')
+		),
+		'rows_affected' => array(
+			'unit'   => __esc('Rows', 'slowlog'),
+			'suffix' => __esc('Rows Affected', 'slowlog')
+		),
+		'bytes_sent' => array(
+			'unit'   => __esc('Bytes', 'slowlog'),
+			'suffix' => __esc('Bytes Sent', 'slowlog')
+		)
+	);
+}
+
+/*
+ * Reads the cached box-whisker summary (plugin_slowlog_stats) for one metric, scoped to
+ * either methods or tables, and shapes it into the categories/box-data/p95-data arrays
+ * renderBoxChart() expects. Ordered/limited the same way as slowlog_get_chart_object() (by
+ * total value descending, top 10 for tables) so the raw and whisker charts for the same
+ * metric show categories in the same order.
+ */
+function slowlog_get_stats_chart_object($chart_type, $measure) {
+	$id = get_filter_request_var('logid');
+
+	$description = db_fetch_cell_prepared('SELECT description
+		FROM plugin_slowlog
+		WHERE logid = ?',
+		array($id));
+
+	$scope = ($chart_type != 'tables') ? 'method' : 'table';
+	$limit = ($scope == 'table') ? ' LIMIT 10' : '';
+
+	$stats = db_fetch_assoc_prepared('SELECT scope_key, sample_count, total_value,
+			min_value, p25_value, median_value, p75_value, p95_value, max_value
+		FROM plugin_slowlog_stats
+		WHERE logid = ?
+		AND scope = ?
+		AND metric = ?
+		ORDER BY total_value DESC' . $limit,
+		array($id, $scope, $measure));
+
+	$measures = slowlog_chart_measures();
+
+	$categories = array();
+	$box_data   = array();
+	$p95_data   = array();
+
+	foreach($stats as $row) {
+		$categories[] = $row['scope_key'];
+
+		$box_data[] = array(
+			'x' => $row['scope_key'],
+			'y' => array(
+				round((float) $row['min_value'], 3),
+				round((float) $row['p25_value'], 3),
+				round((float) $row['median_value'], 3),
+				round((float) $row['p75_value'], 3),
+				round((float) $row['max_value'], 3)
+			)
+		);
+
+		$p95_data[] = array(
+			'x' => $row['scope_key'],
+			'y' => round((float) $row['p95_value'], 3)
+		);
+	}
+
+	$title = $description . ' [ ' . $measures[$measure]['suffix'] . ' Distribution ]';
+
+	return array(
+		'title'      => $title,
+		'categories' => $categories,
+		'box_data'   => $box_data,
+		'p95_data'   => $p95_data,
+		'yaxislabel' => $measures[$measure]['unit']
+	);
+}
+
 function slowlog_get_chart_object($chart_type, $measure) {
 	global $config;
 
@@ -414,36 +516,7 @@ function slowlog_get_chart_object($chart_type, $measure) {
 			array($id, $id));
 	}
 
-	$measures = array(
-		'count' => array(
-			'unit'   => __esc('Queries', 'slowlog'),
-			'suffix' => __esc('Total Queries', 'slowlog')
-		),
-		'rows_sent' => array(
-			'unit'   => __esc('Rows', 'slowlog'),
-			'suffix' => __esc('Rows Returned', 'slowlog')
-		),
-		'rows_examined' => array(
-			'unit'   => __esc('Rows', 'slowlog'),
-			'suffix' => __esc('Rows Examined', 'slowlog')
-		),
-		'lock_time' => array(
-			'unit'   => __esc('Seconds', 'slowlog'),
-			'suffix' => __esc('Lock Seconds', 'slowlog')
-		),
-		'query_time' => array(
-			'unit'   => __esc('Seconds', 'slowlog'),
-			'suffix' => __esc('Query Seconds', 'slowlog')
-		),
-		'rows_affected' => array(
-			'unit'   => __esc('Rows', 'slowlog'),
-			'suffix' => __esc('Rows Affected', 'slowlog')
-		),
-		'bytes_sent' => array(
-			'unit'   => __esc('Bytes', 'slowlog'),
-			'suffix' => __esc('Bytes Sent', 'slowlog')
-		)
-	);
+	$measures = slowlog_chart_measures();
 
 	// ApexCharts
 	if (cacti_sizeof($details)) {
@@ -816,36 +889,47 @@ function slowlog_view_charts($method) {
 
 	html_start_box(__('MariaDB/MySQL SlowLog Results - By %s', ucfirst($method), 'slowlog'), '100%', '', '3', 'center', '');
 
-	print '<div class="flexContainer" style="width:100%;justify-content:space-evenly">';
-
-	print '<div style="flex-basis:40%" id="my_count"></div>';
-	print '<div style="flex-basis:40%" id="my_query"></div>';
-	print '<div style="flex-basis:40%" id="my_examined"></div>';
-	print '<div style="flex-basis:40%" id="my_sent"></div>';
-	print '<div style="flex-basis:40%" id="my_affected"></div>';
-	print '<div style="flex-basis:40%" id="my_bytes"></div>';
-
+	print '<div class="flexContainer" style="width:100%;justify-content:space-between">';
+	print '<div style="flex-basis:98%" id="raw_count"></div>';
 	print '</div>';
+
+	$rate_metrics = array(
+		'query'    => 'query_time',
+		'examined' => 'rows_examined',
+		'sent'     => 'rows_sent',
+		'affected' => 'rows_affected',
+		'bytes'    => 'bytes_sent'
+	);
+
+	foreach($rate_metrics as $key => $measure) {
+		print '<div class="flexContainer" style="width:100%;justify-content:space-between;margin-top:10px">';
+		print '<div style="flex-basis:48%" id="raw_' . $key . '"></div>';
+		print '<div style="flex-basis:48%" id="box_' . $key . '"></div>';
+		print '</div>';
+	}
 
 	$width  = 700;
 	$height = 400;
 
-	$charts = array(
-		'my_count'    => 'count',
-		'my_query'    => 'query_time',
-		'my_examined' => 'rows_examined',
-		'my_sent'     => 'rows_sent',
-		'my_affected' => 'rows_affected',
-		'my_bytes'    => 'bytes_sent'
-	);
-
 	$output = '';
 
-	foreach($charts as $bindto => $measure) {
+	$data = slowlog_get_chart_object($method, 'count');
+
+	$output .= 'renderChart(' .
+		'"raw_count",' .
+		'"' . $data['title']             . '",' .
+		'"' . $data['yaxislabel']        . '",' .
+		json_encode($data['categories']) . ','  .
+		json_encode($data['values'])     . ','  .
+		'"' . $mode                      . '",' .
+		$height                          . ','  .
+		$width                           . ');' . PHP_EOL;
+
+	foreach($rate_metrics as $key => $measure) {
 		$data = slowlog_get_chart_object($method, $measure);
 
 		$output .= 'renderChart(' .
-			'"' . $bindto                    . '",' .
+			'"raw_' . $key                   . '",' .
 			'"' . $data['title']             . '",' .
 			'"' . $data['yaxislabel']        . '",' .
 			json_encode($data['categories']) . ','  .
@@ -853,6 +937,19 @@ function slowlog_view_charts($method) {
 			'"' . $mode                      . '",' .
 			$height                          . ','  .
 			$width                           . ');' . PHP_EOL;
+
+		$stats = slowlog_get_stats_chart_object($method, $measure);
+
+		$output .= 'renderBoxChart(' .
+			'"box_' . $key                        . '",' .
+			'"' . $stats['title']                 . '",' .
+			'"' . $stats['yaxislabel']             . '",' .
+			json_encode($stats['categories'])      . ','  .
+			json_encode($stats['box_data'])         . ','  .
+			json_encode($stats['p95_data'])         . ','  .
+			'"' . $mode                            . '",' .
+			$height                                . ','  .
+			$width                                 . ');' . PHP_EOL;
 	}
 
 	html_end_box(false);
@@ -960,6 +1057,94 @@ function slowlog_view_charts($method) {
 				}
 			},
 			xaxis: {
+				categories: categories,
+				labels: {
+					style: {
+						fontSize: '12px'
+					}
+				}
+			}
+		};
+
+		var chart = new ApexCharts(document.querySelector('#'+chartid), options);
+
+		chart.render();
+	}
+
+	function renderBoxChart(chartid, title, yaxislabel, categories, boxData, p95Data, mode, height, width) {
+		var options = {
+			id: chartid,
+			title: {
+				text: title,
+				align: 'center',
+				margin: 10
+			},
+			theme: {
+				mode: mode,
+				palette: 'palette7'
+			},
+			chart: {
+				type:    'boxPlot',
+				height:  height,
+				width:   width,
+				redrawOnParentResize: true,
+				redrawOnWindowResize: true
+			},
+			plotOptions: {
+				boxPlot: {
+					colors: {
+						upper: '#5c6bc0',
+						lower: '#26a69a'
+					}
+				}
+			},
+			dataLabels: {
+				enabled: false
+			},
+			legend: {
+				show: true,
+				position: 'bottom'
+			},
+			series: [
+				{
+					name: 'Distribution',
+					type: 'boxPlot',
+					data: boxData
+				},
+				{
+					name: 'p95',
+					type: 'scatter',
+					data: p95Data
+				}
+			],
+			markers: {
+				size: [0, 5]
+			},
+			yaxis: {
+				show: true,
+				minWidth: 40,
+				maxWidth: 160,
+				title: {
+					text: yaxislabel,
+					rotate: -90,
+					offsetX: 5,
+					offsetY: 0,
+				},
+				labels: {
+					formatter: convertLabel
+				},
+				axisTicks: {
+					width: 20
+				}
+			},
+			grid: {
+				padding: {
+					left: 5,
+					right: 5
+				}
+			},
+			xaxis: {
+				type: 'category',
 				categories: categories,
 				labels: {
 					style: {

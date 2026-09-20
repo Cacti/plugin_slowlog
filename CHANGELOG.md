@@ -1,5 +1,17 @@
 ## ChangeLog
 
+--- 2.4 ---
+
+* feature: Add `plugin_slowlog_stats` cache table storing per-method/per-table box-whisker statistics (min/p25/median/p75/p95/max) and totals for query_time, rows_sent, rows_examined, rows_affected, and bytes_sent, computed once during import/reprocess instead of aggregated live on each chart view
+* feature: Add box-whisker (rate distribution) charts alongside the existing raw-totals charts on the By Method/By Table pages
+
+--- 2.3 ---
+
+* feature: Add FORCE INDEX to the method dictionary so queries using an index hint can be filtered/found in the Methods view
+* bug: Recognize CREATE TABLE (including its LIKE source table), DROP TABLE, ALTER TABLE, and ANALYZE/OPTIMIZE/CHECK/REPAIR TABLE in the tokenizer - these administrative statements previously produced no table association at all
+* feature: Add ALTERS, DROPS, ANALYZES, and OPTIMIZES to the method dictionary
+* feature: Add CREATES and CREATE TEMPS to the method dictionary, distinguishing permanent from temporary CREATE TABLE statements
+
 --- 2.2 ---
 
 * bug: Rewrite the query tokenizer (get_table_associations()) as a regex/scanner-based parser - fixes dropped JOIN targets, dropped comma-separated FROM list members, and subqueries in WHERE/SET clauses not being followed

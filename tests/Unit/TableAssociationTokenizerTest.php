@@ -224,3 +224,69 @@ it('does not mistake a table-like word inside a string literal for a real refere
 it('still finds a real table reference alongside an unrelated comment', function () {
 	expect(slowlog_test_run_tokenizer('select * from users /* legacy FROM orders path */'))->toBe(array('users'));
 });
+
+it('finds the table in an UPDATE ... FORCE INDEX ... SET', function () {
+	expect(slowlog_test_run_tokenizer("update grid_jobs_pendreasons force index (clusterid_end_time) set end_time='2023-02-07 22:17:07' where clusterid='86'"))
+		->toBe(array('grid_jobs_pendreasons'));
+});
+
+it('finds the table in a SELECT ... FROM ... USE INDEX', function () {
+	expect(slowlog_test_run_tokenizer('select * from users use index (idx_name) where id = 1'))->toBe(array('users'));
+});
+
+it('finds both tables of a JOIN when the left side has an IGNORE INDEX hint', function () {
+	expect(slowlog_test_run_tokenizer('select * from users ignore index (idx_name) join orders on users.id=orders.user_id'))
+		->toBe(array('users', 'orders'));
+});
+
+it('finds the table in a CREATE TABLE', function () {
+	expect(slowlog_test_run_tokenizer('create table users (id int)'))->toBe(array('users'));
+});
+
+it('finds both tables of a CREATE TABLE ... LIKE', function () {
+	expect(slowlog_test_run_tokenizer('create temporary table users_temp like users'))->toBe(array('users_temp', 'users'));
+});
+
+it('finds the table in a CREATE TABLE IF NOT EXISTS', function () {
+	expect(slowlog_test_run_tokenizer('create table if not exists archive like users'))->toBe(array('archive', 'users'));
+});
+
+it('finds the table in a DROP TABLE IF EXISTS', function () {
+	expect(slowlog_test_run_tokenizer('drop table if exists tmp_users'))->toBe(array('tmp_users'));
+});
+
+it('finds the table in a DROP TEMPORARY TABLE', function () {
+	expect(slowlog_test_run_tokenizer('drop temporary table tmp_users'))->toBe(array('tmp_users'));
+});
+
+it('finds every table of a multi-table DROP TABLE', function () {
+	expect(slowlog_test_run_tokenizer('drop table a, b'))->toBe(array('a', 'b'));
+});
+
+it('finds the table in an ALTER TABLE', function () {
+	expect(slowlog_test_run_tokenizer('alter table users add column age int'))->toBe(array('users'));
+});
+
+it('finds the table in an ANALYZE TABLE', function () {
+	expect(slowlog_test_run_tokenizer('analyze table users'))->toBe(array('users'));
+});
+
+it('finds the table in an ANALYZE NO_WRITE_TO_BINLOG TABLE', function () {
+	expect(slowlog_test_run_tokenizer('analyze no_write_to_binlog table users'))->toBe(array('users'));
+});
+
+it('finds the table in an OPTIMIZE TABLE', function () {
+	expect(slowlog_test_run_tokenizer('optimize table users'))->toBe(array('users'));
+});
+
+it('finds the table in an OPTIMIZE NO_WRITE_TO_BINLOG TABLE', function () {
+	expect(slowlog_test_run_tokenizer('optimize no_write_to_binlog table users'))->toBe(array('users'));
+});
+
+it('finds the table in a CHECK TABLE', function () {
+	expect(slowlog_test_run_tokenizer('check table users'))->toBe(array('users'));
+});
+
+it('finds the table in a REPAIR TABLE', function () {
+	expect(slowlog_test_run_tokenizer('repair table users'))->toBe(array('users'));
+});

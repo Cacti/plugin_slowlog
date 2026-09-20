@@ -51,6 +51,7 @@ function plugin_slowlog_uninstall() {
 	api_plugin_drop_table('plugin_slowlog_tables');
 	api_plugin_drop_table('plugin_slowlog_table_names');
 	api_plugin_drop_table('plugin_slowlog_reserved_words');
+	api_plugin_drop_table('plugin_slowlog_stats');
 }
 
 function plugin_slowlog_check_config() {
@@ -245,7 +246,14 @@ function slowlog_setup_table_new() {
 		(\'UNION ALLS\', \'UNION ALL\', 19),
 		(\'MAX_EXECUTION_TIME\', \'MAX_EXECUTION_TIME(\', 20),
 		(\'MAX_STATEMENT_TIME\', \'MAX_STATEMENT_TIME\', 21),
-		(\'OTHER TABLES\', \'OTHER TABLES\', 22)');
+		(\'OTHER TABLES\', \'OTHER TABLES\', 22),
+		(\'FORCE INDEX\', \'FORCE INDEX\', 23),
+		(\'ALTERS\', \'ALTER TABLE\', 24),
+		(\'DROPS\', \'DROP TABLE,DROP TEMPORARY TABLE\', 25),
+		(\'ANALYZES\', \'ANALYZE TABLE,ANALYZE NO_WRITE_TO_BINLOG TABLE,ANALYZE LOCAL TABLE\', 26),
+		(\'OPTIMIZES\', \'OPTIMIZE TABLE,OPTIMIZE NO_WRITE_TO_BINLOG TABLE,OPTIMIZE LOCAL TABLE\', 27),
+		(\'CREATES\', \'CREATE TABLE\', 28),
+		(\'CREATE TEMPS\', \'CREATE TEMPORARY TABLE\', 29)');
 
 	$data = array();
 	$data['columns'][] = array('name' => 'id', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true);
@@ -270,6 +278,27 @@ function slowlog_setup_table_new() {
 			}
 		}
 	}
+
+	$data = array();
+	$data['columns'][] = array('name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'comment' => 'The logid this cached summary belongs to');
+	$data['columns'][] = array('name' => 'scope', 'type' => 'varchar(10)', 'NULL' => false, 'comment' => 'Whether scope_key is a method name (method) or a table name (table)');
+	$data['columns'][] = array('name' => 'scope_key', 'type' => 'varchar(45)', 'NULL' => false, 'comment' => 'plugin_slowlog_methods.method value, or a table_name (or others)');
+	$data['columns'][] = array('name' => 'metric', 'type' => 'varchar(20)', 'NULL' => false, 'comment' => 'query_time, rows_sent, rows_examined, rows_affected, or bytes_sent');
+	$data['columns'][] = array('name' => 'sample_count', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'default' => 0, 'comment' => 'Number of detail rows this summary was computed from');
+	$data['columns'][] = array('name' => 'total_value', 'type' => 'double', 'NULL' => false, 'default' => 0, 'comment' => 'SUM across all matching rows');
+	$data['columns'][] = array('name' => 'min_value', 'type' => 'double', 'NULL' => false, 'default' => 0);
+	$data['columns'][] = array('name' => 'p25_value', 'type' => 'double', 'NULL' => false, 'default' => 0);
+	$data['columns'][] = array('name' => 'median_value', 'type' => 'double', 'NULL' => false, 'default' => 0);
+	$data['columns'][] = array('name' => 'p75_value', 'type' => 'double', 'NULL' => false, 'default' => 0);
+	$data['columns'][] = array('name' => 'p95_value', 'type' => 'double', 'NULL' => false, 'default' => 0);
+	$data['columns'][] = array('name' => 'max_value', 'type' => 'double', 'NULL' => false, 'default' => 0);
+	$data['primary']    = array('logid', 'scope', 'scope_key', 'metric');
+	$data['keys'][]     = array('name' => 'scope_metric', 'columns' => array('scope', 'metric'));
+	$data['type']       = 'InnoDB';
+	$data['row_format'] = 'Dynamic';
+	$data['comment']    = 'Cached box-whisker (min/p25/median/p75/p95/max) + totals per method/table, per imported log';
+
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog_stats', $data);
 }
 
 function slowlog_config_arrays() {
