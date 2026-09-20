@@ -1790,6 +1790,73 @@ function slowlog_strip_domain($host) {
 	return str_replace('-new', '', $parts[0]);
 }
 
+/* parses a php.ini shorthand byte value (e.g. '8M', '2G', '-1'); returns null for unlimited */
+function slowlog_parse_ini_bytes($value) {
+	$value = trim((string) $value);
+
+	if ($value === '' || $value === '-1') {
+		return null;
+	}
+
+	$unit = strtolower(substr($value, -1));
+	$num  = (float) $value;
+
+	switch ($unit) {
+		case 'g':
+			return (int) ($num * 1024 * 1024 * 1024);
+		case 'm':
+			return (int) ($num * 1024 * 1024);
+		case 'k':
+			return (int) ($num * 1024);
+		default:
+			return (int) $value;
+	}
+}
+
+/*
+ * Checks the current request's upload-related php.ini settings for anything likely to make a
+ * large slow-query-log import fail, so slowlog_import() can surface it before the user even
+ * tries. This plugin already forces max_execution_time/memory_limit to unlimited for its own
+ * requests (see the ini_set() calls at the top of slowlog.php), so those are only flagged if
+ * that override didn't actually take (e.g. blocked by disable_functions or an open_basedir/
+ * PHP_INI_SYSTEM restriction on the host) - and even when it does take, an independent web
+ * server/proxy timeout (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM
+ * request_terminate_timeout) is outside PHP's control and can't be detected from here.
+ */
+function slowlog_upload_environment_status() {
+	$max_execution_time = ini_get('max_execution_time');
+	$memory_limit       = ini_get('memory_limit');
+	$upload_max_filesize = ini_get('upload_max_filesize');
+	$post_max_size        = ini_get('post_max_size');
+
+	$upload_max_bytes = slowlog_parse_ini_bytes($upload_max_filesize);
+	$post_max_bytes    = slowlog_parse_ini_bytes($post_max_size);
+
+	$warnings = array();
+
+	if ((int) $max_execution_time !== 0) {
+		$warnings[] = __('max_execution_time is %d seconds (not unlimited) for this request - a large import could be killed mid-run. Some web servers/proxies (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) enforce their own independent cutoff that this setting cannot override.', $max_execution_time, 'slowlog');
+	}
+
+	if ($memory_limit !== '-1') {
+		$warnings[] = __('memory_limit is %s (not unlimited) for this request - a very large slow query log can exceed this while it is being read/imported.', $memory_limit, 'slowlog');
+	}
+
+	if ($post_max_bytes !== null && $upload_max_bytes !== null && $post_max_bytes < $upload_max_bytes) {
+		$warnings[] = __('post_max_size (%s) is smaller than upload_max_filesize (%s) - uploads up to the advertised limit will still be rejected.', $post_max_size, $upload_max_filesize, 'slowlog');
+	}
+
+	if ($upload_max_bytes !== null && $upload_max_bytes < (64 * 1024 * 1024)) {
+		$warnings[] = __('upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB.', $upload_max_filesize, 'slowlog');
+	}
+
+	return array(
+		'max_execution_time' => $max_execution_time,
+		'memory_limit'       => $memory_limit,
+		'warnings'           => $warnings,
+	);
+}
+
 /*
  * Shared unit/suffix labels for each summable metric, used by both the raw-totals chart
  * (slowlog_get_chart_object()) and the box-whisker distribution chart

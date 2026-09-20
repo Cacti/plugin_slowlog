@@ -9,6 +9,8 @@
 * bug: The stats-cache collectors now page on a unique surrogate key (plugin_slowlog_details_methods.id / plugin_slowlog_details_tables.tableid) instead of the non-unique logentry column - a batch boundary landing inside a group of same-logentry method/table matches previously caused the remaining rows in that group to be silently skipped
 * bug: Store the CREATES/CREATE TEMPS method-dictionary fragments lowercase (matching is case-insensitive) so the literal string "CREATE TABLE" doesn't appear in setup.php next to actual DDL usage
 * security: Chart titles (built from the user-supplied import description) are now emitted via json_encode() with JSON_HEX_* flags instead of raw string concatenation into the inline chart-rendering <script> block, preventing a crafted description from breaking out of the JS string/script context
+* feature: The Import Logfile page now shows the current max_execution_time/memory_limit alongside the existing upload_max_filesize/post_max_size, and a WARNING banner listing anything in the current server configuration likely to cause a large import to fail (non-unlimited execution time/memory, post_max_size smaller than upload_max_filesize, or a very small upload_max_filesize)
+* feature: The import form now shows a live upload progress indicator (an ApexCharts donut with the percentage in its center, alongside Pace.js's existing top-of-page bar), driven by the browser's native xhr.upload.progress event - no php.ini session.upload_progress setting or web server buffering configuration required
 
 --- 2.3 ---
 

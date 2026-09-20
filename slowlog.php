@@ -244,8 +244,20 @@ function api_slowlog_save($logid, $description, $length) {
 function slowlog_import() {
 	global $config;
 
+	$selected_theme = get_selected_theme();
+
+	print '<script type="text/javascript" src="' . $config['url_path'] . 'plugins/slowlog/js/apexcharts.js"></script>';
+
+	if (file_exists($config['base_path'] . "/plugins/slowlog/themes/$selected_theme/apexcharts.css")) {
+		print '<link href="' . html_escape($config['url_path'] . "plugins/slowlog/themes/$selected_theme/apexcharts.css") . '" type="text/css" rel="stylesheet">';
+	} else {
+		print '<link href="' . html_escape($config['url_path'] . "plugins/slowlog/js/apexcharts.css") . '" type="text/css" rel="stylesheet">';
+	}
+
 	$upload_max_filesize = ini_get('upload_max_filesize') . 'Bytes';
 	$post_max_size       = ini_get('post_max_size') . 'Bytes';
+
+	$upload_env = slowlog_upload_environment_status();
 
 	$import_form = array(
 		'import_file' => array(
@@ -317,10 +329,34 @@ function slowlog_import() {
 			'friendly_name' => __('Max Post Size', 'slowlog'),
 			'description' => __('The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache.', 'slowlog'),
 			'value'  => $post_max_size
+		),
+		'novalue2' => array(
+			'method' => 'other',
+			'friendly_name' => __('Max Execution Time', 'slowlog'),
+			'description' => __('How long (in seconds) this request is allowed to run for; 0 means unlimited. This plugin already raises it to unlimited for its own requests, but a web server or reverse proxy in front of PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) can still cut the request off independently - that cannot be detected or overridden from here.', 'slowlog'),
+			'value'  => $upload_env['max_execution_time'] == 0 ? __('Unlimited', 'slowlog') : $upload_env['max_execution_time'] . ' ' . __('Seconds', 'slowlog')
+		),
+		'novalue3' => array(
+			'method' => 'other',
+			'friendly_name' => __('Memory Limit', 'slowlog'),
+			'description' => __('How much memory this request is allowed to use; -1 means unlimited. This plugin already raises it to unlimited for its own requests. A very large slow query log being read/imported in a single request can exceed a limited value.', 'slowlog'),
+			'value'  => $upload_env['memory_limit'] == '-1' ? __('Unlimited', 'slowlog') : $upload_env['memory_limit']
 		)
 	);
 
 	form_start('slowlog.php?action=import', 'import', true);
+
+	if (cacti_sizeof($upload_env['warnings'])) {
+		print "<div class='textArea' style='border:1px solid #d8b100;background:#fff8e1;padding:8px;margin-bottom:10px;'>";
+		print "<strong>" . __esc('WARNING', 'slowlog') . ":</strong> " . __esc('The current server configuration may cause a large import to fail:', 'slowlog');
+		print '<ul style="margin:4px 0 0 20px;">';
+
+		foreach($upload_env['warnings'] as $warning) {
+			print '<li>' . html_escape($warning) . '</li>';
+		}
+
+		print '</ul></div>';
+	}
 
 	html_start_box(__('Import MariaDB/MySQL Slowlog', 'slowlog'), '100%', '', '3', 'center', '');
 
@@ -338,6 +374,150 @@ function slowlog_import() {
 	form_hidden_box('save_component_import','1','');
 
 	form_save_button('', 'import', 'import', false);
+
+	?>
+	<div id="slowlog_upload_progress" style="display:none;margin-top:10px;text-align:center;">
+		<div id="slowlog_upload_donut" style="width:160px;height:160px;margin:0 auto;"></div>
+		<div id="slowlog_upload_progress_text" style="margin-top:4px;"></div>
+	</div>
+	<script type="text/javascript">
+	(function() {
+		var xhrInFlight = null;
+		var donutChart  = null;
+
+		function formatBytes(bytes) {
+			var units = ['B', 'KB', 'MB', 'GB', 'TB'];
+			var i     = 0;
+
+			while (bytes >= 1024 && i < units.length - 1) {
+				bytes /= 1024;
+				i++;
+			}
+
+			return bytes.toFixed(1) + ' ' + units[i];
+		}
+
+		// Pace's own top-of-page bar only ever shows a heuristic "something is loading"
+		// animation - it has no API for rendering an arbitrary caller-supplied percentage as
+		// a number, so the byte-accurate readout is a separate ApexCharts radialBar (already
+		// bundled for the By Method/By Table charts) updated from the same xhr.upload
+		// progress event Pace can't see into.
+		function initDonut() {
+			if (donutChart !== null) {
+				donutChart.updateSeries([0]);
+				return;
+			}
+
+			donutChart = new ApexCharts(document.querySelector('#slowlog_upload_donut'), {
+				chart: {
+					type: 'radialBar',
+					height: 160,
+					width: 160,
+					sparkline: { enabled: true }
+				},
+				series: [0],
+				labels: ['<?php print __esc('Uploaded', 'slowlog');?>'],
+				colors: ['#4caf50'],
+				plotOptions: {
+					radialBar: {
+						hollow: { size: '65%' },
+						track: { background: '#e0e0e0' },
+						dataLabels: {
+							name: { show: false },
+							value: {
+								fontSize: '22px',
+								formatter: function(val) {
+									return Math.round(val) + '%';
+								}
+							}
+						}
+					}
+				}
+			});
+
+			donutChart.render();
+		}
+
+		function setDonut(pct) {
+			if (donutChart !== null) {
+				donutChart.updateSeries([pct]);
+			}
+		}
+
+		// Delegated so this doesn't depend on knowing Cacti's internal form/id markup -
+		// just checks whether whatever form was submitted contains a populated file input
+		// named import_file, and takes over that submit with a FormData/XHR upload so the
+		// browser's native xhr.upload.progress event can drive a real byte-accurate donut -
+		// no php.ini session.upload_progress setting or web server buffering config needed.
+		$(document).on('submit', 'form', function(event) {
+			var form      = this;
+			var fileField = $(form).find('input[name="import_file"]')[0];
+
+			if (!fileField || !fileField.files || !fileField.files.length) {
+				return;
+			}
+
+			event.preventDefault();
+
+			if (xhrInFlight !== null) {
+				return;
+			}
+
+			initDonut();
+
+			$('#slowlog_upload_progress').show();
+			$('#slowlog_upload_progress_text').text('0% (0 B / ' + formatBytes(fileField.files[0].size) + ')');
+
+			if (typeof Pace !== 'undefined') {
+				Pace.start();
+			}
+
+			xhrInFlight = $.ajax({
+				type: 'POST',
+				url: form.action,
+				data: new FormData(form),
+				processData: false,
+				contentType: false,
+				cache: false,
+				xhr: function() {
+					var xhr = $.ajaxSettings.xhr();
+
+					if (xhr.upload) {
+						xhr.upload.addEventListener('progress', function(e) {
+							if (!e.lengthComputable) {
+								return;
+							}
+
+							var pct = Math.min(100, Math.round((e.loaded / e.total) * 100));
+
+							setDonut(pct);
+							$('#slowlog_upload_progress_text').text(pct + '% (' + formatBytes(e.loaded) + ' / ' + formatBytes(e.total) + ')');
+						});
+					}
+
+					return xhr;
+				}
+			}).done(function() {
+				setDonut(100);
+				$('#slowlog_upload_progress_text').text('<?php print __esc('Processing, please wait...', 'slowlog');?>');
+
+				// The server-side response already followed the same redirect a native
+				// submit would have (Location: slowlog.php) - $.ajax just hands us the
+				// destination page's body rather than navigating, so do that ourselves.
+				window.location.href = 'slowlog.php';
+			}).fail(function() {
+				$('#slowlog_upload_progress_text').text('<?php print __esc('Upload failed - please try again.', 'slowlog');?>');
+			}).always(function() {
+				xhrInFlight = null;
+
+				if (typeof Pace !== 'undefined') {
+					Pace.stop();
+				}
+			});
+		});
+	})();
+	</script>
+	<?php
 }
 
 function slowlog_request_validation() {
