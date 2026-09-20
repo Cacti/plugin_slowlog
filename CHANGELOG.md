@@ -8,6 +8,7 @@
 * bug: api_slowlog_remove() (deleting an imported log) now also clears its plugin_slowlog_stats rows, so removing a log no longer leaves orphaned stats-cache entries behind; also moved into slowlog_functions.php alongside the other per-logid cleanup logic so it's covered by tests/Unit/SlowlogRemoveTest.php
 * bug: The stats-cache collectors now page on a unique surrogate key (plugin_slowlog_details_methods.id / plugin_slowlog_details_tables.tableid) instead of the non-unique logentry column - a batch boundary landing inside a group of same-logentry method/table matches previously caused the remaining rows in that group to be silently skipped
 * bug: Store the CREATES/CREATE TEMPS method-dictionary fragments lowercase (matching is case-insensitive) so the literal string "CREATE TABLE" doesn't appear in setup.php next to actual DDL usage
+* security: Chart titles (built from the user-supplied import description) are now emitted via json_encode() with JSON_HEX_* flags instead of raw string concatenation into the inline chart-rendering <script> block, preventing a crafted description from breaking out of the JS string/script context
 
 --- 2.3 ---
 

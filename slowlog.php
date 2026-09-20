@@ -710,45 +710,51 @@ function slowlog_view_charts($method) {
 	$width  = 700;
 	$height = 400;
 
+	// Chart titles are built from the user-supplied import description, so every dynamic
+	// value dropped into this inline <script> block must go through json_encode() with the
+	// HEX flags (not raw string concatenation) - otherwise a description containing '"',
+	// '</script>', or similar can break out of the JS string/script context.
+	$json_flags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP;
+
 	$output = '';
 
 	$data = slowlog_get_chart_object($method, 'count');
 
 	$output .= 'renderChart(' .
 		'"raw_count",' .
-		'"' . $data['title']             . '",' .
-		'"' . $data['yaxislabel']        . '",' .
-		json_encode($data['categories']) . ','  .
-		json_encode($data['values'])     . ','  .
-		'"' . $mode                      . '",' .
-		$height                          . ','  .
-		$width                           . ');' . PHP_EOL;
+		json_encode($data['title'], $json_flags)       . ','  .
+		json_encode($data['yaxislabel'], $json_flags)  . ','  .
+		json_encode($data['categories'], $json_flags)  . ','  .
+		json_encode($data['values'], $json_flags)      . ','  .
+		json_encode($mode, $json_flags)                . ','  .
+		$height                                        . ','  .
+		$width                                          . ');' . PHP_EOL;
 
 	foreach($rate_metrics as $key => $measure) {
 		$data = slowlog_get_chart_object($method, $measure);
 
 		$output .= 'renderChart(' .
-			'"raw_' . $key                   . '",' .
-			'"' . $data['title']             . '",' .
-			'"' . $data['yaxislabel']        . '",' .
-			json_encode($data['categories']) . ','  .
-			json_encode($data['values'])     . ','  .
-			'"' . $mode                      . '",' .
-			$height                          . ','  .
-			$width                           . ');' . PHP_EOL;
+			'"raw_' . $key . '",' .
+			json_encode($data['title'], $json_flags)       . ','  .
+			json_encode($data['yaxislabel'], $json_flags)  . ','  .
+			json_encode($data['categories'], $json_flags)  . ','  .
+			json_encode($data['values'], $json_flags)      . ','  .
+			json_encode($mode, $json_flags)                . ','  .
+			$height                                         . ','  .
+			$width                                          . ');' . PHP_EOL;
 
 		$stats = slowlog_get_stats_chart_object($method, $measure);
 
 		$output .= 'renderBoxChart(' .
-			'"box_' . $key                        . '",' .
-			'"' . $stats['title']                 . '",' .
-			'"' . $stats['yaxislabel']             . '",' .
-			json_encode($stats['categories'])      . ','  .
-			json_encode($stats['box_data'])         . ','  .
-			json_encode($stats['p95_data'])         . ','  .
-			'"' . $mode                            . '",' .
-			$height                                . ','  .
-			$width                                 . ');' . PHP_EOL;
+			'"box_' . $key . '",' .
+			json_encode($stats['title'], $json_flags)       . ','  .
+			json_encode($stats['yaxislabel'], $json_flags)  . ','  .
+			json_encode($stats['categories'], $json_flags)  . ','  .
+			json_encode($stats['box_data'], $json_flags)    . ','  .
+			json_encode($stats['p95_data'], $json_flags)    . ','  .
+			json_encode($mode, $json_flags)                 . ','  .
+			$height                                          . ','  .
+			$width                                           . ');' . PHP_EOL;
 	}
 
 	html_end_box(false);

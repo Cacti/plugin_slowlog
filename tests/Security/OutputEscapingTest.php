@@ -97,4 +97,16 @@ describe('output escaping in slowlog', function () {
 			'UI files should contain at least one html_escape/__esc call'
 		);
 	});
+
+	it('JSON-encodes the chart title/description instead of concatenating it into inline JS', function () {
+		// slowlog_get_chart_object()/slowlog_get_stats_chart_object() build the chart title
+		// from plugin_slowlog.description, which is user-controlled at import time. It must
+		// never be dropped into the inline <script> block via '"' . $x . '"' string
+		// concatenation - only via json_encode(), which escapes quotes/tags/slashes so a
+		// description containing '"' or '</script>' can't break out of the JS string/script.
+		$source = file_get_contents(realpath(__DIR__ . '/../../slowlog.php'));
+
+		expect($source)->not->toMatch('/[\'"]\s*\.\s*\$(?:data|stats)\[\'title\'\]/');
+		expect(preg_match_all('/json_encode\(\s*\$(?:data|stats)\[\'title\'\]/', $source))->toBeGreaterThanOrEqual(3);
+	});
 });
