@@ -1698,3 +1698,199 @@ function slowlog_strip_domain($host) {
 	$parts = explode('.', $host);
 	return str_replace('-new', '', $parts[0]);
 }
+
+/*
+ * Shared unit/suffix labels for each summable metric, used by both the raw-totals chart
+ * (slowlog_get_chart_object()) and the box-whisker distribution chart
+ * (slowlog_get_stats_chart_object()) so the two stay in sync.
+ */
+function slowlog_chart_measures() {
+	return array(
+		'count' => array(
+			'unit'   => __esc('Queries', 'slowlog'),
+			'suffix' => __esc('Total Queries', 'slowlog')
+		),
+		'rows_sent' => array(
+			'unit'   => __esc('Rows', 'slowlog'),
+			'suffix' => __esc('Rows Returned', 'slowlog')
+		),
+		'rows_examined' => array(
+			'unit'   => __esc('Rows', 'slowlog'),
+			'suffix' => __esc('Rows Examined', 'slowlog')
+		),
+		'lock_time' => array(
+			'unit'   => __esc('Seconds', 'slowlog'),
+			'suffix' => __esc('Lock Seconds', 'slowlog')
+		),
+		'query_time' => array(
+			'unit'   => __esc('Seconds', 'slowlog'),
+			'suffix' => __esc('Query Seconds', 'slowlog')
+		),
+		'rows_affected' => array(
+			'unit'   => __esc('Rows', 'slowlog'),
+			'suffix' => __esc('Rows Affected', 'slowlog')
+		),
+		'bytes_sent' => array(
+			'unit'   => __esc('Bytes', 'slowlog'),
+			'suffix' => __esc('Bytes Sent', 'slowlog')
+		)
+	);
+}
+
+/*
+ * Reads the cached box-whisker summary (plugin_slowlog_stats) for one metric, scoped to
+ * either methods or tables, and shapes it into the categories/box-data/p95-data arrays
+ * renderBoxChart() expects. Ordered/limited the same way as slowlog_get_chart_object() (by
+ * total value descending, top 10 for tables) so the raw and whisker charts for the same
+ * metric show categories in the same order.
+ */
+function slowlog_get_stats_chart_object($chart_type, $measure) {
+	$id = get_filter_request_var('logid');
+
+	$description = db_fetch_cell_prepared('SELECT description
+		FROM plugin_slowlog
+		WHERE logid = ?',
+		array($id));
+
+	$scope = ($chart_type != 'tables') ? 'method' : 'table';
+	$limit = ($scope == 'table') ? ' LIMIT 10' : '';
+
+	$stats = db_fetch_assoc_prepared('SELECT scope_key, sample_count, total_value,
+			min_value, p25_value, median_value, p75_value, p95_value, max_value
+		FROM plugin_slowlog_stats
+		WHERE logid = ?
+		AND scope = ?
+		AND metric = ?
+		ORDER BY total_value DESC' . $limit,
+		array($id, $scope, $measure));
+
+	$measures = slowlog_chart_measures();
+
+	$categories = array();
+	$box_data   = array();
+	$p95_data   = array();
+
+	foreach($stats as $row) {
+		$categories[] = $row['scope_key'];
+
+		$box_data[] = array(
+			'x' => $row['scope_key'],
+			'y' => array(
+				round((float) $row['min_value'], 3),
+				round((float) $row['p25_value'], 3),
+				round((float) $row['median_value'], 3),
+				round((float) $row['p75_value'], 3),
+				round((float) $row['max_value'], 3)
+			)
+		);
+
+		$p95_data[] = array(
+			'x' => $row['scope_key'],
+			'y' => round((float) $row['p95_value'], 3)
+		);
+	}
+
+	$title = $description . ' [ ' . $measures[$measure]['suffix'] . ' Distribution ]';
+
+	return array(
+		'title'      => $title,
+		'categories' => $categories,
+		'box_data'   => $box_data,
+		'p95_data'   => $p95_data,
+		'yaxislabel' => $measures[$measure]['unit']
+	);
+}
+
+/*
+ * Reads the live raw-totals (SUM per method/table) chart data for one metric, scoped to
+ * either methods or tables.
+ */
+function slowlog_get_chart_object($chart_type, $measure) {
+	$id = get_filter_request_var('logid');
+
+	$description = db_fetch_cell_prepared('SELECT description
+		FROM plugin_slowlog
+		WHERE logid = ?',
+		array($id));
+
+	if ($chart_type != 'tables') {
+		$details = db_fetch_assoc_prepared("SELECT
+			sm.method AS type,
+			COUNT(*) AS count,
+			SUM(query_time) AS query_time,
+			SUM(lock_time) AS lock_time,
+			SUM(rows_examined) AS rows_examined,
+			SUM(rows_sent) AS rows_sent,
+			SUM(rows_affected) AS rows_affected,
+			SUM(bytes_sent) AS bytes_sent
+			FROM plugin_slowlog_details_methods AS dm
+			INNER JOIN plugin_slowlog_details AS d
+			ON dm.logid = d.logid
+			AND dm.logentry = d.logentry
+			INNER JOIN plugin_slowlog_methods AS sm
+			ON dm.methodid = sm.methodid
+			WHERE d.logid = ?
+			GROUP BY sm.methodid
+			ORDER BY $measure DESC",
+			array($id));
+	} else {
+		$details = db_fetch_assoc_prepared("SELECT *
+			FROM (
+				SELECT table_name AS type,
+					COUNT(*) AS count,
+					SUM(query_time) AS query_time,
+					SUM(lock_time) AS lock_time,
+					SUM(rows_examined) AS rows_examined,
+					SUM(rows_sent) AS rows_sent,
+					SUM(rows_affected) AS rows_affected,
+					SUM(bytes_sent) AS bytes_sent
+				FROM plugin_slowlog_details_tables AS dt
+				INNER JOIN plugin_slowlog_details AS d
+				ON dt.logid=d.logid AND dt.logentry=d.logentry
+				WHERE d.logid = ?
+				GROUP BY table_name
+				UNION ALL
+				SELECT 'others' AS type,
+					COUNT(*) AS count,
+					SUM(query_time) AS query_time,
+					SUM(lock_time) AS lock_time,
+					SUM(rows_examined) AS rows_examined,
+					SUM(rows_sent) AS rows_sent,
+					SUM(rows_affected) AS rows_affected,
+					SUM(bytes_sent) AS bytes_sent
+				FROM plugin_slowlog_details AS d
+				LEFT JOIN plugin_slowlog_details_tables AS dt
+				ON dt.logid=d.logid AND dt.logentry=d.logentry
+				WHERE dt.table_name IS NULL
+				AND d.logid = ?
+				GROUP BY table_name
+			) AS fish
+			ORDER BY $measure DESC LIMIT 10",
+			array($id, $id));
+	}
+
+	$measures = slowlog_chart_measures();
+
+	// ApexCharts
+	if (cacti_sizeof($details)) {
+		$categories = array();
+		$values     = array();
+
+		foreach($details as $entry) {
+			$categories[] = $entry['type'];
+			$values[]     = $entry[$measure];
+		}
+
+		$title = $description . ' [ ' . $measures[$measure]['suffix'] . ' ]';
+
+		return array(
+			'title'      => $title,
+			'categories' => $categories,
+			'values'     => $values,
+			'yaxislabel' => $measures[$measure]['unit']
+		);
+	} else {
+		return array();
+	}
+}
+
