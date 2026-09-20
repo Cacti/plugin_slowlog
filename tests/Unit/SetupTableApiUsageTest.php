@@ -41,9 +41,12 @@ beforeEach(function () {
 });
 
 it('does not use raw CREATE TABLE statements', function () {
+	// A DDL statement is always followed by a table name (optionally after TEMPORARY); this
+	// deliberately does not flag the CREATE TABLE/CREATE TEMPORARY TABLE method-dictionary
+	// fragment strings seeded further down (e.g. '...CREATE TABLE', 28), which aren't SQL.
 	$source = file_get_contents(realpath(__DIR__ . '/../../setup.php'));
 
-	expect($source)->not->toContain('CREATE TABLE');
+	expect(preg_match('/\bCREATE\s+(?:TEMPORARY\s+)?TABLE\s+[A-Za-z_]/i', $source))->toBe(0);
 });
 
 it('creates every plugin table through the plugin API', function () {
@@ -135,5 +138,13 @@ it('re-running setup is safe to call again from slowlog_check_upgrade()', functi
 
 	$tables = slowlog_test_calls_to($GLOBALS['__test_db_calls'], 'api_plugin_db_table_create');
 
-	expect($tables)->toHaveCount(16);
+	expect($tables)->toHaveCount(18);
+});
+
+it('drops every plugin table on uninstall, including the stats cache', function () {
+	plugin_slowlog_uninstall();
+
+	$tables = array_column(slowlog_test_calls_to($GLOBALS['__test_db_calls'], 'api_plugin_drop_table'), 'sql');
+
+	expect($tables)->toContain('plugin_slowlog_stats');
 });

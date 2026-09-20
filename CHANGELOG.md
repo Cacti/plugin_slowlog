@@ -5,6 +5,7 @@
 * feature: Add `plugin_slowlog_stats` cache table storing per-method/per-table box-whisker statistics (min/p25/median/p75/p95/max) and totals for query_time, rows_sent, rows_examined, rows_affected, and bytes_sent, computed once during import/reprocess instead of aggregated live on each chart view
 * feature: Add box-whisker (rate distribution) charts alongside the existing raw-totals charts on the By Method/By Table pages
 * refactor: Move the chart-data functions (slowlog_chart_measures/slowlog_get_chart_object/slowlog_get_stats_chart_object) from slowlog.php into slowlog_functions.php - slowlog.php's top-level request dispatch code makes it unsafe to load in isolation, so those functions previously had zero executable test coverage; they're now covered by tests/Unit/ChartDataTest.php
+* bug: api_slowlog_remove() (deleting an imported log) now also clears its plugin_slowlog_stats rows, so removing a log no longer leaves orphaned stats-cache entries behind; also moved into slowlog_functions.php alongside the other per-logid cleanup logic so it's covered by tests/Unit/SlowlogRemoveTest.php
 
 --- 2.3 ---
 

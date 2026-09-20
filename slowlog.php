@@ -241,14 +241,6 @@ function api_slowlog_save($logid, $description, $length) {
 	return $logid;
 }
 
-function api_slowlog_remove($logid) {
-	db_execute_prepared('DELETE FROM plugin_slowlog WHERE logid = ?', array($logid));
-	db_execute_prepared('DELETE FROM plugin_slowlog_details WHERE logid = ?', array($logid));
-	db_execute_prepared('DELETE FROM plugin_slowlog_tables WHERE logid = ?', array($logid));
-	db_execute_prepared('DELETE FROM plugin_slowlog_details_tables WHERE logid = ?', array($logid));
-	db_execute_prepared('DELETE FROM plugin_slowlog_details_methods WHERE logid = ?', array($logid));
-}
-
 function slowlog_import() {
 	global $config;
 

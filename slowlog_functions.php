@@ -22,6 +22,20 @@
  +-------------------------------------------------------------------------+
 */
 
+/*
+ * Removes every per-logid row this plugin ever writes, across every table introduced since
+ * v2.1 - including the v2.4 stats cache, which is easy to forget since it's the newest and
+ * lives outside the original details/tables/methods set this function started with.
+ */
+function api_slowlog_remove($logid) {
+	db_execute_prepared('DELETE FROM plugin_slowlog WHERE logid = ?', array($logid));
+	db_execute_prepared('DELETE FROM plugin_slowlog_details WHERE logid = ?', array($logid));
+	db_execute_prepared('DELETE FROM plugin_slowlog_tables WHERE logid = ?', array($logid));
+	db_execute_prepared('DELETE FROM plugin_slowlog_details_tables WHERE logid = ?', array($logid));
+	db_execute_prepared('DELETE FROM plugin_slowlog_details_methods WHERE logid = ?', array($logid));
+	db_execute_prepared('DELETE FROM plugin_slowlog_stats WHERE logid = ?', array($logid));
+}
+
 function slowlog_render_with_layout(callable $render_callback): void {
 	general_header();
 	$render_callback();

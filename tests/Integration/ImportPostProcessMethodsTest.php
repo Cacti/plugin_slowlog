@@ -124,7 +124,7 @@ it('gives a row multiple methodid rows when it matches more than one method', fu
 
 it('buckets a row matching no other method as OTHERS', function () {
 	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT logentry, query', array(
-		array('logentry' => 1, 'query' => 'analyze table users'),
+		array('logentry' => 1, 'query' => 'commit'),
 	));
 
 	import_post_process(1, 'accounts');
