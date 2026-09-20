@@ -199,6 +199,10 @@ function slowlog_setup_table_new() {
 
 	api_plugin_db_table_create('slowlog', 'plugin_slowlog_methods', $data);
 
+	// Existing installs may still have the pre-2.4 varchar(45) width; widen it before
+	// inserting the longer ANALYZES/OPTIMIZES/CREATES seed fragments.
+	db_execute('ALTER TABLE plugin_slowlog_methods MODIFY COLUMN `query` varchar(96) NOT NULL');
+
 	$data = array();
 	$data['columns'][] = array('name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false);
 	$data['columns'][] = array('name' => 'table_name', 'type' => 'varchar(45)', 'NULL' => false);
@@ -364,4 +368,3 @@ function slowlog_show_tab() {
 		}
 	}
 }
-

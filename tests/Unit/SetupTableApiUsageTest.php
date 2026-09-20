@@ -89,6 +89,15 @@ it('adds the new timeout column via the idempotent add-column API', function () 
 	expect($calls[0]['params'][2]['type'])->toBe('double');
 });
 
+it('widens plugin_slowlog_methods.query for existing installs before seeding longer fragments', function () {
+	slowlog_setup_table_new();
+
+	$calls = slowlog_test_calls_to($GLOBALS['__test_db_calls'], 'db_execute');
+	$sql   = array_column($calls, 'sql');
+
+	expect($sql)->toContain('ALTER TABLE plugin_slowlog_methods MODIFY COLUMN `query` varchar(96) NOT NULL');
+});
+
 it('defines a table_name dictionary with an is_cacti_table flag', function () {
 	slowlog_setup_table_new();
 

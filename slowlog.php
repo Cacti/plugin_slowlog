@@ -386,7 +386,7 @@ function slowlog_import() {
 		var donutChart  = null;
 
 		function formatBytes(bytes) {
-			var units = ['B', 'KB', 'MB', 'GB', 'TB'];
+			var units = new Array('B', 'KB', 'MB', 'GB', 'TB');
 			var i     = 0;
 
 			while (bytes >= 1024 && i < units.length - 1) {
