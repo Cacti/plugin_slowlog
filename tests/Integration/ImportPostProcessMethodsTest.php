@@ -86,8 +86,8 @@ beforeEach(function () {
 		array('method' => 'DROPS', 'query' => 'DROP TABLE,DROP TEMPORARY TABLE', 'methodid' => 25),
 		array('method' => 'ANALYZES', 'query' => 'ANALYZE TABLE,ANALYZE NO_WRITE_TO_BINLOG TABLE,ANALYZE LOCAL TABLE', 'methodid' => 26),
 		array('method' => 'OPTIMIZES', 'query' => 'OPTIMIZE TABLE,OPTIMIZE NO_WRITE_TO_BINLOG TABLE,OPTIMIZE LOCAL TABLE', 'methodid' => 27),
-		array('method' => 'CREATES', 'query' => 'CREATE TABLE', 'methodid' => 28),
-		array('method' => 'CREATE TEMPS', 'query' => 'CREATE TEMPORARY TABLE', 'methodid' => 29),
+		array('method' => 'CREATES', 'query' => 'create table', 'methodid' => 28),
+		array('method' => 'CREATE TEMPS', 'query' => 'create temporary table', 'methodid' => 29),
 	));
 });
 

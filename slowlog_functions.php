@@ -229,32 +229,34 @@ function slowlog_bulk_insert_stats_rows(array $rows) {
 }
 
 /*
- * Streams every (method, metric-values) pair for $logid in logentry-ordered chunks (mirrors
- * import_post_process()'s method-classification loop) and accumulates each metric's raw
- * values per method into $values[$method][$metric][] so the caller can summarize them once
- * every chunk has been read. A logentry matching more than one method contributes its values
- * to every matched method, same as the raw-totals chart's GROUP BY sm.methodid.
+ * Streams every (method, metric-values) pair for $logid in chunks and accumulates each
+ * metric's raw values per method into $values[$method][$metric][] so the caller can
+ * summarize them once every chunk has been read. A logentry matching more than one method
+ * contributes its values to every matched method, same as the raw-totals chart's GROUP BY
+ * sm.methodid. Paginated by plugin_slowlog_details_methods.id (a unique, strictly increasing
+ * surrogate key) rather than logentry - logentry alone isn't unique here (one logentry can
+ * have several method rows), so a page boundary landing inside such a group would otherwise
+ * skip the remaining rows for that logentry once the next page filters with "id/logentry > ?".
  */
-function slowlog_collect_stats_by_method($logid, array &$values) {
-	$chunk_size    = 5000;
-	$last_logentry = 0;
+function slowlog_collect_stats_by_method($logid, array &$values, $chunk_size = 5000) {
+	$last_id = 0;
 
 	do {
-		$rows = db_fetch_assoc_prepared('SELECT sldm.logentry, sm.method AS scope_key,
+		$rows = db_fetch_assoc_prepared('SELECT sldm.id, sm.method AS scope_key,
 			d.query_time, d.rows_sent, d.rows_examined, d.rows_affected, d.bytes_sent
 			FROM plugin_slowlog_details_methods AS sldm
 			INNER JOIN plugin_slowlog_methods AS sm ON sm.methodid = sldm.methodid
 			INNER JOIN plugin_slowlog_details AS d ON d.logid = sldm.logid AND d.logentry = sldm.logentry
 			WHERE sldm.logid = ?
-			AND sldm.logentry > ?
-			ORDER BY sldm.logentry
+			AND sldm.id > ?
+			ORDER BY sldm.id
 			LIMIT ' . (int) $chunk_size,
-			array($logid, $last_logentry));
+			array($logid, $last_id));
 
 		$batch_count = cacti_sizeof($rows);
 
 		foreach($rows as $row) {
-			$last_logentry = $row['logentry'];
+			$last_id = $row['id'];
 
 			foreach(SLOWLOG_STATS_METRICS as $metric) {
 				$values[$row['scope_key']][$metric][] = (float) $row[$metric];
@@ -266,36 +268,59 @@ function slowlog_collect_stats_by_method($logid, array &$values) {
 /*
  * Same as slowlog_collect_stats_by_method(), but grouped by table_name - including an
  * 'others' bucket for entries with no recognized table, matching the label
- * slowlog_get_chart_object() already uses for that bucket in the raw-totals chart. Both
- * branches of the UNION ALL are cursor-filtered on the same $last_logentry so a single
- * ORDER BY/LIMIT over the combined result still pages correctly.
+ * slowlog_get_chart_object() already uses for that bucket in the raw-totals chart. Split into
+ * two independently-paginated queries rather than one UNION ALL cursored on the shared (and,
+ * for the matched branch, non-unique) logentry column: the matched branch pages on
+ * plugin_slowlog_details_tables.tableid (unique - a logentry can have several table rows,
+ * same pitfall as the method collector above), while the "others" branch pages on
+ * plugin_slowlog_details.logentry, which - unlike the matched branch - really is unique there
+ * (a logentry with no table match can only ever produce one row via the LEFT JOIN).
  */
-function slowlog_collect_stats_by_table($logid, array &$values) {
-	$chunk_size    = 5000;
+function slowlog_collect_stats_by_table($logid, array &$values, $chunk_size = 5000) {
+	slowlog_collect_stats_by_matched_table($logid, $values, $chunk_size);
+	slowlog_collect_stats_by_unmatched_table($logid, $values, $chunk_size);
+}
+
+function slowlog_collect_stats_by_matched_table($logid, array &$values, $chunk_size = 5000) {
+	$last_id = 0;
+
+	do {
+		$rows = db_fetch_assoc_prepared('SELECT sldt.tableid, sldt.table_name AS scope_key,
+			d.query_time, d.rows_sent, d.rows_examined, d.rows_affected, d.bytes_sent
+			FROM plugin_slowlog_details_tables AS sldt
+			INNER JOIN plugin_slowlog_details AS d ON d.logid = sldt.logid AND d.logentry = sldt.logentry
+			WHERE sldt.logid = ?
+			AND sldt.tableid > ?
+			ORDER BY sldt.tableid
+			LIMIT ' . (int) $chunk_size,
+			array($logid, $last_id));
+
+		$batch_count = cacti_sizeof($rows);
+
+		foreach($rows as $row) {
+			$last_id = $row['tableid'];
+
+			foreach(SLOWLOG_STATS_METRICS as $metric) {
+				$values[$row['scope_key']][$metric][] = (float) $row[$metric];
+			}
+		}
+	} while ($batch_count === $chunk_size);
+}
+
+function slowlog_collect_stats_by_unmatched_table($logid, array &$values, $chunk_size = 5000) {
 	$last_logentry = 0;
 
 	do {
-		$rows = db_fetch_assoc_prepared("SELECT logentry, scope_key,
-				query_time, rows_sent, rows_examined, rows_affected, bytes_sent
-			FROM (
-				SELECT d.logentry, sldt.table_name AS scope_key,
-					d.query_time, d.rows_sent, d.rows_examined, d.rows_affected, d.bytes_sent
-				FROM plugin_slowlog_details_tables AS sldt
-				INNER JOIN plugin_slowlog_details AS d ON d.logid = sldt.logid AND d.logentry = sldt.logentry
-				WHERE sldt.logid = ?
-				AND sldt.logentry > ?
-				UNION ALL
-				SELECT d.logentry, 'others' AS scope_key,
-					d.query_time, d.rows_sent, d.rows_examined, d.rows_affected, d.bytes_sent
-				FROM plugin_slowlog_details AS d
-				LEFT JOIN plugin_slowlog_details_tables AS sldt ON sldt.logid = d.logid AND sldt.logentry = d.logentry
-				WHERE d.logid = ?
-				AND d.logentry > ?
-				AND sldt.table_name IS NULL
-			) AS combined
-			ORDER BY logentry
-			LIMIT " . (int) $chunk_size,
-			array($logid, $last_logentry, $logid, $last_logentry));
+		$rows = db_fetch_assoc_prepared('SELECT d.logentry,
+				d.query_time, d.rows_sent, d.rows_examined, d.rows_affected, d.bytes_sent
+			FROM plugin_slowlog_details AS d
+			LEFT JOIN plugin_slowlog_details_tables AS sldt ON sldt.logid = d.logid AND sldt.logentry = d.logentry
+			WHERE d.logid = ?
+			AND d.logentry > ?
+			AND sldt.table_name IS NULL
+			ORDER BY d.logentry
+			LIMIT ' . (int) $chunk_size,
+			array($logid, $last_logentry));
 
 		$batch_count = cacti_sizeof($rows);
 
@@ -303,7 +328,7 @@ function slowlog_collect_stats_by_table($logid, array &$values) {
 			$last_logentry = $row['logentry'];
 
 			foreach(SLOWLOG_STATS_METRICS as $metric) {
-				$values[$row['scope_key']][$metric][] = (float) $row[$metric];
+				$values['others'][$metric][] = (float) $row[$metric];
 			}
 		}
 	} while ($batch_count === $chunk_size);

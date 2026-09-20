@@ -15,12 +15,13 @@
 */
 
 /*
- * slowlog_compute_stats() drives the two logentry-chunked collectors
- * (slowlog_collect_stats_by_method()/slowlog_collect_stats_by_table()) and bulk-inserts one
- * plugin_slowlog_stats row per (scope, scope_key, metric). The collectors' own SQL joins
- * aren't re-executed here (no real database) - instead each collector query is matched by its
- * distinctive FROM table and stubbed to return the already-joined rows a real database would
- * produce, so this exercises the actual grouping/percentile-summarizing logic end to end.
+ * slowlog_compute_stats() drives the three chunked collectors
+ * (slowlog_collect_stats_by_method()/slowlog_collect_stats_by_matched_table()/
+ * slowlog_collect_stats_by_unmatched_table()) and bulk-inserts one plugin_slowlog_stats row
+ * per (scope, scope_key, metric). The collectors' own SQL joins aren't re-executed here (no
+ * real database) - instead each collector query is matched by a substring unique to it and
+ * stubbed to return the already-joined rows a real database would produce, so this exercises
+ * the actual grouping/percentile-summarizing logic end to end.
  */
 
 uses(TestCase::class);
@@ -58,15 +59,18 @@ beforeEach(function () {
 	TestCase::loadPluginSource('slowlog_functions.php');
 
 	slowlog_test_mock_db('db_fetch_assoc_prepared', 'plugin_slowlog_details_methods', array(
-		array('logentry' => 1, 'scope_key' => 'SELECTS', 'query_time' => 10, 'rows_sent' => 1, 'rows_examined' => 100, 'rows_affected' => 0, 'bytes_sent' => 500),
-		array('logentry' => 2, 'scope_key' => 'SELECTS', 'query_time' => 20, 'rows_sent' => 2, 'rows_examined' => 200, 'rows_affected' => 0, 'bytes_sent' => 1000),
-		array('logentry' => 3, 'scope_key' => 'UPDATES', 'query_time' => 5, 'rows_sent' => 0, 'rows_examined' => 10, 'rows_affected' => 1, 'bytes_sent' => 50),
+		array('id' => 1, 'scope_key' => 'SELECTS', 'query_time' => 10, 'rows_sent' => 1, 'rows_examined' => 100, 'rows_affected' => 0, 'bytes_sent' => 500),
+		array('id' => 2, 'scope_key' => 'SELECTS', 'query_time' => 20, 'rows_sent' => 2, 'rows_examined' => 200, 'rows_affected' => 0, 'bytes_sent' => 1000),
+		array('id' => 3, 'scope_key' => 'UPDATES', 'query_time' => 5, 'rows_sent' => 0, 'rows_examined' => 10, 'rows_affected' => 1, 'bytes_sent' => 50),
 	));
 
-	slowlog_test_mock_db('db_fetch_assoc_prepared', 'plugin_slowlog_details_tables', array(
-		array('logentry' => 1, 'scope_key' => 'users', 'query_time' => 10, 'rows_sent' => 1, 'rows_examined' => 100, 'rows_affected' => 0, 'bytes_sent' => 500),
-		array('logentry' => 2, 'scope_key' => 'orders', 'query_time' => 20, 'rows_sent' => 2, 'rows_examined' => 200, 'rows_affected' => 0, 'bytes_sent' => 1000),
-		array('logentry' => 3, 'scope_key' => 'others', 'query_time' => 5, 'rows_sent' => 0, 'rows_examined' => 10, 'rows_affected' => 1, 'bytes_sent' => 50),
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'sldt.tableid', array(
+		array('tableid' => 1, 'scope_key' => 'users', 'query_time' => 10, 'rows_sent' => 1, 'rows_examined' => 100, 'rows_affected' => 0, 'bytes_sent' => 500),
+		array('tableid' => 2, 'scope_key' => 'orders', 'query_time' => 20, 'rows_sent' => 2, 'rows_examined' => 200, 'rows_affected' => 0, 'bytes_sent' => 1000),
+	));
+
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'IS NULL', array(
+		array('logentry' => 3, 'query_time' => 5, 'rows_sent' => 0, 'rows_examined' => 10, 'rows_affected' => 1, 'bytes_sent' => 50),
 	));
 });
 
@@ -121,4 +125,31 @@ it('inserts the stats cache with a single batched statement', function () {
 
 	expect($calls)->toHaveCount(1);
 	expect($calls[0]['sql'])->toContain('ON DUPLICATE KEY UPDATE');
+});
+
+it('does not drop rows when a page boundary lands inside a same-logentry group of method matches', function () {
+	// 3 association rows all sharing logentry=1 (e.g. a query matching SELECTS, JOINS, and
+	// GROUP BY at once), paginated one row at a time (chunk_size=1) so every possible page
+	// boundary falls inside that group - this is exactly the scenario the non-unique
+	// logentry cursor used to lose rows on.
+	slowlog_test_reset_db_mocks();
+
+	$page_rows = array(
+		1 => array('id' => 1, 'scope_key' => 'SELECTS', 'query_time' => 1, 'rows_sent' => 0, 'rows_examined' => 0, 'rows_affected' => 0, 'bytes_sent' => 0),
+		2 => array('id' => 2, 'scope_key' => 'JOINS', 'query_time' => 2, 'rows_sent' => 0, 'rows_examined' => 0, 'rows_affected' => 0, 'bytes_sent' => 0),
+		3 => array('id' => 3, 'scope_key' => 'GROUP BY', 'query_time' => 3, 'rows_sent' => 0, 'rows_examined' => 0, 'rows_affected' => 0, 'bytes_sent' => 0),
+	);
+
+	foreach ($page_rows as $cursor => $row) {
+		slowlog_test_mock_db('db_fetch_assoc_prepared', function ($sql, $params) use ($cursor) {
+			return strpos($sql, 'plugin_slowlog_details_methods') !== false && $params[1] === $cursor - 1;
+		}, array($row));
+	}
+
+	$values = array();
+	slowlog_collect_stats_by_method(1, $values, 1);
+
+	expect($values['SELECTS']['query_time'])->toBe(array(1.0));
+	expect($values['JOINS']['query_time'])->toBe(array(2.0));
+	expect($values['GROUP BY']['query_time'])->toBe(array(3.0));
 });

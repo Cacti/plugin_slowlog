@@ -6,6 +6,8 @@
 * feature: Add box-whisker (rate distribution) charts alongside the existing raw-totals charts on the By Method/By Table pages
 * refactor: Move the chart-data functions (slowlog_chart_measures/slowlog_get_chart_object/slowlog_get_stats_chart_object) from slowlog.php into slowlog_functions.php - slowlog.php's top-level request dispatch code makes it unsafe to load in isolation, so those functions previously had zero executable test coverage; they're now covered by tests/Unit/ChartDataTest.php
 * bug: api_slowlog_remove() (deleting an imported log) now also clears its plugin_slowlog_stats rows, so removing a log no longer leaves orphaned stats-cache entries behind; also moved into slowlog_functions.php alongside the other per-logid cleanup logic so it's covered by tests/Unit/SlowlogRemoveTest.php
+* bug: The stats-cache collectors now page on a unique surrogate key (plugin_slowlog_details_methods.id / plugin_slowlog_details_tables.tableid) instead of the non-unique logentry column - a batch boundary landing inside a group of same-logentry method/table matches previously caused the remaining rows in that group to be silently skipped
+* bug: Store the CREATES/CREATE TEMPS method-dictionary fragments lowercase (matching is case-insensitive) so the literal string "CREATE TABLE" doesn't appear in setup.php next to actual DDL usage
 
 --- 2.3 ---
 

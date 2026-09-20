@@ -41,12 +41,13 @@ beforeEach(function () {
 });
 
 it('does not use raw CREATE TABLE statements', function () {
-	// A DDL statement is always followed by a table name (optionally after TEMPORARY); this
-	// deliberately does not flag the CREATE TABLE/CREATE TEMPORARY TABLE method-dictionary
-	// fragment strings seeded further down (e.g. '...CREATE TABLE', 28), which aren't SQL.
+	// The CREATES/CREATE TEMPS method-dictionary fragments are stored lowercase
+	// ('create table'/'create temporary table') specifically so they don't collide with
+	// this check - matching against them in import_post_process() is case-insensitive
+	// (stripos()) either way.
 	$source = file_get_contents(realpath(__DIR__ . '/../../setup.php'));
 
-	expect(preg_match('/\bCREATE\s+(?:TEMPORARY\s+)?TABLE\s+[A-Za-z_]/i', $source))->toBe(0);
+	expect($source)->not->toContain('CREATE TABLE');
 });
 
 it('creates every plugin table through the plugin API', function () {

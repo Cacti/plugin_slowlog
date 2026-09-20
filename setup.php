@@ -252,8 +252,8 @@ function slowlog_setup_table_new() {
 		(\'DROPS\', \'DROP TABLE,DROP TEMPORARY TABLE\', 25),
 		(\'ANALYZES\', \'ANALYZE TABLE,ANALYZE NO_WRITE_TO_BINLOG TABLE,ANALYZE LOCAL TABLE\', 26),
 		(\'OPTIMIZES\', \'OPTIMIZE TABLE,OPTIMIZE NO_WRITE_TO_BINLOG TABLE,OPTIMIZE LOCAL TABLE\', 27),
-		(\'CREATES\', \'CREATE TABLE\', 28),
-		(\'CREATE TEMPS\', \'CREATE TEMPORARY TABLE\', 29)');
+		(\'CREATES\', \'create table\', 28),
+		(\'CREATE TEMPS\', \'create temporary table\', 29)');
 
 	$data = array();
 	$data['columns'][] = array('name' => 'id', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true);
