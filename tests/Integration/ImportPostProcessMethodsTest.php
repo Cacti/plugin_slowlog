@@ -54,6 +54,29 @@ if (!function_exists('slowlog_test_method_insert_tuples')) {
 	}
 }
 
+if (!function_exists('slowlog_test_stats_insert_tuples')) {
+	function slowlog_test_stats_insert_tuples(): array {
+		$tuples = array();
+
+		foreach ($GLOBALS['__test_db_calls'] as $call) {
+			if ($call['fn'] === 'db_execute_prepared' && strpos($call['sql'], 'INSERT INTO plugin_slowlog_stats') !== false) {
+				foreach (array_chunk($call['params'], 12) as $t) {
+					$tuples[$t[1] . ':' . $t[2] . ':' . $t[3]] = array(
+						'logid'        => $t[0],
+						'scope'        => $t[1],
+						'scope_key'    => $t[2],
+						'metric'       => $t[3],
+						'sample_count' => $t[4],
+						'total_value'  => $t[5],
+					);
+				}
+			}
+		}
+
+		return $tuples;
+	}
+}
+
 beforeEach(function () {
 	TestCase::loadPluginSource('slowlog_functions.php');
 
@@ -261,4 +284,23 @@ it('marks the log fully processed once table classification completes', function
 
 	expect($final['sql'])->toContain('import_status = 2');
 	expect($final['params'])->toBe(array('All Tables Processed', 1));
+});
+
+it('still caches method stats when a log has no table associations', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT logentry, query', array(
+		array('logentry' => 1, 'query' => 'commit'),
+	));
+	slowlog_test_mock_db('db_fetch_assoc_prepared', "FROM plugin_slowlog_details\n\t\t\tWHERE logid = ?", array(
+		array('logentry' => 1, 'query' => 'commit'),
+	));
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'plugin_slowlog_details_methods', array(
+		array('id' => 1, 'scope_key' => 'OTHERS', 'query_time' => 1, 'rows_sent' => 0, 'rows_examined' => 0, 'rows_affected' => 0, 'bytes_sent' => 0),
+	));
+
+	import_post_process(1, '', false, 'all');
+
+	$stats = slowlog_test_stats_insert_tuples();
+
+	expect($stats['method:OTHERS:query_time']['sample_count'])->toBe(1);
+	expect($stats['method:OTHERS:query_time']['total_value'])->toEqualWithDelta(1.0, 0.0001);
 });
