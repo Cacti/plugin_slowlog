@@ -189,7 +189,8 @@ function slowlog_setup_table_new() {
 
 	$data = array();
 	$data['columns'][] = array('name' => 'method', 'type' => 'varchar(45)', 'NULL' => false);
-	$data['columns'][] = array('name' => 'query', 'type' => 'varchar(45)', 'NULL' => false);
+	// wide enough for the longest comma-separated seed fragment list below (ANALYZES/OPTIMIZES)
+	$data['columns'][] = array('name' => 'query', 'type' => 'varchar(96)', 'NULL' => false);
 	$data['columns'][] = array('name' => 'methodid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true);
 	$data['primary']    = array('method', 'query');
 	$data['keys'][]     = array('name' => 'methodid', 'columns' => array('methodid'));

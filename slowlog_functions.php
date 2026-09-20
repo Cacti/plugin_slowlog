@@ -150,11 +150,24 @@ function slowlog_percentile(array $sorted, $p) {
 }
 
 /*
+ * Hard cap on how many raw samples per (scope, metric) the collectors below keep in memory at
+ * once. Box-whisker percentiles are estimated from a bounded reservoir sample rather than
+ * every row once a metric exceeds this many values, so memory no longer grows with the size
+ * of the imported log; sample_count/total_value stay exact regardless (see
+ * slowlog_accumulate_stat_value()).
+ */
+const SLOWLOG_STATS_SAMPLE_CAP = 20000;
+
+/*
  * Reduces one metric's raw value list (any order) into the summary plugin_slowlog_stats
  * stores for it: sample count, sum, and the min/p25/median/p75/p95/max box-whisker points.
+ * $exact_count/$exact_sum override the count/total derived from $values, for callers (e.g.
+ * slowlog_compute_stats()) that only pass in a bounded sample of the real population.
  */
-function slowlog_summarize_values(array $values) {
-	if (!count($values)) {
+function slowlog_summarize_values(array $values, $exact_count = null, $exact_sum = null) {
+	$count = ($exact_count !== null) ? $exact_count : count($values);
+
+	if ($count === 0 || !count($values)) {
 		return array(
 			'sample_count' => 0,
 			'total_value'  => 0.0,
@@ -170,8 +183,8 @@ function slowlog_summarize_values(array $values) {
 	sort($values, SORT_NUMERIC);
 
 	return array(
-		'sample_count' => count($values),
-		'total_value'  => array_sum($values),
+		'sample_count' => $count,
+		'total_value'  => ($exact_sum !== null) ? $exact_sum : array_sum($values),
 		'min_value'    => $values[0],
 		'p25_value'    => slowlog_percentile($values, 25),
 		'median_value' => slowlog_percentile($values, 50),
@@ -179,6 +192,35 @@ function slowlog_summarize_values(array $values) {
 		'p95_value'    => slowlog_percentile($values, 95),
 		'max_value'    => $values[count($values) - 1],
 	);
+}
+
+/*
+ * Records one metric value into the bounded reservoir $values[$scope_key][$metric] (capped at
+ * SLOWLOG_STATS_SAMPLE_CAP elements via reservoir sampling) while $totals[$scope_key][$metric]
+ * keeps an exact running count/sum, so sample_count/total_value never lose precision even
+ * once the reservoir is full and older samples start being probabilistically replaced.
+ */
+function slowlog_accumulate_stat_value(array &$values, array &$totals, $scope_key, $metric, $value) {
+	if (!isset($totals[$scope_key][$metric])) {
+		$totals[$scope_key][$metric] = array('count' => 0, 'sum' => 0.0);
+	}
+
+	$totals[$scope_key][$metric]['count']++;
+	$totals[$scope_key][$metric]['sum'] += $value;
+
+	if (!isset($values[$scope_key][$metric])) {
+		$values[$scope_key][$metric] = array();
+	}
+
+	if (count($values[$scope_key][$metric]) < SLOWLOG_STATS_SAMPLE_CAP) {
+		$values[$scope_key][$metric][] = $value;
+	} else {
+		$slot = mt_rand(0, $totals[$scope_key][$metric]['count'] - 1);
+
+		if ($slot < SLOWLOG_STATS_SAMPLE_CAP) {
+			$values[$scope_key][$metric][$slot] = $value;
+		}
+	}
 }
 
 /*
@@ -230,15 +272,17 @@ function slowlog_bulk_insert_stats_rows(array $rows) {
 
 /*
  * Streams every (method, metric-values) pair for $logid in chunks and accumulates each
- * metric's raw values per method into $values[$method][$metric][] so the caller can
- * summarize them once every chunk has been read. A logentry matching more than one method
- * contributes its values to every matched method, same as the raw-totals chart's GROUP BY
- * sm.methodid. Paginated by plugin_slowlog_details_methods.id (a unique, strictly increasing
- * surrogate key) rather than logentry - logentry alone isn't unique here (one logentry can
- * have several method rows), so a page boundary landing inside such a group would otherwise
- * skip the remaining rows for that logentry once the next page filters with "id/logentry > ?".
+ * metric's values per method via slowlog_accumulate_stat_value() (bounded reservoir in
+ * $values, exact running count/sum in $totals) so the caller can summarize them once every
+ * chunk has been read without memory growing with the size of the imported log. A logentry
+ * matching more than one method contributes its values to every matched method, same as the
+ * raw-totals chart's GROUP BY sm.methodid. Paginated by plugin_slowlog_details_methods.id (a
+ * unique, strictly increasing surrogate key) rather than logentry - logentry alone isn't
+ * unique here (one logentry can have several method rows), so a page boundary landing inside
+ * such a group would otherwise skip the remaining rows for that logentry once the next page
+ * filters with "id/logentry > ?".
  */
-function slowlog_collect_stats_by_method($logid, array &$values, $chunk_size = 5000) {
+function slowlog_collect_stats_by_method($logid, array &$values, $chunk_size = 5000, array &$totals = array()) {
 	$last_id = 0;
 
 	do {
@@ -259,7 +303,7 @@ function slowlog_collect_stats_by_method($logid, array &$values, $chunk_size = 5
 			$last_id = $row['id'];
 
 			foreach(SLOWLOG_STATS_METRICS as $metric) {
-				$values[$row['scope_key']][$metric][] = (float) $row[$metric];
+				slowlog_accumulate_stat_value($values, $totals, $row['scope_key'], $metric, (float) $row[$metric]);
 			}
 		}
 	} while ($batch_count === $chunk_size);
@@ -276,12 +320,12 @@ function slowlog_collect_stats_by_method($logid, array &$values, $chunk_size = 5
  * plugin_slowlog_details.logentry, which - unlike the matched branch - really is unique there
  * (a logentry with no table match can only ever produce one row via the LEFT JOIN).
  */
-function slowlog_collect_stats_by_table($logid, array &$values, $chunk_size = 5000) {
-	slowlog_collect_stats_by_matched_table($logid, $values, $chunk_size);
-	slowlog_collect_stats_by_unmatched_table($logid, $values, $chunk_size);
+function slowlog_collect_stats_by_table($logid, array &$values, $chunk_size = 5000, array &$totals = array()) {
+	slowlog_collect_stats_by_matched_table($logid, $values, $chunk_size, $totals);
+	slowlog_collect_stats_by_unmatched_table($logid, $values, $chunk_size, $totals);
 }
 
-function slowlog_collect_stats_by_matched_table($logid, array &$values, $chunk_size = 5000) {
+function slowlog_collect_stats_by_matched_table($logid, array &$values, $chunk_size = 5000, array &$totals = array()) {
 	$last_id = 0;
 
 	do {
@@ -301,13 +345,13 @@ function slowlog_collect_stats_by_matched_table($logid, array &$values, $chunk_s
 			$last_id = $row['tableid'];
 
 			foreach(SLOWLOG_STATS_METRICS as $metric) {
-				$values[$row['scope_key']][$metric][] = (float) $row[$metric];
+				slowlog_accumulate_stat_value($values, $totals, $row['scope_key'], $metric, (float) $row[$metric]);
 			}
 		}
 	} while ($batch_count === $chunk_size);
 }
 
-function slowlog_collect_stats_by_unmatched_table($logid, array &$values, $chunk_size = 5000) {
+function slowlog_collect_stats_by_unmatched_table($logid, array &$values, $chunk_size = 5000, array &$totals = array()) {
 	$last_logentry = 0;
 
 	do {
@@ -328,7 +372,7 @@ function slowlog_collect_stats_by_unmatched_table($logid, array &$values, $chunk
 			$last_logentry = $row['logentry'];
 
 			foreach(SLOWLOG_STATS_METRICS as $metric) {
-				$values['others'][$metric][] = (float) $row[$metric];
+				slowlog_accumulate_stat_value($values, $totals, 'others', $metric, (float) $row[$metric]);
 			}
 		}
 	} while ($batch_count === $chunk_size);
@@ -344,18 +388,26 @@ function slowlog_collect_stats_by_unmatched_table($logid, array &$values, $chunk
 function slowlog_compute_stats($logid) {
 	$start = microtime(true);
 
-	$by_method = array();
-	$by_table  = array();
+	$by_method     = array();
+	$by_table      = array();
+	$method_totals = array();
+	$table_totals  = array();
 
-	slowlog_collect_stats_by_method($logid, $by_method);
-	slowlog_collect_stats_by_table($logid, $by_table);
+	slowlog_collect_stats_by_method($logid, $by_method, 5000, $method_totals);
+	slowlog_collect_stats_by_table($logid, $by_table, 5000, $table_totals);
 
 	$stat_rows = array();
 
-	foreach(array('method' => $by_method, 'table' => $by_table) as $scope => $scope_values) {
-		foreach($scope_values as $scope_key => $metrics) {
+	$scopes = array(
+		'method' => array('values' => $by_method, 'totals' => $method_totals),
+		'table'  => array('values' => $by_table, 'totals' => $table_totals),
+	);
+
+	foreach($scopes as $scope => $scope_data) {
+		foreach($scope_data['values'] as $scope_key => $metrics) {
 			foreach($metrics as $metric => $raw_values) {
-				$summary = slowlog_summarize_values($raw_values);
+				$totals  = $scope_data['totals'][$scope_key][$metric];
+				$summary = slowlog_summarize_values($raw_values, $totals['count'], $totals['sum']);
 
 				$summary['logid']     = $logid;
 				$summary['scope']     = $scope;
