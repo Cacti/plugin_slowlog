@@ -123,6 +123,19 @@ function slowlog_check_upgrade(): void {
 
 		// Re-running the table/column API calls is safe - they're no-ops when already applied.
 		slowlog_setup_table_new();
+
+		// api_plugin_db_table_create() only creates a table when it doesn't already exist -
+		// it never retrofits new keys onto one that does, so an existing plugin_slowlog_details
+		// table needs these added explicitly. db_add_index() drops-then-adds, so it's safe to
+		// call again on a future upgrade if these definitions ever change.
+		if (db_table_exists('plugin_slowlog_details')) {
+			db_add_index('plugin_slowlog_details', 'KEY', 'logid_query_time', array('logid', 'query_time'));
+			db_add_index('plugin_slowlog_details', 'KEY', 'logid_lock_time', array('logid', 'lock_time'));
+			db_add_index('plugin_slowlog_details', 'KEY', 'logid_rows_sent', array('logid', 'rows_sent'));
+			db_add_index('plugin_slowlog_details', 'KEY', 'logid_rows_examined', array('logid', 'rows_examined'));
+			db_add_index('plugin_slowlog_details', 'KEY', 'logid_rows_affected', array('logid', 'rows_affected'));
+			db_add_index('plugin_slowlog_details', 'KEY', 'logid_bytes_sent', array('logid', 'bytes_sent'));
+		}
 	}
 }
 
@@ -172,6 +185,16 @@ function slowlog_setup_table_new(): void {
 	$data['keys'][]     = array('name' => 'logid', 'columns' => array('logid'));
 	$data['keys'][]     = array('name' => 'user', 'columns' => array('user'));
 	$data['keys'][]     = array('name' => 'host', 'columns' => array('host'));
+	// Sorting the details list by one of these metrics always also filters on logid
+	// (a specific imported log), so a standalone index on the metric alone wouldn't be
+	// usable alongside that filter - prefix each with logid so the sort can be satisfied
+	// by the index instead of a filesort.
+	$data['keys'][]     = array('name' => 'logid_query_time', 'columns' => array('logid', 'query_time'));
+	$data['keys'][]     = array('name' => 'logid_lock_time', 'columns' => array('logid', 'lock_time'));
+	$data['keys'][]     = array('name' => 'logid_rows_sent', 'columns' => array('logid', 'rows_sent'));
+	$data['keys'][]     = array('name' => 'logid_rows_examined', 'columns' => array('logid', 'rows_examined'));
+	$data['keys'][]     = array('name' => 'logid_rows_affected', 'columns' => array('logid', 'rows_affected'));
+	$data['keys'][]     = array('name' => 'logid_bytes_sent', 'columns' => array('logid', 'bytes_sent'));
 	$data['type']       = 'Aria';
 	$data['row_format'] = 'Page';
 	$data['comment']    = 'Provides statistics on your slow query log';

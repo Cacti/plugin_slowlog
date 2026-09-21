@@ -1,5 +1,9 @@
 ## ChangeLog
 
+--- 2.5 ---
+
+* feature: Add composite (logid, metric) indexes on plugin_slowlog_details for query_time, lock_time, rows_sent, rows_examined, rows_affected, and bytes_sent, so sorting the details list by any of these columns can use an index instead of a filesort - a standalone index on the metric alone wouldn't help, since every details query also filters on logid
+
 --- 2.4 ---
 
 * feature: Add a persisted 'Top' selectmenu (2/10/15/20/25/30) to the By Method/By Table chart filter bar controlling how many categories are charted when no explicit scope is selected; previously hardcoded to 10 for tables only, now applies to both charts
