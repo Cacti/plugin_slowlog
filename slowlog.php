@@ -1278,8 +1278,9 @@ function slowlog_view_charts(string $method): void {
 
 /*
  * Input validation and session storage for the chart filters (method/table scope
- * multiselect + hide-max checkbox), persisted per chart type (methods vs tables have
- * different scope_key value sets, so they're kept in separate session buckets).
+ * multiselect + hide-max checkbox + Top N selectmenu), persisted per chart type (methods
+ * vs tables have different scope_key value sets, so they're kept in separate session
+ * buckets).
  */
 function slowlog_request_charts_validation(string $chart_type): void {
 	$filters = array(
@@ -1298,6 +1299,12 @@ function slowlog_request_charts_validation(string $chart_type): void {
 			'pageset' => true,
 			'default' => '',
 			'options' => array('options' => 'sanitize_search_string')
+		),
+		'chart_top' => array(
+			'filter'  => FILTER_CALLBACK,
+			'pageset' => true,
+			'default' => '10',
+			'options' => array('options' => 'slowlog_sanitize_chart_top')
 		),
 	);
 
@@ -1378,6 +1385,18 @@ function slowlog_charts_filter(string $method, int $id): void {
 							</label>
 						</td>
 						<td>
+							<?php print __('Top', 'slowlog');?>
+						</td>
+						<td>
+							<select id='chart_top'>
+								<?php
+								foreach (SLOWLOG_CHART_TOP_OPTIONS as $top_option) {
+									print '<option value="' . html_escape($top_option) . '"' . (get_request_var('chart_top') == $top_option ? ' selected' : '') . '>' . html_escape($top_option) . '</option>';
+								}
+								?>
+							</select>
+						</td>
+						<td>
 							<span>
 								<input class='button_go' type='submit' onClick='applyChartsFilter()' name='go' value='<?php print __('Go', 'slowlog');?>'>
 								<input class='button_clear' type='button' onClick='clearChartsFilter()' name='clear' value='<?php print __('Clear', 'slowlog');?>'>
@@ -1392,6 +1411,7 @@ function slowlog_charts_filter(string $method, int $id): void {
 
 				strURL += '&chart_scope=' + ($('#chart_scope').val() || []).join(',');
 				strURL += '&hide_max=' + ($('#hide_max').is(':checked') ? 'on' : '');
+				strURL += '&chart_top=' + $('#chart_top').val();
 
 				loadPageNoHeader(strURL);
 			}
@@ -1425,6 +1445,10 @@ function slowlog_charts_filter(string $method, int $id): void {
 				});
 
 				$('#hide_max').on('change', function() {
+					applyChartsFilter();
+				});
+
+				$('#chart_top').on('change', function() {
 					applyChartsFilter();
 				});
 

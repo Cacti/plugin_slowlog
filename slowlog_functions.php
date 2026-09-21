@@ -124,6 +124,28 @@ const SLOWLOG_STATS_METRICS = array('query_time', 'rows_sent', 'rows_examined', 
 /* number of plugin_slowlog_details rows accumulated per bulk INSERT during import */
 const SLOWLOG_IMPORT_BATCH_SIZE = 1000;
 
+/* the By Method/By Table charts' 'Top N' selectmenu options */
+const SLOWLOG_CHART_TOP_OPTIONS = array('2', '10', '15', '20', '25', '30');
+
+/*
+ * Restricts the chart 'Top N' selectmenu to its fixed option list, falling back to the
+ * default of 10 for anything else (a tampered value, or a stale cached selection from
+ * before the option list existed/changed).
+ */
+function slowlog_sanitize_chart_top($value): string {
+	return in_array((string) $value, SLOWLOG_CHART_TOP_OPTIONS, true) ? (string) $value : '10';
+}
+
+/*
+ * The 'LIMIT N' clause fragment for the By Method/By Table charts, honoring the Top N
+ * selectmenu - but only when the user hasn't picked explicit scopes to chart via the
+ * multiselect, since a selected category beyond the top N by value would otherwise be
+ * silently dropped from its own chart.
+ */
+function slowlog_chart_top_limit(array $scope_filter): string {
+	return cacti_sizeof($scope_filter) ? '' : ' LIMIT ' . (int) get_request_var('chart_top');
+}
+
 /**
  * Linear-interpolation percentile (matches numpy's default / Excel PERCENTILE.INC) over an
  * already-sorted array of numeric values. $p is 0-100. Computed in PHP rather than via a SQL
@@ -1989,10 +2011,11 @@ function slowlog_chart_measures(): array {
  * Reads the cached box-whisker summary (plugin_slowlog_stats) for one metric, scoped to
  * either methods or tables, and shapes it into the categories/box-data/p95-data arrays
  * renderBoxChart() expects. Ordered/limited the same way as slowlog_get_chart_object() (by
- * total value descending, top 10 for tables) so the raw and whisker charts for the same
- * metric show categories in the same order. $scope_filter optionally restricts to specific
- * scope_key values (the chart filter's multiselect); $hide_max substitutes p95 for max in the
- * box's top value, since a rare true-max outlier can otherwise flatten the rest of the box.
+ * total value descending, capped to the chart filter's Top N selectmenu) so the raw and
+ * whisker charts for the same metric show categories in the same order. $scope_filter
+ * optionally restricts to specific scope_key values (the chart filter's multiselect);
+ * $hide_max substitutes p95 for max in the box's top value, since a rare true-max outlier
+ * can otherwise flatten the rest of the box.
  */
 function slowlog_get_stats_chart_object(string $chart_type, string $measure, array $scope_filter = array(), bool $hide_max = false): array {
 	$id = (int) get_filter_request_var('logid');
@@ -2004,9 +2027,7 @@ function slowlog_get_stats_chart_object(string $chart_type, string $measure, arr
 
 	$scope = ($chart_type != 'tables') ? 'method' : 'table';
 
-	// Only cap to the top 10 tables when the user hasn't picked explicit scopes to chart -
-	// otherwise a selected table beyond the top 10 by value would be silently dropped.
-	$limit = ($scope == 'table' && !cacti_sizeof($scope_filter)) ? ' LIMIT 10' : '';
+	$limit = slowlog_chart_top_limit($scope_filter);
 
 	$params = array($id, $scope, $measure);
 	$scope_where = '';
@@ -2087,9 +2108,7 @@ function slowlog_get_chart_object(string $chart_type, string $measure, array $sc
 
 	$scope = ($chart_type != 'tables') ? 'method' : 'table';
 
-	// Only cap to the top 10 tables when the user hasn't picked explicit scopes to chart -
-	// otherwise a selected table beyond the top 10 by value would be silently dropped.
-	$limit = ($scope == 'table' && !cacti_sizeof($scope_filter)) ? ' LIMIT 10' : '';
+	$limit = slowlog_chart_top_limit($scope_filter);
 
 	// 'count' isn't itself a tracked metric - every tracked metric's cached sample_count is
 	// identical for a given scope_key (they're all counted over the same matched detail
