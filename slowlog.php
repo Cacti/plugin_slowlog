@@ -598,6 +598,11 @@ function slowlog_request_validation(): void {
 			'default' => '-1',
 			'options' => array('options' => 'sanitize_search_string')
 		),
+		'method_name' => array(
+			'filter' => FILTER_CALLBACK,
+			'default' => '',
+			'options' => array('options' => 'sanitize_search_string')
+		),
 		'host' => array(
 			'filter' => FILTER_CALLBACK,
 			'default' => '-1',
@@ -729,6 +734,14 @@ function slowlog_view_details(): void {
 		$sql_where .= ($sql_where != '' ? ' AND':'WHERE') . ' slm.methodid = ?';
 
 		$sql_params[] = get_request_var('mmethod');
+	}
+
+	// Set directly by clicking a bar on the By Method chart (which only knows the method's
+	// name, not its id), rather than through the mmethod dropdown above.
+	if (get_request_var('method_name') != '') {
+		$sql_where .= ($sql_where != '' ? ' AND':'WHERE') . ' slm.method = ?';
+
+		$sql_params[] = get_request_var('method_name');
 	}
 
 	if (!$agg_by_table) {
@@ -946,6 +959,11 @@ function slowlog_view_charts(string $method): void {
 	$width  = '100%';
 	$height = 400;
 
+	// Bar charts drill down to the details page, filtered to the clicked category; tables
+	// filter by table name already, methods need the name-based method_name filter since a
+	// method's id isn't known client-side (only its name, from the chart's categories).
+	$drilldown_field = ($method == 'tables') ? 'table' : 'method_name';
+
 	// Chart titles are built from the user-supplied import description, so every dynamic
 	// value dropped into this inline <script> block must go through json_encode() with the
 	// HEX flags (not raw string concatenation) - otherwise a description containing '"',
@@ -964,7 +982,9 @@ function slowlog_view_charts(string $method): void {
 		json_encode($data['values'], $json_flags)      . ','  .
 		json_encode($mode, $json_flags)                . ','  .
 		json_encode($height, $json_flags)              . ','  .
-		json_encode($width, $json_flags)                . ');' . PHP_EOL;
+		json_encode($width, $json_flags)                . ','  .
+		json_encode($drilldown_field, $json_flags)      . ','  .
+		json_encode((int) $id, $json_flags)             . ');' . PHP_EOL;
 
 	foreach($rate_metrics as $key => $measure) {
 		$data = slowlog_get_chart_object($method, $measure, $scope_filter);
@@ -977,7 +997,9 @@ function slowlog_view_charts(string $method): void {
 			json_encode($data['values'], $json_flags)      . ','  .
 			json_encode($mode, $json_flags)                . ','  .
 			json_encode($height, $json_flags)              . ','  .
-			json_encode($width, $json_flags)                . ');' . PHP_EOL;
+			json_encode($width, $json_flags)                . ','  .
+			json_encode($drilldown_field, $json_flags)      . ','  .
+			json_encode((int) $id, $json_flags)             . ');' . PHP_EOL;
 
 		$stats = slowlog_get_stats_chart_object($method, $measure, $scope_filter, $hide_max);
 
@@ -1029,7 +1051,7 @@ function slowlog_view_charts(string $method): void {
 		return value.toFixed(0) + suffix;
 	}
 
-	function renderChart(chartid, title, yaxislabel, categories, data, mode, height, width) {
+	function renderChart(chartid, title, yaxislabel, categories, data, mode, height, width, drilldownField, logid) {
 		var options = {
 			id: chartid,
 			title: {
@@ -1046,12 +1068,37 @@ function slowlog_view_charts(string $method): void {
 				height:  height,
 				width:   width,
 				redrawOnParentResize: true,
-				redrawOnWindowResize: true
+				redrawOnWindowResize: true,
+				events: {
+					dataPointSelection: function(event, chartContext, config) {
+						var category = categories[config.dataPointIndex];
+
+						if (category === undefined) {
+							return;
+						}
+
+						// The 'others' category (no recognized table) is a synthetic bucket;
+						// the details page expects its dedicated sentinel value, not the label.
+						if (drilldownField == 'table' && category == 'others') {
+							category = '-2';
+						}
+
+						var strURL = 'slowlog.php?action=details&logid=' + logid + '&reset=true';
+						strURL += '&' + drilldownField + '=' + encodeURIComponent(category);
+
+						if (typeof loadPage === 'function') {
+							loadPage(strURL, true);
+						} else {
+							window.location.href = strURL;
+						}
+					}
+				}
 			},
 			plotOptions: {
 				bar: {
 					columnWidth: '70%',
-					distributed: true
+					distributed: true,
+					cursor: 'pointer'
 				}
 			},
 			dropShadow: {
