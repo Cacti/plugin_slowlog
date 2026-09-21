@@ -501,6 +501,12 @@ function slowlog_import() {
 				return;
 			}
 
+			// Cacti's own applySkin() debounce deliberately excludes import/export
+			// submit buttons (.not('.import, .export') in include/layout.js), so a
+			// fast double-click/Enter+click isn't blocked there - disable it ourselves
+			// so a second submit can't slip through and queue a duplicate import.
+			$(form).find('input[type="submit"], button[type="submit"]').prop('disabled', true);
+
 			initDonut();
 
 			$('#slowlog_upload_progress').show();
@@ -554,6 +560,7 @@ function slowlog_import() {
 				}
 			}).fail(function() {
 				$('#slowlog_upload_progress_text').text('<?php print __esc('Upload failed - please try again.', 'slowlog');?>');
+				$(form).find('input[type="submit"], button[type="submit"]').prop('disabled', false);
 			}).always(function() {
 				xhrInFlight = null;
 
@@ -1366,8 +1373,14 @@ function slowlog_view() {
 
 	html_header_sort_checkbox($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false, 'slowlog.php?action=select');
 
+	$has_pending = false;
+
 	if (cacti_sizeof($entries)) {
 		foreach ($entries as $entry) {
+			if (empty($entry['import_status'])) {
+				$has_pending = true;
+			}
+
 			$html = "<a class='pic' href='slowlog.php?action=methods&reset=true&logid=" . $entry['logid'] . "'>
 				<i class='fas fa-poll deviceUp' title='View Methods'></i></a>
 				<a class='pic' href='" . html_escape($config['url_path'] . 'plugins/slowlog/slowlog.php?action=tables&reset=true&logid=' . $entry["logid"]) . "'>
@@ -1408,6 +1421,23 @@ function slowlog_view() {
 	}
 
 	html_end_box(false);
+
+	// At least one import is still Pre-Processing (the background ingest worker hasn't
+	// finished) - reload via Cacti's own AJAX page navigation so the status column
+	// updates without the user having to refresh manually.
+	if ($has_pending) {
+		?>
+		<script type="text/javascript">
+		setTimeout(function() {
+			if (typeof loadPage === 'function') {
+				loadPage(window.location.href, true);
+			} else {
+				window.location.reload();
+			}
+		}, 5000);
+		</script>
+		<?php
+	}
 
 	draw_actions_dropdown($actions);
 
