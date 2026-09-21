@@ -121,20 +121,20 @@ function slowlog_check_upgrade(): void {
 
 		db_execute('DELETE FROM plugin_hooks WHERE function="slowlog_page_head"');
 
+		// api_plugin_db_table_create() (used by slowlog_setup_table_new()) only creates a
+		// table when it doesn't already exist - it never retrofits schema changes (like these
+		// new composite indexes) onto one that does. Detect that case before re-running it.
+		$details_table_existed = db_table_exists('plugin_slowlog_details');
+
 		// Re-running the table/column API calls is safe - they're no-ops when already applied.
 		slowlog_setup_table_new();
 
-		// api_plugin_db_table_create() only creates a table when it doesn't already exist -
-		// it never retrofits new keys onto one that does, so an existing plugin_slowlog_details
-		// table needs these added explicitly. db_add_index() drops-then-adds, so it's safe to
-		// call again on a future upgrade if these definitions ever change.
-		if (db_table_exists('plugin_slowlog_details')) {
-			db_add_index('plugin_slowlog_details', 'KEY', 'logid_query_time', array('logid', 'query_time'));
-			db_add_index('plugin_slowlog_details', 'KEY', 'logid_lock_time', array('logid', 'lock_time'));
-			db_add_index('plugin_slowlog_details', 'KEY', 'logid_rows_sent', array('logid', 'rows_sent'));
-			db_add_index('plugin_slowlog_details', 'KEY', 'logid_rows_examined', array('logid', 'rows_examined'));
-			db_add_index('plugin_slowlog_details', 'KEY', 'logid_rows_affected', array('logid', 'rows_affected'));
-			db_add_index('plugin_slowlog_details', 'KEY', 'logid_bytes_sent', array('logid', 'bytes_sent'));
+		// For a pre-existing plugin_slowlog_details table, db_update_table() diffs the current
+		// schema against this definition and issues the exact ALTER TABLE needed (columns and
+		// keys alike) in one statement - a fresh install already got the current schema,
+		// including these keys, from the create path above.
+		if ($details_table_existed) {
+			db_update_table('plugin_slowlog_details', slowlog_details_table_data());
 		}
 	}
 }
@@ -144,24 +144,15 @@ function slowlog_check_dependencies(): bool {
 	return true;
 }
 
-function slowlog_setup_table_new(): void {
-	$data = array();
-	$data['columns'][] = array('name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true, 'comment' => 'The unique id for this log entry');
-	$data['columns'][] = array('name' => 'description', 'type' => 'varchar(128)', 'NULL' => false, 'default' => '', 'comment' => 'The description for the slow log');
-	$data['columns'][] = array('name' => 'import_date', 'type' => 'timestamp', 'NULL' => false, 'default' => 'CURRENT_TIMESTAMP', 'comment' => 'The date the log was uploaded');
-	$data['columns'][] = array('name' => 'import_lines', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'default' => 0, 'comment' => 'The number of lines in the log');
-	$data['columns'][] = array('name' => 'import_status', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'default' => 0, 'comment' => 'The status of the import process');
-	$data['columns'][] = array('name' => 'import_text_status', 'type' => 'varchar(40)', 'NULL' => false, 'default' => '', 'comment' => 'The text status of the import process');
-	$data['columns'][] = array('name' => 'import_tables', 'type' => 'text', 'NULL' => false, 'default' => '');
-	$data['columns'][] = array('name' => 'start_time', 'type' => 'timestamp', 'NULL' => false, 'default' => '0000-00-00 00:00:00', 'comment' => 'The start time for the log');
-	$data['columns'][] = array('name' => 'end_time', 'type' => 'timestamp', 'NULL' => false, 'default' => '0000-00-00 00:00:00', 'comment' => 'The end time for the log');
-	$data['primary']    = 'logid';
-	$data['type']       = 'InnoDB';
-	$data['row_format'] = 'Dynamic';
-	$data['comment']    = 'Each Slow Log Can be Tracked';
-
-	api_plugin_db_table_create('slowlog', 'plugin_slowlog', $data);
-
+/**
+ * The plugin_slowlog_details schema, shared by the create path
+ * (api_plugin_db_table_create() in slowlog_setup_table_new()) and the
+ * upgrade path (db_update_table() in slowlog_check_upgrade()), so both stay
+ * in sync from a single definition.
+ *
+ * @return array<string, mixed>
+ */
+function slowlog_details_table_data(): array {
 	$data = array();
 	$data['columns'][] = array('name' => 'logentry', 'type' => 'bigint(20)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true);
 	$data['columns'][] = array('name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false);
@@ -199,7 +190,28 @@ function slowlog_setup_table_new(): void {
 	$data['row_format'] = 'Page';
 	$data['comment']    = 'Provides statistics on your slow query log';
 
-	api_plugin_db_table_create('slowlog', 'plugin_slowlog_details', $data);
+	return $data;
+}
+
+function slowlog_setup_table_new(): void {
+	$data = array();
+	$data['columns'][] = array('name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true, 'comment' => 'The unique id for this log entry');
+	$data['columns'][] = array('name' => 'description', 'type' => 'varchar(128)', 'NULL' => false, 'default' => '', 'comment' => 'The description for the slow log');
+	$data['columns'][] = array('name' => 'import_date', 'type' => 'timestamp', 'NULL' => false, 'default' => 'CURRENT_TIMESTAMP', 'comment' => 'The date the log was uploaded');
+	$data['columns'][] = array('name' => 'import_lines', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'default' => 0, 'comment' => 'The number of lines in the log');
+	$data['columns'][] = array('name' => 'import_status', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'default' => 0, 'comment' => 'The status of the import process');
+	$data['columns'][] = array('name' => 'import_text_status', 'type' => 'varchar(40)', 'NULL' => false, 'default' => '', 'comment' => 'The text status of the import process');
+	$data['columns'][] = array('name' => 'import_tables', 'type' => 'text', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'start_time', 'type' => 'timestamp', 'NULL' => false, 'default' => '0000-00-00 00:00:00', 'comment' => 'The start time for the log');
+	$data['columns'][] = array('name' => 'end_time', 'type' => 'timestamp', 'NULL' => false, 'default' => '0000-00-00 00:00:00', 'comment' => 'The end time for the log');
+	$data['primary']    = 'logid';
+	$data['type']       = 'InnoDB';
+	$data['row_format'] = 'Dynamic';
+	$data['comment']    = 'Each Slow Log Can be Tracked';
+
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog', $data);
+
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog_details', slowlog_details_table_data());
 
 	// New column since 2.1 - re-issuing this on every upgrade is safe, it's a no-op once applied.
 	api_plugin_db_add_column('slowlog', 'plugin_slowlog_details', array('name' => 'timeout', 'type' => 'double', 'NULL' => false, 'default' => 0, 'comment' => 'The timeout value detected in the query, if any', 'after' => 'query'));
