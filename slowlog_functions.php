@@ -1931,9 +1931,11 @@ function slowlog_chart_measures() {
  * either methods or tables, and shapes it into the categories/box-data/p95-data arrays
  * renderBoxChart() expects. Ordered/limited the same way as slowlog_get_chart_object() (by
  * total value descending, top 10 for tables) so the raw and whisker charts for the same
- * metric show categories in the same order.
+ * metric show categories in the same order. $scope_filter optionally restricts to specific
+ * scope_key values (the chart filter's multiselect); $hide_max substitutes p95 for max in the
+ * box's top value, since a rare true-max outlier can otherwise flatten the rest of the box.
  */
-function slowlog_get_stats_chart_object($chart_type, $measure) {
+function slowlog_get_stats_chart_object($chart_type, $measure, array $scope_filter = array(), $hide_max = false) {
 	$id = get_filter_request_var('logid');
 
 	$description = db_fetch_cell_prepared('SELECT description
@@ -1944,14 +1946,22 @@ function slowlog_get_stats_chart_object($chart_type, $measure) {
 	$scope = ($chart_type != 'tables') ? 'method' : 'table';
 	$limit = ($scope == 'table') ? ' LIMIT 10' : '';
 
+	$params = array($id, $scope, $measure);
+	$scope_where = '';
+
+	if (cacti_sizeof($scope_filter)) {
+		$scope_where = ' AND scope_key IN (' . implode(',', array_fill(0, count($scope_filter), '?')) . ')';
+		$params      = array_merge($params, $scope_filter);
+	}
+
 	$stats = db_fetch_assoc_prepared('SELECT scope_key, sample_count, total_value,
 			min_value, p25_value, median_value, p75_value, p95_value, max_value
 		FROM plugin_slowlog_stats
 		WHERE logid = ?
 		AND scope = ?
-		AND metric = ?
+		AND metric = ?' . $scope_where . '
 		ORDER BY total_value DESC' . $limit,
-		array($id, $scope, $measure));
+		$params);
 
 	$measures = slowlog_chart_measures();
 
@@ -1962,6 +1972,8 @@ function slowlog_get_stats_chart_object($chart_type, $measure) {
 	foreach($stats as $row) {
 		$categories[] = $row['scope_key'];
 
+		$box_max = $hide_max ? $row['p95_value'] : $row['max_value'];
+
 		$box_data[] = array(
 			'x' => $row['scope_key'],
 			'y' => array(
@@ -1969,7 +1981,7 @@ function slowlog_get_stats_chart_object($chart_type, $measure) {
 				round((float) $row['p25_value'], 3),
 				round((float) $row['median_value'], 3),
 				round((float) $row['p75_value'], 3),
-				round((float) $row['max_value'], 3)
+				round((float) $box_max, 3)
 			)
 		);
 
@@ -1994,9 +2006,10 @@ function slowlog_get_stats_chart_object($chart_type, $measure) {
  * Reads the cached totals (plugin_slowlog_stats) for one metric, scoped to either methods or
  * tables, and shapes them into the categories/values arrays renderChart() expects. Reuses the
  * same stats cache the box-whisker chart (slowlog_get_stats_chart_object()) reads, rather than
- * live-aggregating plugin_slowlog_details on every chart view.
+ * live-aggregating plugin_slowlog_details on every chart view. $scope_filter optionally
+ * restricts to specific scope_key values (the chart filter's multiselect).
  */
-function slowlog_get_chart_object($chart_type, $measure) {
+function slowlog_get_chart_object($chart_type, $measure, array $scope_filter = array()) {
 	$id = get_filter_request_var('logid');
 
 	$description = db_fetch_cell_prepared('SELECT description
@@ -2018,13 +2031,21 @@ function slowlog_get_chart_object($chart_type, $measure) {
 		$value_column = 'total_value';
 	}
 
+	$params = array($id, $scope, $stats_metric);
+	$scope_where = '';
+
+	if (cacti_sizeof($scope_filter)) {
+		$scope_where = ' AND scope_key IN (' . implode(',', array_fill(0, count($scope_filter), '?')) . ')';
+		$params      = array_merge($params, $scope_filter);
+	}
+
 	$stats = db_fetch_assoc_prepared("SELECT scope_key, $value_column AS value
 		FROM plugin_slowlog_stats
 		WHERE logid = ?
 		AND scope = ?
-		AND metric = ?
+		AND metric = ?" . $scope_where . "
 		ORDER BY $value_column DESC" . $limit,
-		array($id, $scope, $stats_metric));
+		$params);
 
 	$measures = slowlog_chart_measures();
 
