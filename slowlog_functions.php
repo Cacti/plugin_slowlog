@@ -1991,8 +1991,10 @@ function slowlog_get_stats_chart_object($chart_type, $measure) {
 }
 
 /*
- * Reads the live raw-totals (SUM per method/table) chart data for one metric, scoped to
- * either methods or tables.
+ * Reads the cached totals (plugin_slowlog_stats) for one metric, scoped to either methods or
+ * tables, and shapes them into the categories/values arrays renderChart() expects. Reuses the
+ * same stats cache the box-whisker chart (slowlog_get_stats_chart_object()) reads, rather than
+ * live-aggregating plugin_slowlog_details on every chart view.
  */
 function slowlog_get_chart_object($chart_type, $measure) {
 	$id = get_filter_request_var('logid');
@@ -2002,72 +2004,37 @@ function slowlog_get_chart_object($chart_type, $measure) {
 		WHERE logid = ?',
 		array($id));
 
-	if ($chart_type != 'tables') {
-		$details = db_fetch_assoc_prepared("SELECT
-			sm.method AS type,
-			COUNT(*) AS count,
-			SUM(query_time) AS query_time,
-			SUM(lock_time) AS lock_time,
-			SUM(rows_examined) AS rows_examined,
-			SUM(rows_sent) AS rows_sent,
-			SUM(rows_affected) AS rows_affected,
-			SUM(bytes_sent) AS bytes_sent
-			FROM plugin_slowlog_details_methods AS dm
-			INNER JOIN plugin_slowlog_details AS d
-			ON dm.logid = d.logid
-			AND dm.logentry = d.logentry
-			INNER JOIN plugin_slowlog_methods AS sm
-			ON dm.methodid = sm.methodid
-			WHERE d.logid = ?
-			GROUP BY sm.methodid
-			ORDER BY $measure DESC",
-			array($id));
+	$scope = ($chart_type != 'tables') ? 'method' : 'table';
+	$limit = ($scope == 'table') ? ' LIMIT 10' : '';
+
+	// 'count' isn't itself a tracked metric - every tracked metric's cached sample_count is
+	// identical for a given scope_key (they're all counted over the same matched detail
+	// rows), so read it off any one tracked metric's rows instead of total_value.
+	if ($measure == 'count') {
+		$stats_metric = SLOWLOG_STATS_METRICS[0];
+		$value_column = 'sample_count';
 	} else {
-		$details = db_fetch_assoc_prepared("SELECT *
-			FROM (
-				SELECT table_name AS type,
-					COUNT(*) AS count,
-					SUM(query_time) AS query_time,
-					SUM(lock_time) AS lock_time,
-					SUM(rows_examined) AS rows_examined,
-					SUM(rows_sent) AS rows_sent,
-					SUM(rows_affected) AS rows_affected,
-					SUM(bytes_sent) AS bytes_sent
-				FROM plugin_slowlog_details_tables AS dt
-				INNER JOIN plugin_slowlog_details AS d
-				ON dt.logid=d.logid AND dt.logentry=d.logentry
-				WHERE d.logid = ?
-				GROUP BY table_name
-				UNION ALL
-				SELECT 'others' AS type,
-					COUNT(*) AS count,
-					SUM(query_time) AS query_time,
-					SUM(lock_time) AS lock_time,
-					SUM(rows_examined) AS rows_examined,
-					SUM(rows_sent) AS rows_sent,
-					SUM(rows_affected) AS rows_affected,
-					SUM(bytes_sent) AS bytes_sent
-				FROM plugin_slowlog_details AS d
-				LEFT JOIN plugin_slowlog_details_tables AS dt
-				ON dt.logid=d.logid AND dt.logentry=d.logentry
-				WHERE dt.table_name IS NULL
-				AND d.logid = ?
-				GROUP BY table_name
-			) AS fish
-			ORDER BY $measure DESC LIMIT 10",
-			array($id, $id));
+		$stats_metric = $measure;
+		$value_column = 'total_value';
 	}
+
+	$stats = db_fetch_assoc_prepared("SELECT scope_key, $value_column AS value
+		FROM plugin_slowlog_stats
+		WHERE logid = ?
+		AND scope = ?
+		AND metric = ?
+		ORDER BY $value_column DESC" . $limit,
+		array($id, $scope, $stats_metric));
 
 	$measures = slowlog_chart_measures();
 
-	// ApexCharts
-	if (cacti_sizeof($details)) {
+	if (cacti_sizeof($stats)) {
 		$categories = array();
 		$values     = array();
 
-		foreach($details as $entry) {
-			$categories[] = $entry['type'];
-			$values[]     = $entry[$measure];
+		foreach($stats as $entry) {
+			$categories[] = $entry['scope_key'];
+			$values[]     = $entry['value'];
 		}
 
 		$title = $description . ' [ ' . $measures[$measure]['suffix'] . ' ]';
