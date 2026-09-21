@@ -2010,9 +2010,15 @@ function slowlog_get_stats_chart_object($chart_type, $measure, array $scope_filt
  * tables, and shapes them into the categories/values arrays renderChart() expects. Reuses the
  * same stats cache the box-whisker chart (slowlog_get_stats_chart_object()) reads, rather than
  * live-aggregating plugin_slowlog_details on every chart view. $scope_filter optionally
- * restricts to specific scope_key values (the chart filter's multiselect).
+ * restricts to specific scope_key values (the chart filter's multiselect). Falls back to live
+ * aggregation for unfiltered logs imported before the stats cache existed, so upgrading doesn't
+ * blank their charts (live aggregation doesn't support $scope_filter).
  */
 function slowlog_get_chart_object($chart_type, $measure, array $scope_filter = array()) {
+	if ($measure != 'count' && !in_array($measure, SLOWLOG_STATS_METRICS, true)) {
+		return array();
+	}
+
 	$id = get_filter_request_var('logid');
 
 	$description = db_fetch_cell_prepared('SELECT description
@@ -2053,6 +2059,13 @@ function slowlog_get_chart_object($chart_type, $measure, array $scope_filter = a
 		ORDER BY $value_column DESC" . $limit,
 		$params);
 
+	// No cached stats at all for this log (as opposed to cached stats that happen to have
+	// no rows for this scope/metric) means it was imported before the stats cache existed.
+	// Live aggregation doesn't support scope filtering, so only fall back when unfiltered.
+	if (!cacti_sizeof($stats) && !cacti_sizeof($scope_filter) && !slowlog_has_stats_cache($id)) {
+		$stats = slowlog_get_chart_object_live($id, $scope, $measure, $limit);
+	}
+
 	$measures = slowlog_chart_measures();
 
 	$categories = array();
@@ -2073,5 +2086,64 @@ function slowlog_get_chart_object($chart_type, $measure, array $scope_filter = a
 		'values'     => $values,
 		'yaxislabel' => $measures[$measure]['unit']
 	);
+}
+
+/*
+ * Whether any plugin_slowlog_stats rows exist at all for $logid, regardless of scope/metric.
+ * Distinguishes "never cached (pre-cache log)" from "cached, but legitimately no matches".
+ */
+function slowlog_has_stats_cache($logid) {
+	return (bool) db_fetch_cell_prepared('SELECT 1
+		FROM plugin_slowlog_stats
+		WHERE logid = ?
+		LIMIT 1',
+		array($logid));
+}
+
+/*
+ * Live-aggregates plugin_slowlog_details for one measure, scoped to methods or tables, matching
+ * the pre-cache query shape. Only used as a fallback for logs imported before the
+ * plugin_slowlog_stats cache existed (slowlog_has_stats_cache() returns false for them), since
+ * their raw-totals charts have no cached rows to read.
+ */
+function slowlog_get_chart_object_live($logid, $scope, $measure, $limit) {
+	$agg = ($measure == 'count') ? 'COUNT(*)' : "SUM($measure)";
+
+	if ($scope == 'method') {
+		return db_fetch_assoc_prepared("SELECT sm.method AS scope_key,
+			$agg AS value
+			FROM plugin_slowlog_details_methods AS dm
+			INNER JOIN plugin_slowlog_details AS d
+			ON dm.logid = d.logid
+			AND dm.logentry = d.logentry
+			INNER JOIN plugin_slowlog_methods AS sm
+			ON dm.methodid = sm.methodid
+			WHERE d.logid = ?
+			GROUP BY sm.methodid
+			ORDER BY value DESC" . $limit,
+			array($logid));
+	} else {
+		return db_fetch_assoc_prepared("SELECT *
+			FROM (
+				SELECT table_name AS scope_key,
+					$agg AS value
+				FROM plugin_slowlog_details_tables AS dt
+				INNER JOIN plugin_slowlog_details AS d
+				ON dt.logid=d.logid AND dt.logentry=d.logentry
+				WHERE d.logid = ?
+				GROUP BY table_name
+				UNION ALL
+				SELECT 'others' AS scope_key,
+					$agg AS value
+				FROM plugin_slowlog_details AS d
+				LEFT JOIN plugin_slowlog_details_tables AS dt
+				ON dt.logid=d.logid AND dt.logentry=d.logentry
+				WHERE dt.table_name IS NULL
+				AND d.logid = ?
+				GROUP BY table_name
+			) AS fish
+			ORDER BY value DESC" . $limit,
+			array($logid, $logid));
+	}
 }
 

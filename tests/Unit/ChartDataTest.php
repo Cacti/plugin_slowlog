@@ -102,6 +102,36 @@ it('does not cap table results to 10 when an explicit scope filter is applied', 
 	expect($data['categories'])->toBe(array('users'));
 });
 
+it('falls back to live-aggregating plugin_slowlog_details for logs imported before the stats cache existed', function () {
+	slowlog_test_mock_db('db_fetch_cell_prepared', 'FROM plugin_slowlog_stats', false);
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'FROM plugin_slowlog_stats', array());
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'FROM plugin_slowlog_details_methods', array(
+		array('scope_key' => 'SELECTS', 'value' => 30),
+		array('scope_key' => 'UPDATES', 'value' => 5),
+	));
+
+	$data = slowlog_get_chart_object('methods', 'query_time');
+
+	expect($data['categories'])->toBe(array('SELECTS', 'UPDATES'));
+	expect($data['values'])->toBe(array(30, 5));
+});
+
+it('does not fall back to live aggregation when the log has a stats cache but this scope/metric legitimately has no rows', function () {
+	slowlog_test_mock_db('db_fetch_cell_prepared', 'FROM plugin_slowlog_stats', 1);
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'FROM plugin_slowlog_stats', array());
+
+	$data = slowlog_get_chart_object('methods', 'query_time');
+
+	expect($data['categories'])->toBe(array());
+	expect($data['values'])->toBe(array());
+
+	$live_calls = array_values(array_filter($GLOBALS['__test_db_calls'], function ($call) {
+		return $call['fn'] === 'db_fetch_assoc_prepared' && strpos($call['sql'], 'plugin_slowlog_details_methods') !== false;
+	}));
+
+	expect($live_calls)->toBe(array());
+});
+
 it('shapes cached percentile rows into box-whisker data plus a separate p95 series', function () {
 	slowlog_test_mock_db('db_fetch_assoc_prepared', 'FROM plugin_slowlog_stats', array(
 		array('scope_key' => 'SELECTS', 'sample_count' => 2, 'total_value' => 30,

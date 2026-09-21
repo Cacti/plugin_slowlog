@@ -1566,7 +1566,7 @@ function slowlog_view() {
 		?>
 		<script type="text/javascript">
 		refreshIsLogout = false;
-		refreshPage     = '<?php print sanitize_uri($_SERVER['REQUEST_URI']); ?>';
+		refreshPage     = <?php print json_encode(sanitize_uri($_SERVER['REQUEST_URI'])); ?>;
 		refreshMSeconds = 5000;
 		refreshFunction = '';
 		setupPageTimeout();
