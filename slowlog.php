@@ -474,7 +474,9 @@ function slowlog_import() {
 
 			xhrInFlight = $.ajax({
 				type: 'POST',
-				url: form.action,
+				// form.action would return the <input name="action"> element instead of the
+				// URL string - it shadows the form's action property, so read the attribute.
+				url: form.getAttribute('action'),
 				data: new FormData(form),
 				processData: false,
 				contentType: false,
