@@ -27,7 +27,7 @@
  * v2.1 - including the v2.4 stats cache, which is easy to forget since it's the newest and
  * lives outside the original details/tables/methods set this function started with.
  */
-function api_slowlog_remove($logid) {
+function api_slowlog_remove(int $logid): void {
 	db_execute_prepared('DELETE FROM plugin_slowlog WHERE logid = ?', array($logid));
 	db_execute_prepared('DELETE FROM plugin_slowlog_details WHERE logid = ?', array($logid));
 	db_execute_prepared('DELETE FROM plugin_slowlog_tables WHERE logid = ?', array($logid));
@@ -42,7 +42,7 @@ function slowlog_render_with_layout(callable $render_callback): void {
 	bottom_footer();
 }
 
-function get_cacti_tables() {
+function get_cacti_tables(): string {
 	$databases = db_fetch_assoc('SHOW DATABASES');
 	$tables    = '';
 
@@ -66,7 +66,7 @@ function get_cacti_tables() {
  * validation (e.g. --logid from the CLI) can't alter the VALUES clause.
  * $rows is an array of array($logid, $logentry, $methodid) tuples.
  */
-function slowlog_bulk_insert_method_rows(array $rows) {
+function slowlog_bulk_insert_method_rows(array $rows): void {
 	if (!cacti_sizeof($rows)) {
 		return;
 	}
@@ -95,7 +95,7 @@ function slowlog_bulk_insert_method_rows(array $rows) {
  * logid/logentry are always bound placeholders, never concatenated into the SQL text.
  * $rows is an array of array($logid, $logentry, $table_name) tuples.
  */
-function slowlog_bulk_insert_table_rows(array $rows) {
+function slowlog_bulk_insert_table_rows(array $rows): void {
 	if (!cacti_sizeof($rows)) {
 		return;
 	}
@@ -121,13 +121,15 @@ function slowlog_bulk_insert_table_rows(array $rows) {
 /* the 5 plugin_slowlog_details columns plugin_slowlog_stats tracks a distribution for */
 const SLOWLOG_STATS_METRICS = array('query_time', 'rows_sent', 'rows_examined', 'rows_affected', 'bytes_sent');
 
-/*
+/**
  * Linear-interpolation percentile (matches numpy's default / Excel PERCENTILE.INC) over an
  * already-sorted array of numeric values. $p is 0-100. Computed in PHP rather than via a SQL
  * PERCENTILE_CONT window function since that isn't available on every MySQL/MariaDB version
  * this plugin still supports.
+ *
+ * @param int|float $p
  */
-function slowlog_percentile(array $sorted, $p) {
+function slowlog_percentile(array $sorted, $p): float {
 	$n = count($sorted);
 
 	if ($n === 0) {
@@ -164,7 +166,7 @@ const SLOWLOG_STATS_SAMPLE_CAP = 20000;
  * $exact_count/$exact_sum override the count/total derived from $values, for callers (e.g.
  * slowlog_compute_stats()) that only pass in a bounded sample of the real population.
  */
-function slowlog_summarize_values(array $values, $exact_count = null, $exact_sum = null) {
+function slowlog_summarize_values(array $values, ?int $exact_count = null, ?float $exact_sum = null): array {
 	$count = ($exact_count !== null) ? $exact_count : count($values);
 
 	if ($count === 0 || !count($values)) {
@@ -200,7 +202,7 @@ function slowlog_summarize_values(array $values, $exact_count = null, $exact_sum
  * keeps an exact running count/sum, so sample_count/total_value never lose precision even
  * once the reservoir is full and older samples start being probabilistically replaced.
  */
-function slowlog_accumulate_stat_value(array &$values, array &$totals, $scope_key, $metric, $value) {
+function slowlog_accumulate_stat_value(array &$values, array &$totals, string $scope_key, string $metric, float $value): void {
 	if (!isset($totals[$scope_key][$metric])) {
 		$totals[$scope_key][$metric] = array('count' => 0, 'sum' => 0.0);
 	}
@@ -228,7 +230,7 @@ function slowlog_accumulate_stat_value(array &$values, array &$totals, $scope_ke
  * inserters above. $rows is an array of the assoc arrays slowlog_summarize_values() returns,
  * each additionally carrying 'logid', 'scope', 'scope_key', and 'metric'.
  */
-function slowlog_bulk_insert_stats_rows(array $rows) {
+function slowlog_bulk_insert_stats_rows(array $rows): void {
 	if (!cacti_sizeof($rows)) {
 		return;
 	}
@@ -282,7 +284,7 @@ function slowlog_bulk_insert_stats_rows(array $rows) {
  * such a group would otherwise skip the remaining rows for that logentry once the next page
  * filters with "id/logentry > ?".
  */
-function slowlog_collect_stats_by_method($logid, array &$values, $chunk_size = 5000, array &$totals = array()) {
+function slowlog_collect_stats_by_method(int $logid, array &$values, int $chunk_size = 5000, array &$totals = array()): void {
 	$last_id = 0;
 
 	do {
@@ -320,12 +322,12 @@ function slowlog_collect_stats_by_method($logid, array &$values, $chunk_size = 5
  * plugin_slowlog_details.logentry, which - unlike the matched branch - really is unique there
  * (a logentry with no table match can only ever produce one row via the LEFT JOIN).
  */
-function slowlog_collect_stats_by_table($logid, array &$values, $chunk_size = 5000, array &$totals = array()) {
+function slowlog_collect_stats_by_table(int $logid, array &$values, int $chunk_size = 5000, array &$totals = array()): void {
 	slowlog_collect_stats_by_matched_table($logid, $values, $chunk_size, $totals);
 	slowlog_collect_stats_by_unmatched_table($logid, $values, $chunk_size, $totals);
 }
 
-function slowlog_collect_stats_by_matched_table($logid, array &$values, $chunk_size = 5000, array &$totals = array()) {
+function slowlog_collect_stats_by_matched_table(int $logid, array &$values, int $chunk_size = 5000, array &$totals = array()): void {
 	$last_id = 0;
 
 	do {
@@ -351,7 +353,7 @@ function slowlog_collect_stats_by_matched_table($logid, array &$values, $chunk_s
 	} while ($batch_count === $chunk_size);
 }
 
-function slowlog_collect_stats_by_unmatched_table($logid, array &$values, $chunk_size = 5000, array &$totals = array()) {
+function slowlog_collect_stats_by_unmatched_table(int $logid, array &$values, int $chunk_size = 5000, array &$totals = array()): void {
 	$last_logentry = 0;
 
 	do {
@@ -385,7 +387,7 @@ function slowlog_collect_stats_by_unmatched_table($logid, array &$values, $chunk
  * the By Method/By Table chart pages are a single indexed lookup instead of a live aggregate
  * query over plugin_slowlog_details.
  */
-function slowlog_compute_stats($logid) {
+function slowlog_compute_stats(int $logid): void {
 	$start = microtime(true);
 
 	$by_method     = array();
@@ -442,7 +444,7 @@ function slowlog_compute_stats($logid) {
  * slowlog_classify_other_tables_against_list() for reference-mode classification instead,
  * which compares per-log without touching this shared dictionary.
  */
-function slowlog_sync_table_dictionary($logid, $known_tables = null) {
+function slowlog_sync_table_dictionary(int $logid, ?array $known_tables = null): void {
 	$tables = db_fetch_assoc_prepared('SELECT DISTINCT table_name
 		FROM plugin_slowlog_details_tables
 		WHERE logid = ?',
@@ -483,7 +485,7 @@ function slowlog_sync_table_dictionary($logid, $known_tables = null) {
  * only calls this for the 'cacti'/'reference' table modes (i.e. whenever a reference list of
  * known tables was actually available), never for 'list'/'all'.
  */
-function slowlog_classify_other_tables($logid) {
+function slowlog_classify_other_tables(int $logid): void {
 	$methodid = db_fetch_cell_prepared("SELECT methodid
 		FROM plugin_slowlog_methods
 		WHERE method = 'OTHER TABLES'",
@@ -521,7 +523,7 @@ function slowlog_classify_other_tables($logid) {
  * where the list is specific to one import and must never be written into that shared,
  * global dictionary (see slowlog_sync_table_dictionary()).
  */
-function slowlog_classify_other_tables_against_list($logid, array $reference_tables) {
+function slowlog_classify_other_tables_against_list(int $logid, array $reference_tables): void {
 	$methodid = db_fetch_cell_prepared("SELECT methodid
 		FROM plugin_slowlog_methods
 		WHERE method = 'OTHER TABLES'",
@@ -575,7 +577,7 @@ function slowlog_classify_other_tables_against_list($logid, array $reference_tab
 }
 
 
-function import_logfile($logfile, $description = 'Imported using import_log utility', $length = 8192, $table_names = '', $usecacti = false, $batch = true, $table_mode = null, $logid = null) {
+function import_logfile(string $logfile, string $description = 'Imported using import_log utility', int $length = 8192, string $table_names = '', bool $usecacti = false, bool $batch = true, ?string $table_mode = null, ?int $logid = null): void {
 	global $config;
 
 	ini_set('max_execution_time', 0);
@@ -595,7 +597,7 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 
 	if (file_exists($logfile)) {
 		// suck the log through a straw
-		$entries    = file($logfile);
+		$entries    = file($logfile) ?: array();
 
 		// denotes that the log beginning has been found
 		$start      = false;
@@ -624,6 +626,7 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 			$start_time    = 0;
 			$curtime       = null;
 			$lines         = 0;
+			$query_start   = false;
 
 			foreach($entries as $l) {
 				if ($start && substr($l, 0, 1) != '#') {
@@ -737,19 +740,19 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 
 					$query_start = false;
 				} elseif (strpos($l, '# Query_time:') !== false) {
-					$data = preg_split('/\s+/', $l);
+					$data = preg_split('/\s+/', $l) ?: array();
 
 					$query_time    = $data[2];
 					$lock_time     = $data[4];
 					$rows_sent     = $data[6];
 					$rows_examined = $data[8];
 				} elseif (strpos($l, '# Rows_affected:') !== false) {
-					$data = preg_split('/\s+/', $l);
+					$data = preg_split('/\s+/', $l) ?: array();
 
 					$rows_affected = $data[2];
 					$bytes_sent    = $data[4];
 				} elseif (strpos($l, '# Thread_id:') !== false) {
-					$data = preg_split('/\s+/', $l);
+					$data = preg_split('/\s+/', $l) ?: array();
 
 					$thread_id     = $data[2];
 					$schema        = $data[4];
@@ -875,7 +878,7 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 	}
 }
 
-function load_reserved_words() {
+function load_reserved_words(): void {
 	global $reserved_words;
 
 	$reserved_words = array_rekey(db_fetch_assoc_prepared('SELECT word
@@ -883,7 +886,7 @@ function load_reserved_words() {
 		array()), 'word', 'word');
 }
 
-function is_reserved_word($token) {
+function is_reserved_word(string $token): bool {
 	global $reserved_words;
 
 	// Cleanup the token
@@ -909,7 +912,7 @@ function is_reserved_word($token) {
 	}
 }
 
-function import_post_process($logid, $table_names = '', $usecacti = false, $table_mode = null) {
+function import_post_process(int $logid, string $table_names = '', bool $usecacti = false, ?string $table_mode = null): void {
 	// Preserve legacy precedence (explicit list wins, then usecacti, then auto-detect) when a
 	// caller doesn't pass $table_mode explicitly - only the new 3-option UI ever passes it.
 	if ($table_mode === null) {
@@ -1066,7 +1069,7 @@ function import_post_process($logid, $table_names = '', $usecacti = false, $tabl
 			// is_cacti_table flag for them - that column must stay reserved for the live
 			// Cacti DB (see slowlog_sync_table_dictionary()'s doc comment).
 			slowlog_sync_table_dictionary($logid);
-			slowlog_classify_other_tables_against_list($logid, $known_tables);
+			slowlog_classify_other_tables_against_list($logid, $known_tables ?? array());
 		} else {
 			slowlog_sync_table_dictionary($logid, $known_tables);
 
@@ -1093,7 +1096,7 @@ function import_post_process($logid, $table_names = '', $usecacti = false, $tabl
  * schema, or the tokenizer itself is improved. Clears the previously-derived associations
  * first since import_post_process()'s method inserts aren't safe to run twice otherwise.
  */
-function slowlog_reprocess($logid, $table_names = '', $usecacti = false, $table_mode = null) {
+function slowlog_reprocess(int $logid, string $table_names = '', bool $usecacti = false, ?string $table_mode = null): void {
 	db_execute_prepared('DELETE FROM plugin_slowlog_details_methods WHERE logid = ?', array($logid));
 	db_execute_prepared('DELETE FROM plugin_slowlog_details_tables WHERE logid = ?', array($logid));
 	db_execute_prepared('DELETE FROM plugin_slowlog_tables WHERE logid = ?', array($logid));
@@ -1112,7 +1115,7 @@ function slowlog_reprocess($logid, $table_names = '', $usecacti = false, $table_
 }
 
 /* slowlog_reprocess() for every logid currently in plugin_slowlog */
-function slowlog_reprocess_all($table_names = '', $usecacti = false, $table_mode = null) {
+function slowlog_reprocess_all(string $table_names = '', bool $usecacti = false, ?string $table_mode = null): void {
 	$logids = db_fetch_assoc_prepared('SELECT logid FROM plugin_slowlog', array());
 
 	foreach($logids as $row) {
@@ -1120,7 +1123,7 @@ function slowlog_reprocess_all($table_names = '', $usecacti = false, $table_mode
 	}
 }
 
-function slowlog_tabs() {
+function slowlog_tabs(): void {
 	global $config;
 
 	/* present a tabbed interface */
@@ -1162,7 +1165,7 @@ function slowlog_tabs() {
 	print '</ul></nav></div>';
 }
 
-function get_table_associations($logid, $logentry = -1) {
+function get_table_associations(int $logid, int $logentry = -1): void {
 	$rows_out = array();
 
 	if ($logentry == -1) {
@@ -1215,8 +1218,8 @@ const SLOWLOG_CLAUSE_BOUNDARY = '(?:WHERE|GROUP\s+BY|HAVING|ORDER\s+BY|LIMIT|UNI
 /* any flavor of JOIN keyword, used both to split a table-ref-list and to find join targets */
 const SLOWLOG_JOIN_KEYWORD = '(?:INNER\s+JOIN|LEFT\s+(?:OUTER\s+)?JOIN|RIGHT\s+(?:OUTER\s+)?JOIN|FULL\s+(?:OUTER\s+)?JOIN|CROSS\s+JOIN|STRAIGHT_JOIN|JOIN)';
 
-function slowlog_normalize_query_text($query) {
-	return trim(preg_replace('/\s+/', ' ', (string) $query));
+function slowlog_normalize_query_text(?string $query): string {
+	return trim(preg_replace('/\s+/', ' ', (string) $query) ?? '');
 }
 
 /*
@@ -1225,7 +1228,7 @@ function slowlog_normalize_query_text($query) {
  * can't be fooled by SQL-looking text inside a string constant. Backtick-quoted identifiers
  * are left untouched since they're table/column names, not string content.
  */
-function slowlog_mask_quoted_strings($query) {
+function slowlog_mask_quoted_strings(string $query): string {
 	$len  = strlen($query);
 	$out  = '';
 	$i    = 0;
@@ -1284,7 +1287,7 @@ function slowlog_mask_quoted_strings($query) {
  * slowlog_mask_quoted_strings() so a comment-looking sequence inside a string literal isn't
  * mistaken for a real comment.
  */
-function slowlog_mask_sql_comments($query) {
+function slowlog_mask_sql_comments(string $query): string {
 	$len = strlen($query);
 	$out = '';
 	$i   = 0;
@@ -1333,7 +1336,7 @@ function slowlog_mask_sql_comments($query) {
  * can't mistake SQL-looking text inside either one for a real clause - e.g.
  * "SELECT 1 /* FROM admins * /" no longer looks like it references a table named admins.
  */
-function slowlog_mask_strings_and_comments($query) {
+function slowlog_mask_strings_and_comments(string $query): string {
 	return slowlog_mask_sql_comments(slowlog_mask_quoted_strings($query));
 }
 
@@ -1341,7 +1344,7 @@ function slowlog_mask_strings_and_comments($query) {
  * Splits $text on a top-level delimiter, i.e. one that isn't nested inside parens - so a
  * comma inside a function call or a derived table doesn't split a table-reference list.
  */
-function slowlog_split_top_level($text, $delim = ',') {
+function slowlog_split_top_level(string $text, string $delim = ','): array {
 	$parts   = array();
 	$depth   = 0;
 	$current = '';
@@ -1375,7 +1378,10 @@ function slowlog_split_top_level($text, $delim = ',') {
  * $text must start with '('. Returns array(innerContent, remainderAfterClosingParen), or
  * false if the leading '(' has no matching close (malformed input).
  */
-function slowlog_match_balanced_parens($text) {
+/**
+ * @return array{0: string, 1: string}|false
+ */
+function slowlog_match_balanced_parens(string $text) {
 	if (preg_match('/\((?:[^()]|(?R))*\)/', $text, $m, PREG_OFFSET_CAPTURE) && $m[0][1] === 0) {
 		$whole = $m[0][0];
 
@@ -1386,7 +1392,7 @@ function slowlog_match_balanced_parens($text) {
 }
 
 /* grabs a leading `schema`.`table`/schema.table/table identifier off of $text */
-function slowlog_first_identifier($text) {
+function slowlog_first_identifier(string $text): string {
 	$text = ltrim($text);
 
 	if (preg_match('/^`[^`]+`(?:\.`[^`]+`)?|^[A-Za-z0-9_$]+(?:\.[A-Za-z0-9_$]+)?/', $text, $m)) {
@@ -1402,7 +1408,7 @@ function slowlog_first_identifier($text) {
  * comes first. Depth is relative to $start, so a derived table's own inner keywords don't
  * end the clause early.
  */
-function slowlog_scan_clause_span($text, $start) {
+function slowlog_scan_clause_span(string $text, int $start): int {
 	$depth = 0;
 	$len   = strlen($text);
 	$i     = $start;
@@ -1441,7 +1447,7 @@ function slowlog_scan_clause_span($text, $start) {
 }
 
 /* a single item of a comma-separated table-reference list, e.g. "t1 a" or "(SELECT ...) x" */
-function slowlog_extract_single_table_ref($text, &$tables) {
+function slowlog_extract_single_table_ref(string $text, array &$tables): void {
 	$text = trim($text);
 
 	if ($text === '') {
@@ -1466,7 +1472,7 @@ function slowlog_extract_single_table_ref($text, &$tables) {
 }
 
 /* the continuation of a table-reference list after its first JOIN keyword has been consumed */
-function slowlog_extract_join_chain($text, &$tables) {
+function slowlog_extract_join_chain(string $text, array &$tables): void {
 	while (true) {
 		$text = ltrim($text);
 
@@ -1505,7 +1511,7 @@ function slowlog_extract_join_chain($text, &$tables) {
 }
 
 /* a comma-separated table-reference list, e.g. a FROM clause or an UPDATE target list */
-function slowlog_extract_table_ref_list($text, &$tables) {
+function slowlog_extract_table_ref_list(string $text, array &$tables): void {
 	$text = trim($text);
 
 	if ($text === '') {
@@ -1533,7 +1539,7 @@ function slowlog_extract_table_ref_list($text, &$tables) {
  * table-reference list. Overlap with subqueries discovered elsewhere (e.g. via a JOIN
  * target) is intentional and harmless, since $tables is a de-duplicating set.
  */
-function slowlog_extract_from_clauses($query, &$tables) {
+function slowlog_extract_from_clauses(string $query, array &$tables): void {
 	$offset = 0;
 	$len    = strlen($query);
 
@@ -1549,7 +1555,7 @@ function slowlog_extract_from_clauses($query, &$tables) {
 }
 
 /* finds every JOIN keyword in $query and extracts the table (or derived subquery) it targets */
-function slowlog_extract_join_targets($query, &$tables) {
+function slowlog_extract_join_targets(string $query, array &$tables): void {
 	if (!preg_match_all('/\b' . SLOWLOG_JOIN_KEYWORD . '\s+/i', $query, $m, PREG_OFFSET_CAPTURE)) {
 		return;
 	}
@@ -1580,7 +1586,7 @@ function slowlog_extract_join_targets($query, &$tables) {
  * "USING (col1, col2)" column list is skipped instead, since it's always immediately
  * followed by an open paren rather than a bare identifier.
  */
-function slowlog_extract_using_clause_tables($query, &$tables) {
+function slowlog_extract_using_clause_tables(string $query, array &$tables): void {
 	$offset = 0;
 	$len    = strlen($query);
 
@@ -1612,7 +1618,13 @@ function slowlog_extract_using_clause_tables($query, &$tables) {
  * TABLE, RENAME TABLE ... TO ..., FLUSH TABLE(S), LOAD DATA ... INTO TABLE, and SHOW
  * TABLES/COLUMNS/INDEX/CREATE TABLE. Subqueries are followed recursively wherever they're found.
  */
-function slowlog_extract_tables_from_query($query, &$tables = null) {
+/**
+ * @param mixed $query
+ * @param array<string, string>|null $tables
+ *
+ * @return array<string, string>
+ */
+function slowlog_extract_tables_from_query($query, ?array &$tables = null): array {
 	if ($tables === null) {
 		$tables = array();
 	}
@@ -1690,7 +1702,7 @@ function slowlog_extract_tables_from_query($query, &$tables = null) {
 			}
 		}
 	} elseif (preg_match('/^FLUSH\s+TABLES?\s+(.*)$/i', $query, $m)) {
-		$rest = preg_replace('/\s+WITH\s+READ\s+LOCK\s*$/i', '', $m[1]);
+		$rest = preg_replace('/\s+WITH\s+READ\s+LOCK\s*$/i', '', $m[1]) ?? '';
 
 		foreach (slowlog_split_top_level($rest, ',') as $t) {
 			$id = slowlog_first_identifier($t);
@@ -1737,11 +1749,14 @@ function slowlog_extract_tables_from_query($query, &$tables = null) {
  * literal or an ordinary comment merely containing this text isn't mistaken for a real
  * optimizer hint. Returns null when neither is present.
  */
-function slowlog_extract_timeout_value($query) {
+/**
+ * @param mixed $query
+ */
+function slowlog_extract_timeout_value($query): ?float {
 	$query = slowlog_normalize_query_text(slowlog_mask_quoted_strings((string) $query));
 
 	if (preg_match('/^SELECT\s+\/\*\+.*?MAX_EXECUTION_TIME\s*\(\s*([0-9]+(?:\.[0-9]+)?)\s*\).*?\*\//is', $query, $m)) {
-		return round($m[1] / 1000, 6);
+		return round((float) $m[1] / 1000, 6);
 	}
 
 	if (preg_match('/^SET\s+STATEMENT\s+MAX_STATEMENT_TIME\s*=\s*([0-9]+(?:\.[0-9]+)?)\s+FOR\b/i', $query, $m)) {
@@ -1752,7 +1767,7 @@ function slowlog_extract_timeout_value($query) {
 }
 
 /* populates plugin_slowlog_details.timeout for any row using a MAX_EXECUTION_TIME/MAX_STATEMENT_TIME hint */
-function slowlog_set_timeouts($logid, $logentry = -1) {
+function slowlog_set_timeouts(int $logid, int $logentry = -1): void {
 	$sql_where  = 'WHERE logid = ? AND (query LIKE ? OR query LIKE ?)';
 	$sql_params = array($logid, '%MAX_EXECUTION_TIME(%', '%MAX_STATEMENT_TIME%');
 
@@ -1779,7 +1794,7 @@ function slowlog_set_timeouts($logid, $logentry = -1) {
 	}
 }
 
-function parseTable($table) {
+function parseTable(string $table): string {
 	$table = trim($table, ';)');
 	$table = str_replace('`', '', $table);
 	$parts = explode('.', $table);
@@ -1798,7 +1813,7 @@ function parseTable($table) {
 	}
 }
 
-function slowlog_debug($string) {
+function slowlog_debug(string $string): void {
 	global $debug;
 
 	if ($debug) {
@@ -1806,13 +1821,16 @@ function slowlog_debug($string) {
 	}
 }
 
-function slowlog_strip_domain($host) {
+function slowlog_strip_domain(string $host): string {
 	$parts = explode('.', $host);
 	return str_replace('-new', '', $parts[0]);
 }
 
 /* parses a php.ini shorthand byte value (e.g. '8M', '2G', '-1'); returns null for unlimited */
-function slowlog_parse_ini_bytes($value) {
+/**
+ * @param mixed $value
+ */
+function slowlog_parse_ini_bytes($value): ?int {
 	$value = trim((string) $value);
 
 	if ($value === '' || $value === '-1') {
@@ -1844,7 +1862,7 @@ function slowlog_parse_ini_bytes($value) {
  * server/proxy timeout (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM
  * request_terminate_timeout) is outside PHP's control and can't be detected from here.
  */
-function slowlog_upload_environment_status() {
+function slowlog_upload_environment_status(): array {
 	$max_execution_time = ini_get('max_execution_time');
 	$memory_limit       = ini_get('memory_limit');
 	$upload_max_filesize = ini_get('upload_max_filesize');
@@ -1883,7 +1901,7 @@ function slowlog_upload_environment_status() {
  * (slowlog_get_chart_object()) and the box-whisker distribution chart
  * (slowlog_get_stats_chart_object()) so the two stay in sync.
  */
-function slowlog_chart_measures() {
+function slowlog_chart_measures(): array {
 	return array(
 		'count' => array(
 			'unit'   => __esc('Queries', 'slowlog'),
@@ -1923,7 +1941,7 @@ function slowlog_chart_measures() {
  * total value descending, top 10 for tables) so the raw and whisker charts for the same
  * metric show categories in the same order.
  */
-function slowlog_get_stats_chart_object($chart_type, $measure) {
+function slowlog_get_stats_chart_object(string $chart_type, string $measure): array {
 	$id = get_filter_request_var('logid');
 
 	$description = db_fetch_cell_prepared('SELECT description
@@ -1984,7 +2002,7 @@ function slowlog_get_stats_chart_object($chart_type, $measure) {
  * Reads the live raw-totals (SUM per method/table) chart data for one metric, scoped to
  * either methods or tables.
  */
-function slowlog_get_chart_object($chart_type, $measure) {
+function slowlog_get_chart_object(string $chart_type, string $measure): array {
 	$id = get_filter_request_var('logid');
 
 	$description = db_fetch_cell_prepared('SELECT description

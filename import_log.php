@@ -59,6 +59,14 @@ if (cacti_sizeof($parms)) {
 	$options = getopt($shortopts, $longopts);
 
 	foreach($options as $arg => $value) {
+		// getopt() returns an array instead of a scalar when an option is repeated more than
+		// once on the command line - none of the options below are meant to be repeatable, so
+		// normalize to the last occurrence (a defensive fallback; a real invocation will only
+		// ever pass each of these once).
+		if (is_array($value)) {
+			$value = end($value);
+		}
+
 		switch($arg) {
 			case 'logfile':
 				$logfile = $value;
@@ -150,12 +158,12 @@ if ($logfile !== false) {
 }
 
 /*  display_version - displays version information */
-function display_version() {
+function display_version(): void {
 	$version = get_cacti_cli_version();
 	print "Cacti Import Slowlog, Version $version, " . COPYRIGHT_YEARS . PHP_EOL;
 }
 
-function display_help() {
+function display_help(): void {
 	display_version();
 
 	print PHP_EOL . 'usage: import_log.php [ --usecacti | --table-mode=cacti|reference|all ] --logid=N | --logfile=S | --reprocess=N|all' . PHP_EOL . PHP_EOL;

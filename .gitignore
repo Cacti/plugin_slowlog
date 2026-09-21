@@ -1,1 +1,5 @@
 /tests/fixtures/*.log
+/vendor/
+/phpstan-*-output.txt
+/phpstan-results.txt
+/.php-cs-fixer.cache

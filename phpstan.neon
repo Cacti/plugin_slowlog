@@ -1,0 +1,38 @@
+parameters:
+	level: 8
+
+	parallel:
+		maximumNumberOfProcesses: 8
+
+	paths:
+		- .
+
+	excludePaths:
+		analyse:
+			- tests/*
+		analyseAndScan:
+			- vendor/*
+			- js/*
+			- themes/*
+			- locales/*
+			- images/*
+
+	bootstrapFiles:
+		- phpstan-stubs.php
+
+	reportUnmatchedIgnoredErrors: false
+
+	ignoreErrors:
+		- identifier: missingType.iterableValue
+		- identifier: if.alwaysFalse
+		- identifier: notEqual.alwaysFalse
+		- identifier: notEqual.alwaysTrue
+		- identifier: equal.alwaysTrue
+		- identifier: if.alwaysTrue
+		- identifier: while.alwaysTrue
+		- identifier: greater.alwaysFalse
+		- identifier: identical.alwaysTrue
+		- identifier: identical.alwaysFalse
+		- identifier: booleanAnd.leftAlwaysTrue
+		- identifier: booleanAnd.leftAlwaysFalse
+		- identifier: function.alreadyNarrowedType

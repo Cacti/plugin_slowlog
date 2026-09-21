@@ -22,7 +22,7 @@
  +-------------------------------------------------------------------------+
 */
 
-function plugin_slowlog_install() {
+function plugin_slowlog_install(): void {
 	api_plugin_register_hook('slowlog', 'config_arrays',         'slowlog_config_arrays',        'setup.php');
 	api_plugin_register_hook('slowlog', 'draw_navigation_text',  'slowlog_draw_navigation_text', 'setup.php');
 	api_plugin_register_hook('slowlog', 'config_settings',       'slowlog_config_settings',      'setup.php');
@@ -34,15 +34,18 @@ function plugin_slowlog_install() {
 	slowlog_setup_table_new();
 }
 
-function slowlog_version() {
+/**
+ * @return array<string, mixed>
+ */
+function slowlog_version(): array {
 	global $config;
 
 	$info = parse_ini_file($config['base_path'] . '/plugins/slowlog/INFO', true);
 
-	return $info['info'];
+	return $info !== false ? $info['info'] : array();
 }
 
-function plugin_slowlog_uninstall() {
+function plugin_slowlog_uninstall(): void {
 	api_plugin_drop_table('plugin_slowlog');
 	api_plugin_drop_table('plugin_slowlog_details');
 	api_plugin_drop_table('plugin_slowlog_details_methods');
@@ -54,23 +57,26 @@ function plugin_slowlog_uninstall() {
 	api_plugin_drop_table('plugin_slowlog_stats');
 }
 
-function plugin_slowlog_check_config() {
+function plugin_slowlog_check_config(): bool {
 	/* Here we will check to ensure everything is configured */
 	slowlog_check_upgrade();
 	return true;
 }
 
-function plugin_slowlog_upgrade() {
+function plugin_slowlog_upgrade(): bool {
 	/* Here we will upgrade to the newest version */
 	slowlog_check_upgrade();
 	return false;
 }
 
-function plugin_slowlog_version() {
+/**
+ * @return array<string, mixed>
+ */
+function plugin_slowlog_version(): array {
 	return slowlog_version();
 }
 
-function slowlog_check_upgrade() {
+function slowlog_check_upgrade(): void {
 	global $config, $database_default;
 	include_once($config['library_path'] . '/database.php');
 	include_once($config['library_path'] . '/functions.php');
@@ -108,12 +114,12 @@ function slowlog_check_upgrade() {
 	}
 }
 
-function slowlog_check_dependencies() {
+function slowlog_check_dependencies(): bool {
 	global $plugins, $config;
 	return true;
 }
 
-function slowlog_setup_table_new() {
+function slowlog_setup_table_new(): void {
 	$data = array();
 	$data['columns'][] = array('name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true, 'comment' => 'The unique id for this log entry');
 	$data['columns'][] = array('name' => 'description', 'type' => 'varchar(128)', 'NULL' => false, 'default' => '', 'comment' => 'The description for the slow log');
@@ -272,7 +278,7 @@ function slowlog_setup_table_new() {
 	// The (id, word) primary key doesn't prevent duplicate words on a re-run, since id is
 	// auto-incrementing - only load once, when the table is still empty.
 	if (file_exists(__DIR__ . '/keywords.txt') && !db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_slowlog_reserved_words')) {
-		$words = file(__DIR__ . '/keywords.txt');
+		$words = file(__DIR__ . '/keywords.txt') ?: array();
 
 		if (cacti_sizeof($words)) {
 			foreach($words as $word) {
@@ -306,11 +312,11 @@ function slowlog_setup_table_new() {
 	api_plugin_db_table_create('slowlog', 'plugin_slowlog_stats', $data);
 }
 
-function slowlog_config_arrays() {
+function slowlog_config_arrays(): void {
 	slowlog_check_upgrade();
 }
 
-function slowlog_config_settings() {
+function slowlog_config_settings(): void {
 	global $tabs, $settings;
 
 	$tabs['misc'] = 'Misc';
@@ -325,7 +331,12 @@ function slowlog_config_settings() {
 	}
 }
 
-function slowlog_draw_navigation_text ($nav) {
+/**
+ * @param array<string, array<string, mixed>> $nav
+ *
+ * @return array<string, array<string, mixed>>
+ */
+function slowlog_draw_navigation_text(array $nav): array {
 	$nav['slowlog.php:']        = array('title' => 'MySQL Slowlog Viewer', 'mapping' => '', 'url' => 'slowlog.php', 'level' => '0');
 	$nav['slowlog.php:edit']    = array('title' => 'MySQL Slowlog Import', 'mapping' => '', 'url' => 'slowlog.php:', 'level' => '0');
 	$nav['slowlog.php:actions'] = array('title' => 'MySQL Slowlog Delete', 'mapping' => '', 'url' => 'slowlog.php', 'level' => '0');
@@ -338,7 +349,7 @@ function slowlog_draw_navigation_text ($nav) {
 	return $nav;
 }
 
-function slowlog_show_tab() {
+function slowlog_show_tab(): void {
 	global $config;
 
 	if (!isset($_SESSION['sess_slowlog_level'])) {
