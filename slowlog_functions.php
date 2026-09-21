@@ -121,6 +121,9 @@ function slowlog_bulk_insert_table_rows(array $rows) {
 /* the 5 plugin_slowlog_details columns plugin_slowlog_stats tracks a distribution for */
 const SLOWLOG_STATS_METRICS = array('query_time', 'rows_sent', 'rows_examined', 'rows_affected', 'bytes_sent');
 
+/* number of plugin_slowlog_details rows accumulated per bulk INSERT during import */
+const SLOWLOG_IMPORT_BATCH_SIZE = 1000;
+
 /*
  * Linear-interpolation percentile (matches numpy's default / Excel PERCENTILE.INC) over an
  * already-sorted array of numeric values. $p is 0-100. Computed in PHP rather than via a SQL
@@ -772,7 +775,7 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 					}
 				}
 
-				if (cacti_sizeof($records) > 1) {
+				if (cacti_sizeof($records) >= SLOWLOG_IMPORT_BATCH_SIZE) {
 					// turn the records array into a string
 					$sql_data = implode(',', $records);
 					$lines   += sizeof($records);
@@ -807,13 +810,20 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 				$bytes_sent      . ', ' .
 				db_qstr($oquery) . ', ' .
 				db_qstr($query)  . ')';
+			}
 
-				// turn the records array into a string
+			// Flush whatever's left in the batch (the trailing entry above, plus any
+			// records accumulated since the last SLOWLOG_IMPORT_BATCH_SIZE flush) - not
+			// gated behind $query, since a batch can still have unflushed rows even when
+			// the very last entry itself was empty.
+			if (cacti_sizeof($records)) {
 				$sql_data = implode(',', $records);
 				$lines   += sizeof($records);
 
 				// insert the records
 				db_execute($sql_prefix . $sql_data);
+
+				$records = array();
 			}
 
 			$values = db_fetch_row_prepared('SELECT COUNT(*) AS import_lines, MIN(date) AS start_time, MAX(date) AS end_time

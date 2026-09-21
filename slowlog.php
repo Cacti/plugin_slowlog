@@ -922,9 +922,7 @@ function slowlog_view_charts($method) {
 
 	html_start_box(__('MariaDB/MySQL SlowLog Results - By %s', ucfirst($method), 'slowlog'), '100%', '', '3', 'center', '');
 
-	print '<div class="flexContainer" style="width:100%;justify-content:space-between">';
-	print '<div style="flex-basis:98%" id="raw_count"></div>';
-	print '</div>';
+	print '<div style="width:100%;box-sizing:border-box;padding:8px" id="raw_count"></div>';
 
 	$rate_metrics = array(
 		'query'    => 'query_time',
@@ -935,13 +933,11 @@ function slowlog_view_charts($method) {
 	);
 
 	foreach($rate_metrics as $key => $measure) {
-		print '<div class="flexContainer" style="width:100%;justify-content:space-between;margin-top:10px">';
-		print '<div style="flex-basis:48%" id="raw_' . $key . '"></div>';
-		print '<div style="flex-basis:48%" id="box_' . $key . '"></div>';
-		print '</div>';
+		print '<div style="width:100%;box-sizing:border-box;padding:8px" id="raw_' . $key . '"></div>';
+		print '<div style="width:100%;box-sizing:border-box;padding:8px" id="box_' . $key . '"></div>';
 	}
 
-	$width  = 700;
+	$width  = '100%';
 	$height = 400;
 
 	// Chart titles are built from the user-supplied import description, so every dynamic
@@ -961,8 +957,8 @@ function slowlog_view_charts($method) {
 		json_encode($data['categories'], $json_flags)  . ','  .
 		json_encode($data['values'], $json_flags)      . ','  .
 		json_encode($mode, $json_flags)                . ','  .
-		$height                                        . ','  .
-		$width                                          . ');' . PHP_EOL;
+		json_encode($height, $json_flags)              . ','  .
+		json_encode($width, $json_flags)                . ');' . PHP_EOL;
 
 	foreach($rate_metrics as $key => $measure) {
 		$data = slowlog_get_chart_object($method, $measure);
@@ -974,8 +970,8 @@ function slowlog_view_charts($method) {
 			json_encode($data['categories'], $json_flags)  . ','  .
 			json_encode($data['values'], $json_flags)      . ','  .
 			json_encode($mode, $json_flags)                . ','  .
-			$height                                         . ','  .
-			$width                                          . ');' . PHP_EOL;
+			json_encode($height, $json_flags)              . ','  .
+			json_encode($width, $json_flags)                . ');' . PHP_EOL;
 
 		$stats = slowlog_get_stats_chart_object($method, $measure);
 
@@ -987,8 +983,8 @@ function slowlog_view_charts($method) {
 			json_encode($stats['box_data'], $json_flags)    . ','  .
 			json_encode($stats['p95_data'], $json_flags)    . ','  .
 			json_encode($mode, $json_flags)                 . ','  .
-			$height                                          . ','  .
-			$width                                           . ');' . PHP_EOL;
+			json_encode($height, $json_flags)               . ','  .
+			json_encode($width, $json_flags)                 . ');' . PHP_EOL;
 	}
 
 	html_end_box(false);
@@ -1391,7 +1387,7 @@ function slowlog_view() {
 			form_alternate_row('line_' . $entry['logid']);
 
 			if (empty($entry['import_status'])) {
-				$status = '<span class="deviceUnknown">' . __('Pre-Processing', 'slowlog') . '</span>';
+				$status = '<span class="deviceRecovering">' . __('Pre-Processing', 'slowlog') . '</span>';
 			} elseif ($entry['import_status'] == 1) {
 				$status = '<span class="deviceRecovering">' . __('Post-Processing', 'slowlog') . '</span>';
 			} elseif ($entry['import_status'] == 2) {
