@@ -1966,7 +1966,7 @@ function slowlog_chart_measures(): array {
  * box's top value, since a rare true-max outlier can otherwise flatten the rest of the box.
  */
 function slowlog_get_stats_chart_object(string $chart_type, string $measure, array $scope_filter = array(), bool $hide_max = false): array {
-	$id = get_filter_request_var('logid');
+	$id = (int) get_filter_request_var('logid');
 
 	$description = db_fetch_cell_prepared('SELECT description
 		FROM plugin_slowlog
@@ -2049,7 +2049,7 @@ function slowlog_get_chart_object(string $chart_type, string $measure, array $sc
 		return array();
 	}
 
-	$id = get_filter_request_var('logid');
+	$id = (int) get_filter_request_var('logid');
 
 	$description = db_fetch_cell_prepared('SELECT description
 		FROM plugin_slowlog
