@@ -1300,7 +1300,7 @@ function slowlog_charts_filter(string $method, int $id): void {
 						</td>
 						<td>
 							<label>
-								<input type='checkbox' id='hide_max' onChange='applyChartsFilter()'<?php print (get_request_var('hide_max') == 'on' ? ' checked' : '');?>>
+								<input type='checkbox' id='hide_max'<?php print (get_request_var('hide_max') == 'on' ? ' checked' : '');?>>
 								<?php print __('Hide Max (use p95 instead)', 'slowlog');?>
 							</label>
 						</td>
@@ -1349,6 +1349,10 @@ function slowlog_charts_filter(string $method, int $id): void {
 					label: '<?php print __esc('Search', 'slowlog');?>',
 					placeholder: '<?php print __esc('Enter keyword', 'slowlog');?>',
 					width: 200
+				});
+
+				$('#hide_max').on('change', function() {
+					applyChartsFilter();
 				});
 
 				$('#chartsfilter').submit(function(event) {
