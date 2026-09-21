@@ -1283,11 +1283,15 @@ function slowlog_view_charts(string $method): void {
  */
 function slowlog_request_charts_validation(string $chart_type): void {
 	$filters = array(
+		// FILTER_DEFAULT (not FILTER_CALLBACK/sanitize_search_string): chart_scope is a
+		// comma-delimited list of selected methods/tables, and sanitize_search_string()
+		// strips commas (replacing them with spaces), which silently collapsed every
+		// multi-selection down to a single unsplittable value. Validated against the
+		// actual allow-list below instead.
 		'chart_scope' => array(
-			'filter'  => FILTER_CALLBACK,
+			'filter'  => FILTER_DEFAULT,
 			'pageset' => true,
-			'default' => '',
-			'options' => array('options' => 'sanitize_search_string')
+			'default' => ''
 		),
 		'hide_max' => array(
 			'filter'  => FILTER_CALLBACK,
@@ -1298,6 +1302,21 @@ function slowlog_request_charts_validation(string $chart_type): void {
 	);
 
 	validate_store_request_vars($filters, 'sess_sl_chart_' . $chart_type);
+
+	// Reject any submitted scope value that isn't an actual method/table for this log,
+	// since chart_scope now skips sanitize_search_string and feeds straight into an
+	// IN (...) clause in slowlog_get_chart_object()/slowlog_get_stats_chart_object().
+	// get_filter_request_var() rejects non-numeric logid values consistently with every
+	// other chart query, rather than a raw (int) cast silently coercing them (e.g. "123abc").
+	$allowed  = slowlog_get_chart_scope_items($chart_type, (int) get_filter_request_var('logid'));
+	$selected = slowlog_get_chart_scope_filter();
+	$valid    = array_values(array_intersect($selected, $allowed));
+
+	if ($valid != $selected) {
+		set_request_var('chart_scope', implode(',', $valid));
+
+		$_SESSION['sess_sl_chart_' . $chart_type . '_chart_scope'] = get_request_var('chart_scope');
+	}
 }
 
 /**
@@ -1327,27 +1346,10 @@ function slowlog_get_chart_scope_filter(): array {
  * other filter in this plugin.
  */
 function slowlog_charts_filter(string $method, int $id): void {
-	$selected           = slowlog_get_chart_scope_filter();
-	$others_bucket_key  = ($method == 'tables') ? slowlog_others_bucket_key($id) : null;
-
-	if ($method == 'tables') {
-		$scope_label = __('Select Table', 'slowlog');
-
-		$scope_items = array_column(db_fetch_assoc_prepared('SELECT DISTINCT table_name AS value
-			FROM plugin_slowlog_details_tables
-			WHERE logid = ?
-			ORDER BY table_name',
-			array($id)), 'value');
-
-		$scope_items[] = $others_bucket_key;
-	} else {
-		$scope_label = __('Select Method', 'slowlog');
-
-		$scope_items = array_column(db_fetch_assoc_prepared('SELECT method AS value
-			FROM plugin_slowlog_methods
-			ORDER BY method',
-			array()), 'value');
-	}
+	$selected          = slowlog_get_chart_scope_filter();
+	$scope_label       = ($method == 'tables') ? __('Select Table', 'slowlog') : __('Select Method', 'slowlog');
+	$scope_items       = slowlog_get_chart_scope_items($method, $id);
+	$others_bucket_key = ($method == 'tables') ? slowlog_others_bucket_key($id) : null;
 
 	?>
 	<tr class='even'>

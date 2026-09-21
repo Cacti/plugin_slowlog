@@ -2293,5 +2293,29 @@ function slowlog_details_filter_clear_glyph(string $field): string {
 	return " <a class='pic' href='#' onclick=\"loadPageNoHeader('" . $url . "');return false;\"><i class='fa fa-trash-alt pic' title='" . __esc('Clear this filter', 'slowlog') . "'></i></a>";
 }
 
+/*
+ * The valid chart_scope values for a given chart type/log - i.e. the option list the
+ * scope multiselect renders, and also the allow-list chart_scope's post-validation
+ * filters submitted values down to (see slowlog_request_charts_validation()).
+ *
+ * @return array<int, string>
+ */
+function slowlog_get_chart_scope_items(string $chart_type, int $id): array {
+	if ($chart_type == 'tables') {
+		$scope_items = array_column(db_fetch_assoc_prepared('SELECT DISTINCT table_name AS value
+			FROM plugin_slowlog_details_tables
+			WHERE logid = ?
+			ORDER BY table_name',
+			array($id)), 'value');
 
+		$scope_items[] = slowlog_others_bucket_key($id);
+	} else {
+		$scope_items = array_column(db_fetch_assoc_prepared('SELECT method AS value
+			FROM plugin_slowlog_methods
+			ORDER BY method',
+			array()), 'value');
+	}
+
+	return $scope_items;
+}
 
