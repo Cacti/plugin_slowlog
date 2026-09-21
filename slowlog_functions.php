@@ -2177,3 +2177,90 @@ function slowlog_get_chart_object_live(int $logid, string $scope, string $measur
 	}
 }
 
+/*
+ * The details-page filters that slowlog_details_filter_url() carries forward when
+ * overriding one of them.
+ */
+function slowlog_details_filter_fields(): array {
+	return array('logid', 'mmethod', 'method_name', 'table', 'user', 'host', 'filter', 'date1', 'date2', 'rows');
+}
+
+/*
+ * Each clearable field's 'unset' value - shared between the click-to-filter links (table/
+ * method/user/host cells) and their per-field 'clear this filter' trash-can links, so both
+ * always agree on what 'default' means for a given field. date1/date2/filter/rows/logid
+ * aren't included: they're not set by the click-to-filter links, so they have no trash can.
+ */
+function slowlog_details_filter_defaults(): array {
+	return array(
+		'mmethod'     => '-1',
+		'method_name' => '',
+		'table'       => '-1',
+		'user'        => '-1',
+		'host'        => '-1'
+	);
+}
+
+/*
+ * Builds a details-page URL that keeps every current filter as-is except $field, which is
+ * set to $value. Passing a field's own default (see slowlog_details_filter_defaults()) as
+ * $value clears just that one filter. method_name and mmethod both represent "the Method
+ * filter" (by name vs by id), so setting either one clears the other.
+ */
+function slowlog_details_filter_url(string $field, string $value): string {
+	$current = array();
+
+	foreach (slowlog_details_filter_fields() as $key) {
+		$current[$key] = get_request_var($key);
+	}
+
+	$current[$field] = $value;
+
+	if ($field == 'method_name' && $value != '') {
+		$current['mmethod'] = '-1';
+	} elseif ($field == 'mmethod') {
+		$current['method_name'] = '';
+	}
+
+	$query = 'action=details';
+
+	foreach ($current as $key => $value) {
+		$query .= '&' . $key . '=' . urlencode($value);
+	}
+
+	return 'slowlog.php?' . $query;
+}
+
+/*
+ * Whether $field currently differs from its default - i.e. whether its 'clear this filter'
+ * trash-can link should be shown at all.
+ */
+function slowlog_details_filter_is_active(string $field): bool {
+	$defaults = slowlog_details_filter_defaults();
+
+	if ($field == 'mmethod') {
+		return get_request_var('mmethod') != $defaults['mmethod'] || get_request_var('method_name') != $defaults['method_name'];
+	}
+
+	return get_request_var($field) != $defaults[$field];
+}
+
+/*
+ * A small trash-can icon next to a details-page filter label, shown only while that filter
+ * is active, that clears just that one field (leaving every other active filter alone).
+ * Uses the same 'pic' anchor+icon pairing as the row-action icons elsewhere in this file
+ * (e.g. the 'View Details' magnifying glass), rather than a bespoke CSS class.
+ */
+function slowlog_details_filter_clear_glyph(string $field): string {
+	if (!slowlog_details_filter_is_active($field)) {
+		return '';
+	}
+
+	$defaults = slowlog_details_filter_defaults();
+	$url      = slowlog_details_filter_url($field, $defaults[$field]) . '&header=false';
+
+	return " <a class='pic' href='#' onclick=\"loadPageNoHeader('" . $url . "');return false;\"><i class='fa fa-trash-alt pic' title='" . __esc('Clear this filter', 'slowlog') . "'></i></a>";
+}
+
+
+
