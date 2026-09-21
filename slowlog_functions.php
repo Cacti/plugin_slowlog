@@ -2122,7 +2122,7 @@ function slowlog_get_chart_object(string $chart_type, string $measure, array $sc
  * Whether any plugin_slowlog_stats rows exist at all for $logid, regardless of scope/metric.
  * Distinguishes "never cached (pre-cache log)" from "cached, but legitimately no matches".
  */
-function slowlog_has_stats_cache($logid) {
+function slowlog_has_stats_cache(int $logid): bool {
 	return (bool) db_fetch_cell_prepared('SELECT 1
 		FROM plugin_slowlog_stats
 		WHERE logid = ?
@@ -2136,7 +2136,7 @@ function slowlog_has_stats_cache($logid) {
  * plugin_slowlog_stats cache existed (slowlog_has_stats_cache() returns false for them), since
  * their raw-totals charts have no cached rows to read.
  */
-function slowlog_get_chart_object_live($logid, $scope, $measure, $limit) {
+function slowlog_get_chart_object_live(int $logid, string $scope, string $measure, string $limit): array {
 	$agg = ($measure == 'count') ? 'COUNT(*)' : "SUM($measure)";
 
 	if ($scope == 'method') {

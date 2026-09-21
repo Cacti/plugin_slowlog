@@ -42,7 +42,11 @@ function slowlog_version(): array {
 
 	$info = parse_ini_file($config['base_path'] . '/plugins/slowlog/INFO', true);
 
-	return $info !== false ? $info['info'] : array();
+	if ($info === false || !isset($info['info']) || !is_array($info['info'])) {
+		return array();
+	}
+
+	return $info['info'];
 }
 
 function plugin_slowlog_uninstall(): void {
@@ -91,8 +95,8 @@ function slowlog_check_upgrade(): void {
 
 	// The rest of this function indexes 'version'/'longname'/etc. directly - bail out rather
 	// than risk undefined-key warnings and writing null metadata into plugin_config if the
-	// INFO file is ever unreadable/malformed.
-	if (!isset($info['version'])) {
+	// INFO file is ever unreadable/malformed or missing any of these keys.
+	if (!isset($info['version'], $info['longname'], $info['author'], $info['homepage'], $info['name'])) {
 		return;
 	}
 

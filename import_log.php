@@ -128,6 +128,12 @@ if (cacti_sizeof($parms)) {
 	}
 }
 
+if ($logid !== false && !preg_match('/^[1-9][0-9]*$/', trim((string) $logid))) {
+	print __('ERROR: Invalid --logid value \'%s\', must be a positive integer', $logid, 'slowlog') . PHP_EOL . PHP_EOL;
+	display_help();
+	exit(1);
+}
+
 if ($logfile !== false) {
 	if ($table_mode === 'reference' && trim($table_names) === '') {
 		print 'ERROR: --table-mode=reference requires --table-names="..." for a --logfile import' . PHP_EOL . PHP_EOL;
@@ -144,12 +150,6 @@ if ($logfile !== false) {
 		@unlink($logfile);
 	}
 } elseif ($logid !== false) {
-	if (!preg_match('/^[1-9][0-9]*$/', trim((string) $logid))) {
-		print "ERROR: Invalid --logid value '$logid', must be a positive integer" . PHP_EOL . PHP_EOL;
-		display_help();
-		exit(1);
-	}
-
 	import_post_process((int) $logid, $table_names, $usecacti, $table_mode);
 } elseif ($reprocess !== false) {
 	if (strtolower($reprocess) == 'all') {
