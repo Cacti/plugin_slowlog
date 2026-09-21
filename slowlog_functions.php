@@ -378,8 +378,37 @@ function slowlog_collect_stats_by_matched_table(int $logid, array &$values, int 
 	} while ($batch_count === $chunk_size);
 }
 
+/*
+ * The scope_key used for the synthetic "no recognized table" bucket. Ordinarily just
+ * 'others', but a real table can legitimately be named that too - since both would
+ * otherwise merge into the same plugin_slowlog_stats/chart-category bucket (and, from
+ * the By Table chart, become indistinguishable when drilling down to slowlog.php?table=...),
+ * fall back to the first candidate below no real table_name for this log collides with.
+ */
+function slowlog_others_bucket_key(int $logid): string {
+	$candidates = array('others', 'others (unmatched)', 'others (unmatched queries)');
+
+	foreach ($candidates as $candidate) {
+		$collision = db_fetch_cell_prepared('SELECT 1
+			FROM plugin_slowlog_details_tables
+			WHERE logid = ?
+			AND table_name = ?
+			LIMIT 1',
+			array($logid, $candidate));
+
+		if (!$collision) {
+			return $candidate;
+		}
+	}
+
+	// All candidates collided (astronomically unlikely) - fall back to something
+	// no real, human-typed table name would ever contain.
+	return "\x00others";
+}
+
 function slowlog_collect_stats_by_unmatched_table(int $logid, array &$values, int $chunk_size = 5000, array &$totals = array()): void {
 	$last_logentry = 0;
+	$bucket_key    = slowlog_others_bucket_key($logid);
 
 	do {
 		$rows = db_fetch_assoc_prepared('SELECT d.logentry,
@@ -399,7 +428,7 @@ function slowlog_collect_stats_by_unmatched_table(int $logid, array &$values, in
 			$last_logentry = $row['logentry'];
 
 			foreach(SLOWLOG_STATS_METRICS as $metric) {
-				slowlog_accumulate_stat_value($values, $totals, 'others', $metric, (float) $row[$metric]);
+				slowlog_accumulate_stat_value($values, $totals, $bucket_key, $metric, (float) $row[$metric]);
 			}
 		}
 	} while ($batch_count === $chunk_size);
@@ -2172,6 +2201,8 @@ function slowlog_get_chart_object_live(int $logid, string $scope, string $measur
 			ORDER BY value DESC" . $limit,
 			array($logid));
 	} else {
+		$bucket_key = slowlog_others_bucket_key($logid);
+
 		return db_fetch_assoc_prepared("SELECT *
 			FROM (
 				SELECT table_name AS scope_key,
@@ -2182,7 +2213,7 @@ function slowlog_get_chart_object_live(int $logid, string $scope, string $measur
 				WHERE d.logid = ?
 				GROUP BY table_name
 				UNION ALL
-				SELECT 'others' AS scope_key,
+				SELECT ? AS scope_key,
 					$agg AS value
 				FROM plugin_slowlog_details AS d
 				LEFT JOIN plugin_slowlog_details_tables AS dt
@@ -2192,8 +2223,93 @@ function slowlog_get_chart_object_live(int $logid, string $scope, string $measur
 				GROUP BY table_name
 			) AS fish
 			ORDER BY value DESC" . $limit,
-			array($logid, $logid));
+			array($logid, $bucket_key, $logid));
 	}
+}
+
+/*
+ * The details-page filters that slowlog_details_filter_url() carries forward when
+ * overriding one of them.
+ */
+function slowlog_details_filter_fields(): array {
+	return array('logid', 'mmethod', 'method_name', 'table', 'user', 'host', 'filter', 'date1', 'date2', 'rows');
+}
+
+/*
+ * Each clearable field's 'unset' value - shared between the click-to-filter links (table/
+ * method/user/host cells) and their per-field 'clear this filter' trash-can links, so both
+ * always agree on what 'default' means for a given field. date1/date2/filter/rows/logid
+ * aren't included: they're not set by the click-to-filter links, so they have no trash can.
+ */
+function slowlog_details_filter_defaults(): array {
+	return array(
+		'mmethod'     => '-1',
+		'method_name' => '',
+		'table'       => '-1',
+		'user'        => '-1',
+		'host'        => '-1'
+	);
+}
+
+/*
+ * Builds a details-page URL that keeps every current filter as-is except $field, which is
+ * set to $value. Passing a field's own default (see slowlog_details_filter_defaults()) as
+ * $value clears just that one filter. method_name and mmethod both represent "the Method
+ * filter" (by name vs by id), so setting either one clears the other.
+ */
+function slowlog_details_filter_url(string $field, string $value): string {
+	$current = array();
+
+	foreach (slowlog_details_filter_fields() as $key) {
+		$current[$key] = get_request_var($key);
+	}
+
+	$current[$field] = $value;
+
+	if ($field == 'method_name' && $value != '') {
+		$current['mmethod'] = '-1';
+	} elseif ($field == 'mmethod') {
+		$current['method_name'] = '';
+	}
+
+	$query = 'action=details';
+
+	foreach ($current as $key => $value) {
+		$query .= '&' . $key . '=' . urlencode($value);
+	}
+
+	return 'slowlog.php?' . $query;
+}
+
+/*
+ * Whether $field currently differs from its default - i.e. whether its 'clear this filter'
+ * trash-can link should be shown at all.
+ */
+function slowlog_details_filter_is_active(string $field): bool {
+	$defaults = slowlog_details_filter_defaults();
+
+	if ($field == 'mmethod') {
+		return get_request_var('mmethod') != $defaults['mmethod'] || get_request_var('method_name') != $defaults['method_name'];
+	}
+
+	return get_request_var($field) != $defaults[$field];
+}
+
+/*
+ * A small trash-can icon next to a details-page filter label, shown only while that filter
+ * is active, that clears just that one field (leaving every other active filter alone).
+ * Uses the same 'pic' anchor+icon pairing as the row-action icons elsewhere in this file
+ * (e.g. the 'View Details' magnifying glass), rather than a bespoke CSS class.
+ */
+function slowlog_details_filter_clear_glyph(string $field): string {
+	if (!slowlog_details_filter_is_active($field)) {
+		return '';
+	}
+
+	$defaults = slowlog_details_filter_defaults();
+	$url      = slowlog_details_filter_url($field, $defaults[$field]) . '&header=false';
+
+	return " <a class='pic' href='#' onclick=\"loadPageNoHeader('" . $url . "');return false;\"><i class='fa fa-trash-alt pic' title='" . __esc('Clear this filter', 'slowlog') . "'></i></a>";
 }
 
 /*
@@ -2211,7 +2327,7 @@ function slowlog_get_chart_scope_items(string $chart_type, int $id): array {
 			ORDER BY table_name',
 			array($id)), 'value');
 
-		$scope_items[] = 'others';
+		$scope_items[] = slowlog_others_bucket_key($id);
 	} else {
 		$scope_items = array_column(db_fetch_assoc_prepared('SELECT method AS value
 			FROM plugin_slowlog_methods
@@ -2221,5 +2337,4 @@ function slowlog_get_chart_scope_items(string $chart_type, int $id): array {
 
 	return $scope_items;
 }
-
 
