@@ -496,6 +496,12 @@ function slowlog_import(): void {
 				return;
 			}
 
+			// Cacti's own applySkin() debounce deliberately excludes import/export
+			// submit buttons (.not('.import, .export') in include/layout.js), so a
+			// fast double-click/Enter+click isn't blocked there - disable it ourselves
+			// so a second submit can't slip through and queue a duplicate import.
+			$(form).find('input[type="submit"], button[type="submit"]').prop('disabled', true);
+
 			initDonut();
 
 			$('#slowlog_upload_progress').show();
@@ -549,6 +555,7 @@ function slowlog_import(): void {
 				}
 			}).fail(function() {
 				$('#slowlog_upload_progress_text').text('<?php print __esc('Upload failed - please try again.', 'slowlog');?>');
+				$(form).find('input[type="submit"], button[type="submit"]').prop('disabled', false);
 			}).always(function() {
 				xhrInFlight = null;
 
@@ -906,13 +913,22 @@ function slowlog_view_charts(string $method): void {
 
 	$id = get_filter_request_var('logid');
 
+	slowlog_request_charts_validation($method);
+
+	$scope_filter = slowlog_get_chart_scope_filter();
+	$hide_max     = (get_request_var('hide_max') == 'on');
+
 	slowlog_tabs();
+
+	html_start_box(__('Chart Filters', 'slowlog'), '100%', '', 3, 'center', '');
+
+	slowlog_charts_filter($method, $id);
+
+	html_end_box();
 
 	html_start_box(__('MariaDB/MySQL SlowLog Results - By %s', ucfirst($method), 'slowlog'), '100%', '', 3, 'center', '');
 
-	print '<div class="flexContainer" style="width:100%;justify-content:space-between">';
-	print '<div style="flex-basis:98%" id="raw_count"></div>';
-	print '</div>';
+	print '<div style="width:100%;box-sizing:border-box;padding:8px" id="raw_count"></div>';
 
 	$rate_metrics = array(
 		'query'    => 'query_time',
@@ -923,13 +939,11 @@ function slowlog_view_charts(string $method): void {
 	);
 
 	foreach($rate_metrics as $key => $measure) {
-		print '<div class="flexContainer" style="width:100%;justify-content:space-between;margin-top:10px">';
-		print '<div style="flex-basis:48%" id="raw_' . $key . '"></div>';
-		print '<div style="flex-basis:48%" id="box_' . $key . '"></div>';
-		print '</div>';
+		print '<div style="width:100%;box-sizing:border-box;padding:8px" id="raw_' . $key . '"></div>';
+		print '<div style="width:100%;box-sizing:border-box;padding:8px" id="box_' . $key . '"></div>';
 	}
 
-	$width  = 700;
+	$width  = '100%';
 	$height = 400;
 
 	// Chart titles are built from the user-supplied import description, so every dynamic
@@ -940,7 +954,7 @@ function slowlog_view_charts(string $method): void {
 
 	$output = '';
 
-	$data = slowlog_get_chart_object($method, 'count');
+	$data = slowlog_get_chart_object($method, 'count', $scope_filter);
 
 	$output .= 'renderChart(' .
 		'"raw_count",' .
@@ -949,11 +963,11 @@ function slowlog_view_charts(string $method): void {
 		json_encode($data['categories'], $json_flags)  . ','  .
 		json_encode($data['values'], $json_flags)      . ','  .
 		json_encode($mode, $json_flags)                . ','  .
-		$height                                        . ','  .
-		$width                                          . ');' . PHP_EOL;
+		json_encode($height, $json_flags)              . ','  .
+		json_encode($width, $json_flags)                . ');' . PHP_EOL;
 
 	foreach($rate_metrics as $key => $measure) {
-		$data = slowlog_get_chart_object($method, $measure);
+		$data = slowlog_get_chart_object($method, $measure, $scope_filter);
 
 		$output .= 'renderChart(' .
 			'"raw_' . $key . '",' .
@@ -962,10 +976,10 @@ function slowlog_view_charts(string $method): void {
 			json_encode($data['categories'], $json_flags)  . ','  .
 			json_encode($data['values'], $json_flags)      . ','  .
 			json_encode($mode, $json_flags)                . ','  .
-			$height                                         . ','  .
-			$width                                          . ');' . PHP_EOL;
+			json_encode($height, $json_flags)              . ','  .
+			json_encode($width, $json_flags)                . ');' . PHP_EOL;
 
-		$stats = slowlog_get_stats_chart_object($method, $measure);
+		$stats = slowlog_get_stats_chart_object($method, $measure, $scope_filter, $hide_max);
 
 		$output .= 'renderBoxChart(' .
 			'"box_' . $key . '",' .
@@ -975,8 +989,8 @@ function slowlog_view_charts(string $method): void {
 			json_encode($stats['box_data'], $json_flags)    . ','  .
 			json_encode($stats['p95_data'], $json_flags)    . ','  .
 			json_encode($mode, $json_flags)                 . ','  .
-			$height                                          . ','  .
-			$width                                           . ');' . PHP_EOL;
+			json_encode($height, $json_flags)               . ','  .
+			json_encode($width, $json_flags)                 . ');' . PHP_EOL;
 	}
 
 	html_end_box(false);
@@ -1194,6 +1208,139 @@ function slowlog_view_charts(string $method): void {
 	<?php
 }
 
+/*
+ * Input validation and session storage for the chart filters (method/table scope
+ * multiselect + hide-max checkbox), persisted per chart type (methods vs tables have
+ * different scope_key value sets, so they're kept in separate session buckets).
+ */
+function slowlog_request_charts_validation(string $chart_type): void {
+	$filters = array(
+		'chart_scope' => array(
+			'filter'  => FILTER_CALLBACK,
+			'pageset' => true,
+			'default' => '',
+			'options' => array('options' => 'sanitize_search_string')
+		),
+		'hide_max' => array(
+			'filter'  => FILTER_CALLBACK,
+			'pageset' => true,
+			'default' => '',
+			'options' => array('options' => 'sanitize_search_string')
+		),
+	);
+
+	validate_store_request_vars($filters, 'sess_sl_chart_' . $chart_type);
+}
+
+/**
+ * splits the persisted comma-separated 'chart_scope' request var into a clean array
+ *
+ * @return array<int, string>
+ */
+function slowlog_get_chart_scope_filter(): array {
+	$raw = get_request_var('chart_scope');
+
+	if (trim($raw) == '') {
+		return array();
+	}
+
+	return array_values(array_filter(array_map('trim', explode(',', $raw)), function($value) {
+		return $value !== '';
+	}));
+}
+
+/*
+ * One-line filter row above the By Method/By Table charts: a multiselect of the
+ * available methods (or tables) to restrict which categories are charted, a
+ * checkbox to swap the box-whisker's max value for its p95 (the true max is often
+ * a rare outlier that flattens the rest of the box on the chart's Y axis), and the
+ * usual Go/Clear buttons. Filter state is persisted via
+ * slowlog_request_charts_validation()/validate_store_request_vars() same as every
+ * other filter in this plugin.
+ */
+function slowlog_charts_filter(string $method, int $id): void {
+	$selected = slowlog_get_chart_scope_filter();
+
+	if ($method == 'tables') {
+		$scope_label = __('Select Table', 'slowlog');
+
+		$scope_items = array_column(db_fetch_assoc_prepared('SELECT DISTINCT table_name AS value
+			FROM plugin_slowlog_details_tables
+			WHERE logid = ?
+			ORDER BY table_name',
+			array($id)), 'value');
+
+		$scope_items[] = 'others';
+	} else {
+		$scope_label = __('Select Method', 'slowlog');
+
+		$scope_items = array_column(db_fetch_assoc_prepared('SELECT method AS value
+			FROM plugin_slowlog_methods
+			ORDER BY method',
+			array()), 'value');
+	}
+
+	?>
+	<tr class='even'>
+		<td>
+			<form id='chartsfilter'>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print html_escape($scope_label);?>
+						</td>
+						<td>
+							<select id='chart_scope' multiple size='6' onChange='applyChartsFilter()'>
+								<?php
+								foreach ($scope_items as $value) {
+									print '<option value="' . html_escape($value) . '"' . (in_array($value, $selected, true) ? ' selected' : '') . '>' . html_escape($value) . '</option>';
+								}
+								?>
+							</select>
+						</td>
+						<td>
+							<label>
+								<input type='checkbox' id='hide_max' onChange='applyChartsFilter()'<?php print (get_request_var('hide_max') == 'on' ? ' checked' : '');?>>
+								<?php print __('Hide Max (use p95 instead)', 'slowlog');?>
+							</label>
+						</td>
+						<td>
+							<span>
+								<input class='button_go' type='submit' onClick='applyChartsFilter()' name='go' value='<?php print __('Go', 'slowlog');?>'>
+								<input class='button_clear' type='button' onClick='clearChartsFilter()' name='clear' value='<?php print __('Clear', 'slowlog');?>'>
+							</span>
+						</td>
+					</tr>
+				</table>
+			</form>
+			<script type='text/javascript'>
+			function applyChartsFilter() {
+				var strURL = 'slowlog.php?action=<?php print $method == 'tables' ? 'tables' : 'methods';?>&header=false&logid=<?php print (int) $id;?>';
+
+				strURL += '&chart_scope=' + ($('#chart_scope').val() || []).join(',');
+				strURL += '&hide_max=' + ($('#hide_max').is(':checked') ? 'on' : '');
+
+				loadPageNoHeader(strURL);
+			}
+
+			function clearChartsFilter() {
+				var strURL = 'slowlog.php?header=false&reset=true&action=<?php print $method == 'tables' ? 'tables' : 'methods';?>&logid=<?php print (int) $id;?>';
+
+				loadPageNoHeader(strURL);
+			}
+
+			$(function() {
+				$('#chartsfilter').submit(function(event) {
+					event.preventDefault();
+					applyChartsFilter();
+				});
+			});
+			</script>
+		</td>
+	</tr>
+	<?php
+}
+
 function slowlog_view_query(): void {
 	global $config;
 
@@ -1364,8 +1511,14 @@ function slowlog_view(): void {
 
 	html_header_sort_checkbox($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false, 'slowlog.php?action=select');
 
+	$has_pending = false;
+
 	if (cacti_sizeof($entries)) {
 		foreach ($entries as $entry) {
+			if (empty($entry['import_status'])) {
+				$has_pending = true;
+			}
+
 			$html = "<a class='pic' href='slowlog.php?action=methods&reset=true&logid=" . $entry['logid'] . "'>
 				<i class='fas fa-poll deviceUp' title='View Methods'></i></a>
 				<a class='pic' href='" . html_escape($config['url_path'] . 'plugins/slowlog/slowlog.php?action=tables&reset=true&logid=' . $entry["logid"]) . "'>
@@ -1376,7 +1529,7 @@ function slowlog_view(): void {
 			form_alternate_row('line_' . $entry['logid']);
 
 			if (empty($entry['import_status'])) {
-				$status = '<span class="deviceUnknown">' . __('Pre-Processing', 'slowlog') . '</span>';
+				$status = '<span class="deviceRecovering">' . __('Pre-Processing', 'slowlog') . '</span>';
 			} elseif ($entry['import_status'] == 1) {
 				$status = '<span class="deviceRecovering">' . __('Post-Processing', 'slowlog') . '</span>';
 			} elseif ($entry['import_status'] == 2) {
@@ -1406,6 +1559,22 @@ function slowlog_view(): void {
 	}
 
 	html_end_box(false);
+
+	// At least one import is still Pre-Processing (the background ingest worker hasn't
+	// finished) - use Cacti's built-in page refresh timer so the status column updates
+	// without a manual refresh. setupPageTimeout() clears/recreates this timer on every
+	// AJAX navigation, so it can't stack or fire against a page the user has since left.
+	if ($has_pending) {
+		?>
+		<script type="text/javascript">
+		refreshIsLogout = false;
+		refreshPage     = <?php print json_encode(sanitize_uri($_SERVER['REQUEST_URI'])); ?>;
+		refreshMSeconds = 5000;
+		refreshFunction = '';
+		setupPageTimeout();
+		</script>
+		<?php
+	}
 
 	draw_actions_dropdown($actions);
 
