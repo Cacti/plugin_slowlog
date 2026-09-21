@@ -1333,7 +1333,7 @@ function slowlog_charts_filter(string $method, int $id): void {
 				$('#chart_scope').multiselect({
 					menuHeight: $(window).height() * .7,
 					menuWidth: 'auto',
-					noneSelectedText: '<?php print $scope_label;?>',
+					noneSelectedText: '<?php print html_escape($scope_label);?>',
 					selectedText: function(numChecked, numTotal, checkedItems) {
 						return numChecked + ' <?php print __esc('Selected', 'slowlog');?>';
 					},
