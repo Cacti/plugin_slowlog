@@ -870,12 +870,22 @@ function slowlog_view_details(): void {
 				<a class='pic' href='slowlog.php?action=query&logid=<?php print $r['logid'];?>&logentry=<?php print $r['logentry'];?>'><i class='fas fa-search-plus pic' title='<?php print __esc('View Details', 'slowlog');?>'></i></a>
 			</td>
 			<td>
-				<a class='pic' class='linkEditMain' href='<?php print html_escape('slowlog.php?action=details&table=' . $table . '&logid=' . $r['logid']);?>'><?php print html_escape($table);?></a>
+				<a class='pic linkEditMain' href='<?php print html_escape(slowlog_details_filter_url('table', $r['table_name'] != '' ? $r['table_name'] : '-2'));?>'><?php print html_escape($table);?></a>
 			</td>
-			<td><?php print $r['method'];?></td>
+			<td>
+				<?php if ($r['method'] != '' && $r['method'] != 'N/A') {?>
+				<a class='pic linkEditMain' href='<?php print html_escape(slowlog_details_filter_url('method_name', $r['method']));?>'><?php print html_escape($r['method']);?></a>
+				<?php } else {?>
+				<?php print html_escape($r['method']);?>
+				<?php }?>
+			</td>
 			<td><?php print $r['date'];?></td>
-			<td><?php print filter_value($r['user'], get_request_var('filter'));?></td>
-			<td><?php print filter_value($r['host'], get_request_var('filter'));?></td>
+			<td>
+				<a class='pic linkEditMain' href='<?php print html_escape(slowlog_details_filter_url('user', $r['user']));?>'><?php print filter_value($r['user'], get_request_var('filter'));?></a>
+			</td>
+			<td>
+				<a class='pic linkEditMain' href='<?php print html_escape(slowlog_details_filter_url('host', $r['host']));?>'><?php print filter_value($r['host'], get_request_var('filter'));?></a>
+			</td>
 			<td class='right'><?php print number_format_i18n($r['query_time']);?></td>
 			<td class='right'><?php print number_format_i18n($r['lock_time']);?></td>
 			<td class='right'><?php print number_format_i18n($r['rows_sent']);?></td>
@@ -1816,7 +1826,7 @@ function slowlog_details_filter(): void {
 							</select>
 						</td>
 						<td>
-							<?php print __('Method', 'slowlog');?>
+							<?php print __('Method', 'slowlog');?><?php print slowlog_details_filter_clear_glyph('mmethod');?>
 						</td>
 						<td>
 							<select id='mmethod' onChange='applyFilter()'>
@@ -1837,7 +1847,7 @@ function slowlog_details_filter(): void {
 							</select>
 						</td>
 						<td>
-							<?php print __('Tables', 'slowlog');?>
+							<?php print __('Tables', 'slowlog');?><?php print slowlog_details_filter_clear_glyph('table');?>
 						</td>
 						<td>
 							<select id='table' onChange='applyFilter()'>
@@ -1898,7 +1908,7 @@ function slowlog_details_filter(): void {
 							<input type='text' id='filter' size='40' value='<?php print html_escape_request_var('filter');?>'>
 						</td>
 						<td>
-							<?php print __('User', 'slowlog');?>
+							<?php print __('User', 'slowlog');?><?php print slowlog_details_filter_clear_glyph('user');?>
 						</td>
 						<td>
 							<select id='myuser' onChange='applyFilter()'>
@@ -1926,7 +1936,7 @@ function slowlog_details_filter(): void {
 							</select>
 						</td>
 						<td>
-							<?php print __('Host', 'slowlog');?>
+							<?php print __('Host', 'slowlog');?><?php print slowlog_details_filter_clear_glyph('host');?>
 						</td>
 						<td>
 							<select id='host' onChange='applyFilter()'>
