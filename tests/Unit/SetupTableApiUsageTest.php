@@ -132,7 +132,10 @@ it('seeds the new methods introduced for this feature', function () {
 	slowlog_setup_table_new();
 
 	$seed = slowlog_test_calls_to($GLOBALS['__test_db_calls'], 'db_execute');
-	$sql  = $seed[0]['sql'];
+	$insert = current(array_filter($seed, function ($call) {
+		return strpos($call['sql'], 'INSERT IGNORE INTO `plugin_slowlog_methods`') !== false;
+	}));
+	$sql = $insert['sql'];
 
 	foreach (array('INFILES', 'GROUP BY', 'COUNTS', 'SHOWS', 'UNION ALLS', 'MAX_EXECUTION_TIME', 'MAX_STATEMENT_TIME', 'OTHER TABLES', 'FORCE INDEX', 'ALTERS', 'DROPS', 'ANALYZES', 'OPTIMIZES', 'CREATES', 'CREATE TEMPS') as $method) {
 		expect($sql)->toContain("'" . $method . "'");
