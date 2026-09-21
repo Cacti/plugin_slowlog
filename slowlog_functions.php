@@ -575,7 +575,7 @@ function slowlog_classify_other_tables_against_list($logid, array $reference_tab
 }
 
 
-function import_logfile($logfile, $description = 'Imported using import_log utility', $length = 8192, $table_names = '', $usecacti = false, $batch = true, $table_mode = null) {
+function import_logfile($logfile, $description = 'Imported using import_log utility', $length = 8192, $table_names = '', $usecacti = false, $batch = true, $table_mode = null, $logid = null) {
 	global $config;
 
 	ini_set('max_execution_time', 0);
@@ -636,19 +636,24 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 				} elseif (strpos($l, '# Time:') !== false) {
 					// we are a good log, let's make an entry
 					if (!$start) {
-						$save['logid']         = 0;
-						$save['description']   = $description;
-						$save['import_date']   = date('Y-m-d H:i:s');
-						$save['import_lines']  = 0;
-						$save['import_tables'] = $table_names;
-						$save['start_time']    = date('Y-m-d H:i:s');
-						$save['end_time']      = date('Y-m-d H:i:s');
+						// A caller (the web upload handler) may have already inserted the parent
+						// record up front so the UI has something to show immediately - only
+						// create one here if it didn't.
+						if ($logid === null) {
+							$save['logid']         = 0;
+							$save['description']   = $description;
+							$save['import_date']   = date('Y-m-d H:i:s');
+							$save['import_lines']  = 0;
+							$save['import_tables'] = $table_names;
+							$save['start_time']    = date('Y-m-d H:i:s');
+							$save['end_time']      = date('Y-m-d H:i:s');
 
-						$logid = sql_save($save, 'plugin_slowlog', 'logid');
+							$logid = sql_save($save, 'plugin_slowlog', 'logid');
 
-						if ($logid == 0) {
-							print "FATAL: Can not import due to error creating parent record in 'plugin_slowlog'\n";
-							exit -1;
+							if ($logid == 0) {
+								print "FATAL: Can not import due to error creating parent record in 'plugin_slowlog'\n";
+								exit -1;
+							}
 						}
 
 						$start = true;
@@ -828,6 +833,22 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 			}
 		}
 
+		// No '# Time:' line was ever found - this isn't a recognizable MySQL/MariaDB
+		// slow query log, so there's nothing to post-process. Report it rather than
+		// leaving the (possibly pre-created) parent record stuck at Pre-Processing.
+		if (!$start) {
+			if ($logid !== null) {
+				db_execute_prepared('UPDATE plugin_slowlog
+					SET import_status = 3,
+					import_text_status = ?
+					WHERE logid = ?',
+					array(__('Bad File Format - No Slow Query Log Entries Found', 'slowlog'), $logid));
+			} else {
+				print "FATAL: Bad File Format - No Slow Query Log Entries Found in '$logfile'\n";
+			}
+
+			return;
+		}
 
 		if ($batch) {
 			raise_message('import_pre', __('The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete', 'slowlog'), MESSAGE_LEVEL_INFO);
