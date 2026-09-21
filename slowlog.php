@@ -505,8 +505,15 @@ function slowlog_import() {
 
 				// The server-side response already followed the same redirect a native
 				// submit would have (Location: slowlog.php) - $.ajax just hands us the
-				// destination page's body rather than navigating, so do that ourselves.
-				window.location.href = 'slowlog.php';
+				// destination page's body rather than navigating, so reload via Cacti's
+				// own AJAX page navigation (include/layout.js) instead of a hard page
+				// reload. force=true skips the unsaved-changes prompt, since the form
+				// was already legitimately submitted above.
+				if (typeof loadPage === 'function') {
+					loadPage('<?php print html_escape($config['url_path'] . 'plugins/slowlog/slowlog.php');?>', true);
+				} else {
+					window.location.href = 'slowlog.php';
+				}
 			}).fail(function() {
 				$('#slowlog_upload_progress_text').text('<?php print __esc('Upload failed - please try again.', 'slowlog');?>');
 			}).always(function() {
