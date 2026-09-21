@@ -225,7 +225,7 @@ if (!function_exists('api_plugin_db_table_create')) {
 
 if (!function_exists('api_plugin_drop_table')) {
 	function api_plugin_drop_table($table) {
-		return true;
+		return slowlog_test_db_result('api_plugin_drop_table', $table, array($table), true);
 	}
 }
 

@@ -22,6 +22,20 @@
  +-------------------------------------------------------------------------+
 */
 
+/*
+ * Removes every per-logid row this plugin ever writes, across every table introduced since
+ * v2.1 - including the v2.4 stats cache, which is easy to forget since it's the newest and
+ * lives outside the original details/tables/methods set this function started with.
+ */
+function api_slowlog_remove($logid) {
+	db_execute_prepared('DELETE FROM plugin_slowlog WHERE logid = ?', array($logid));
+	db_execute_prepared('DELETE FROM plugin_slowlog_details WHERE logid = ?', array($logid));
+	db_execute_prepared('DELETE FROM plugin_slowlog_tables WHERE logid = ?', array($logid));
+	db_execute_prepared('DELETE FROM plugin_slowlog_details_tables WHERE logid = ?', array($logid));
+	db_execute_prepared('DELETE FROM plugin_slowlog_details_methods WHERE logid = ?', array($logid));
+	db_execute_prepared('DELETE FROM plugin_slowlog_stats WHERE logid = ?', array($logid));
+}
+
 function slowlog_render_with_layout(callable $render_callback): void {
 	general_header();
 	$render_callback();
@@ -102,6 +116,314 @@ function slowlog_bulk_insert_table_rows(array $rows) {
 
 		db_execute_prepared($sql_prefix . implode(', ', $placeholders) . $sql_suffix, $params);
 	}
+}
+
+/* the 5 plugin_slowlog_details columns plugin_slowlog_stats tracks a distribution for */
+const SLOWLOG_STATS_METRICS = array('query_time', 'rows_sent', 'rows_examined', 'rows_affected', 'bytes_sent');
+
+/*
+ * Linear-interpolation percentile (matches numpy's default / Excel PERCENTILE.INC) over an
+ * already-sorted array of numeric values. $p is 0-100. Computed in PHP rather than via a SQL
+ * PERCENTILE_CONT window function since that isn't available on every MySQL/MariaDB version
+ * this plugin still supports.
+ */
+function slowlog_percentile(array $sorted, $p) {
+	$n = count($sorted);
+
+	if ($n === 0) {
+		return 0.0;
+	}
+
+	if ($n === 1) {
+		return (float) $sorted[0];
+	}
+
+	$rank = ($p / 100) * ($n - 1);
+	$low  = (int) floor($rank);
+	$high = (int) ceil($rank);
+
+	if ($low === $high) {
+		return (float) $sorted[$low];
+	}
+
+	return $sorted[$low] + ($sorted[$high] - $sorted[$low]) * ($rank - $low);
+}
+
+/*
+ * Hard cap on how many raw samples per (scope, metric) the collectors below keep in memory at
+ * once. Box-whisker percentiles are estimated from a bounded reservoir sample rather than
+ * every row once a metric exceeds this many values, so memory no longer grows with the size
+ * of the imported log; sample_count/total_value stay exact regardless (see
+ * slowlog_accumulate_stat_value()).
+ */
+const SLOWLOG_STATS_SAMPLE_CAP = 20000;
+
+/*
+ * Reduces one metric's raw value list (any order) into the summary plugin_slowlog_stats
+ * stores for it: sample count, sum, and the min/p25/median/p75/p95/max box-whisker points.
+ * $exact_count/$exact_sum override the count/total derived from $values, for callers (e.g.
+ * slowlog_compute_stats()) that only pass in a bounded sample of the real population.
+ */
+function slowlog_summarize_values(array $values, $exact_count = null, $exact_sum = null) {
+	$count = ($exact_count !== null) ? $exact_count : count($values);
+
+	if ($count === 0 || !count($values)) {
+		return array(
+			'sample_count' => 0,
+			'total_value'  => 0.0,
+			'min_value'    => 0.0,
+			'p25_value'    => 0.0,
+			'median_value' => 0.0,
+			'p75_value'    => 0.0,
+			'p95_value'    => 0.0,
+			'max_value'    => 0.0,
+		);
+	}
+
+	sort($values, SORT_NUMERIC);
+
+	return array(
+		'sample_count' => $count,
+		'total_value'  => ($exact_sum !== null) ? $exact_sum : array_sum($values),
+		'min_value'    => $values[0],
+		'p25_value'    => slowlog_percentile($values, 25),
+		'median_value' => slowlog_percentile($values, 50),
+		'p75_value'    => slowlog_percentile($values, 75),
+		'p95_value'    => slowlog_percentile($values, 95),
+		'max_value'    => $values[count($values) - 1],
+	);
+}
+
+/*
+ * Records one metric value into the bounded reservoir $values[$scope_key][$metric] (capped at
+ * SLOWLOG_STATS_SAMPLE_CAP elements via reservoir sampling) while $totals[$scope_key][$metric]
+ * keeps an exact running count/sum, so sample_count/total_value never lose precision even
+ * once the reservoir is full and older samples start being probabilistically replaced.
+ */
+function slowlog_accumulate_stat_value(array &$values, array &$totals, $scope_key, $metric, $value) {
+	if (!isset($totals[$scope_key][$metric])) {
+		$totals[$scope_key][$metric] = array('count' => 0, 'sum' => 0.0);
+	}
+
+	$totals[$scope_key][$metric]['count']++;
+	$totals[$scope_key][$metric]['sum'] += $value;
+
+	if (!isset($values[$scope_key][$metric])) {
+		$values[$scope_key][$metric] = array();
+	}
+
+	if (count($values[$scope_key][$metric]) < SLOWLOG_STATS_SAMPLE_CAP) {
+		$values[$scope_key][$metric][] = $value;
+	} else {
+		$slot = mt_rand(0, $totals[$scope_key][$metric]['count'] - 1);
+
+		if ($slot < SLOWLOG_STATS_SAMPLE_CAP) {
+			$values[$scope_key][$metric][$slot] = $value;
+		}
+	}
+}
+
+/*
+ * Bulk-inserts plugin_slowlog_stats rows, fully parameterized like the method/table bulk
+ * inserters above. $rows is an array of the assoc arrays slowlog_summarize_values() returns,
+ * each additionally carrying 'logid', 'scope', 'scope_key', and 'metric'.
+ */
+function slowlog_bulk_insert_stats_rows(array $rows) {
+	if (!cacti_sizeof($rows)) {
+		return;
+	}
+
+	$sql_prefix = 'INSERT INTO plugin_slowlog_stats
+		(logid, scope, scope_key, metric, sample_count, total_value, min_value, p25_value, median_value, p75_value, p95_value, max_value)
+		VALUES ';
+	$sql_suffix = ' ON DUPLICATE KEY UPDATE
+		sample_count = VALUES(sample_count),
+		total_value  = VALUES(total_value),
+		min_value    = VALUES(min_value),
+		p25_value    = VALUES(p25_value),
+		median_value = VALUES(median_value),
+		p75_value    = VALUES(p75_value),
+		p95_value    = VALUES(p95_value),
+		max_value    = VALUES(max_value)';
+
+	foreach(array_chunk($rows, 200) as $chunk) {
+		$placeholders = array();
+		$params       = array();
+
+		foreach($chunk as $row) {
+			$placeholders[] = '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+			$params[]       = (int) $row['logid'];
+			$params[]       = (string) $row['scope'];
+			$params[]       = (string) $row['scope_key'];
+			$params[]       = (string) $row['metric'];
+			$params[]       = (int) $row['sample_count'];
+			$params[]       = (float) $row['total_value'];
+			$params[]       = (float) $row['min_value'];
+			$params[]       = (float) $row['p25_value'];
+			$params[]       = (float) $row['median_value'];
+			$params[]       = (float) $row['p75_value'];
+			$params[]       = (float) $row['p95_value'];
+			$params[]       = (float) $row['max_value'];
+		}
+
+		db_execute_prepared($sql_prefix . implode(', ', $placeholders) . $sql_suffix, $params);
+	}
+}
+
+/*
+ * Streams every (method, metric-values) pair for $logid in chunks and accumulates each
+ * metric's values per method via slowlog_accumulate_stat_value() (bounded reservoir in
+ * $values, exact running count/sum in $totals) so the caller can summarize them once every
+ * chunk has been read without memory growing with the size of the imported log. A logentry
+ * matching more than one method contributes its values to every matched method, same as the
+ * raw-totals chart's GROUP BY sm.methodid. Paginated by plugin_slowlog_details_methods.id (a
+ * unique, strictly increasing surrogate key) rather than logentry - logentry alone isn't
+ * unique here (one logentry can have several method rows), so a page boundary landing inside
+ * such a group would otherwise skip the remaining rows for that logentry once the next page
+ * filters with "id/logentry > ?".
+ */
+function slowlog_collect_stats_by_method($logid, array &$values, $chunk_size = 5000, array &$totals = array()) {
+	$last_id = 0;
+
+	do {
+		$rows = db_fetch_assoc_prepared('SELECT sldm.id, sm.method AS scope_key,
+			d.query_time, d.rows_sent, d.rows_examined, d.rows_affected, d.bytes_sent
+			FROM plugin_slowlog_details_methods AS sldm
+			INNER JOIN plugin_slowlog_methods AS sm ON sm.methodid = sldm.methodid
+			INNER JOIN plugin_slowlog_details AS d ON d.logid = sldm.logid AND d.logentry = sldm.logentry
+			WHERE sldm.logid = ?
+			AND sldm.id > ?
+			ORDER BY sldm.id
+			LIMIT ' . (int) $chunk_size,
+			array($logid, $last_id));
+
+		$batch_count = cacti_sizeof($rows);
+
+		foreach($rows as $row) {
+			$last_id = $row['id'];
+
+			foreach(SLOWLOG_STATS_METRICS as $metric) {
+				slowlog_accumulate_stat_value($values, $totals, $row['scope_key'], $metric, (float) $row[$metric]);
+			}
+		}
+	} while ($batch_count === $chunk_size);
+}
+
+/*
+ * Same as slowlog_collect_stats_by_method(), but grouped by table_name - including an
+ * 'others' bucket for entries with no recognized table, matching the label
+ * slowlog_get_chart_object() already uses for that bucket in the raw-totals chart. Split into
+ * two independently-paginated queries rather than one UNION ALL cursored on the shared (and,
+ * for the matched branch, non-unique) logentry column: the matched branch pages on
+ * plugin_slowlog_details_tables.tableid (unique - a logentry can have several table rows,
+ * same pitfall as the method collector above), while the "others" branch pages on
+ * plugin_slowlog_details.logentry, which - unlike the matched branch - really is unique there
+ * (a logentry with no table match can only ever produce one row via the LEFT JOIN).
+ */
+function slowlog_collect_stats_by_table($logid, array &$values, $chunk_size = 5000, array &$totals = array()) {
+	slowlog_collect_stats_by_matched_table($logid, $values, $chunk_size, $totals);
+	slowlog_collect_stats_by_unmatched_table($logid, $values, $chunk_size, $totals);
+}
+
+function slowlog_collect_stats_by_matched_table($logid, array &$values, $chunk_size = 5000, array &$totals = array()) {
+	$last_id = 0;
+
+	do {
+		$rows = db_fetch_assoc_prepared('SELECT sldt.tableid, sldt.table_name AS scope_key,
+			d.query_time, d.rows_sent, d.rows_examined, d.rows_affected, d.bytes_sent
+			FROM plugin_slowlog_details_tables AS sldt
+			INNER JOIN plugin_slowlog_details AS d ON d.logid = sldt.logid AND d.logentry = sldt.logentry
+			WHERE sldt.logid = ?
+			AND sldt.tableid > ?
+			ORDER BY sldt.tableid
+			LIMIT ' . (int) $chunk_size,
+			array($logid, $last_id));
+
+		$batch_count = cacti_sizeof($rows);
+
+		foreach($rows as $row) {
+			$last_id = $row['tableid'];
+
+			foreach(SLOWLOG_STATS_METRICS as $metric) {
+				slowlog_accumulate_stat_value($values, $totals, $row['scope_key'], $metric, (float) $row[$metric]);
+			}
+		}
+	} while ($batch_count === $chunk_size);
+}
+
+function slowlog_collect_stats_by_unmatched_table($logid, array &$values, $chunk_size = 5000, array &$totals = array()) {
+	$last_logentry = 0;
+
+	do {
+		$rows = db_fetch_assoc_prepared('SELECT d.logentry,
+				d.query_time, d.rows_sent, d.rows_examined, d.rows_affected, d.bytes_sent
+			FROM plugin_slowlog_details AS d
+			LEFT JOIN plugin_slowlog_details_tables AS sldt ON sldt.logid = d.logid AND sldt.logentry = d.logentry
+			WHERE d.logid = ?
+			AND d.logentry > ?
+			AND sldt.table_name IS NULL
+			ORDER BY d.logentry
+			LIMIT ' . (int) $chunk_size,
+			array($logid, $last_logentry));
+
+		$batch_count = cacti_sizeof($rows);
+
+		foreach($rows as $row) {
+			$last_logentry = $row['logentry'];
+
+			foreach(SLOWLOG_STATS_METRICS as $metric) {
+				slowlog_accumulate_stat_value($values, $totals, 'others', $metric, (float) $row[$metric]);
+			}
+		}
+	} while ($batch_count === $chunk_size);
+}
+
+/*
+ * Computes and caches box-whisker + total statistics (plugin_slowlog_stats) for every method
+ * and table $logid's queries were classified under, across the 5 metrics in
+ * SLOWLOG_STATS_METRICS. Run once at the end of import_post_process()/slowlog_reprocess() so
+ * the By Method/By Table chart pages are a single indexed lookup instead of a live aggregate
+ * query over plugin_slowlog_details.
+ */
+function slowlog_compute_stats($logid) {
+	$start = microtime(true);
+
+	$by_method     = array();
+	$by_table      = array();
+	$method_totals = array();
+	$table_totals  = array();
+
+	slowlog_collect_stats_by_method($logid, $by_method, 5000, $method_totals);
+	slowlog_collect_stats_by_table($logid, $by_table, 5000, $table_totals);
+
+	$stat_rows = array();
+
+	$scopes = array(
+		'method' => array('values' => $by_method, 'totals' => $method_totals),
+		'table'  => array('values' => $by_table, 'totals' => $table_totals),
+	);
+
+	foreach($scopes as $scope => $scope_data) {
+		foreach($scope_data['values'] as $scope_key => $metrics) {
+			foreach($metrics as $metric => $raw_values) {
+				$totals  = $scope_data['totals'][$scope_key][$metric];
+				$summary = slowlog_summarize_values($raw_values, $totals['count'], $totals['sum']);
+
+				$summary['logid']     = $logid;
+				$summary['scope']     = $scope;
+				$summary['scope_key'] = $scope_key;
+				$summary['metric']    = $metric;
+
+				$stat_rows[] = $summary;
+			}
+		}
+	}
+
+	slowlog_bulk_insert_stats_rows($stat_rows);
+
+	$end = microtime(true);
+
+	cacti_log(sprintf('STATS: Time:%0.2f, Stats Cache Complete for %s', $end-$start, $logid), false, 'SLOWLOG');
 }
 
 /*
@@ -733,6 +1055,8 @@ function import_post_process($logid, $table_names = '', $usecacti = false, $tabl
 		}
 
 		slowlog_set_timeouts($logid);
+
+		slowlog_compute_stats($logid);
 	}
 
 	db_execute_prepared('UPDATE plugin_slowlog
@@ -752,6 +1076,7 @@ function slowlog_reprocess($logid, $table_names = '', $usecacti = false, $table_
 	db_execute_prepared('DELETE FROM plugin_slowlog_details_methods WHERE logid = ?', array($logid));
 	db_execute_prepared('DELETE FROM plugin_slowlog_details_tables WHERE logid = ?', array($logid));
 	db_execute_prepared('DELETE FROM plugin_slowlog_tables WHERE logid = ?', array($logid));
+	db_execute_prepared('DELETE FROM plugin_slowlog_stats WHERE logid = ?', array($logid));
 	db_execute_prepared('UPDATE plugin_slowlog_details SET timeout = 0 WHERE logid = ?', array($logid));
 
 	db_execute_prepared('UPDATE plugin_slowlog
@@ -1261,9 +1586,10 @@ function slowlog_extract_using_clause_tables($query, &$tables) {
 /*
  * Determines every table referenced by a (normalized, single-line) SQL statement:
  * SELECT/DELETE FROM lists, JOINs (including chains and derived tables), INSERT/REPLACE
- * INTO, UPDATE ... SET (including JOIN'd targets), TRUNCATE TABLE, RENAME TABLE ... TO ...,
- * FLUSH TABLE(S), LOAD DATA ... INTO TABLE, and SHOW TABLES/COLUMNS/INDEX/CREATE TABLE.
- * Subqueries are followed recursively wherever they're found.
+ * INTO, UPDATE ... SET (including JOIN'd targets), TRUNCATE TABLE, CREATE TABLE (including its
+ * source table when cloned via LIKE), DROP TABLE, ALTER TABLE, ANALYZE/OPTIMIZE/CHECK/REPAIR
+ * TABLE, RENAME TABLE ... TO ..., FLUSH TABLE(S), LOAD DATA ... INTO TABLE, and SHOW
+ * TABLES/COLUMNS/INDEX/CREATE TABLE. Subqueries are followed recursively wherever they're found.
  */
 function slowlog_extract_tables_from_query($query, &$tables = null) {
 	if ($tables === null) {
@@ -1289,6 +1615,48 @@ function slowlog_extract_tables_from_query($query, &$tables = null) {
 
 		if ($id !== '') {
 			$tables[$id] = $id;
+		}
+	} elseif (preg_match('/^CREATE\s+(?:TEMPORARY\s+)?TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?/i', $query, $m)) {
+		$rest = substr($query, strlen($m[0]));
+		$id   = slowlog_first_identifier($rest);
+
+		if ($id !== '') {
+			$tables[$id] = $id;
+		}
+
+		// "CREATE TABLE new LIKE existing" clones another table's structure - only look for a
+		// top-level LIKE (before any column-definition parenthesis), so a LIKE comparison buried
+		// inside a column's DEFAULT/CHECK expression isn't mistaken for this clause.
+		$paren_pos = strpos($rest, '(');
+
+		if (preg_match('/\bLIKE\s+/i', $rest, $lm, PREG_OFFSET_CAPTURE) && ($paren_pos === false || $lm[0][1] < $paren_pos)) {
+			$like_id = slowlog_first_identifier(substr($rest, $lm[0][1] + strlen($lm[0][0])));
+
+			if ($like_id !== '') {
+				$tables[$like_id] = $like_id;
+			}
+		}
+	} elseif (preg_match('/^DROP\s+(?:TEMPORARY\s+)?TABLE\s+(?:IF\s+EXISTS\s+)?/i', $query, $m)) {
+		foreach (slowlog_split_top_level(substr($query, strlen($m[0])), ',') as $t) {
+			$id = slowlog_first_identifier($t);
+
+			if ($id !== '') {
+				$tables[$id] = $id;
+			}
+		}
+	} elseif (preg_match('/^ALTER\s+TABLE\s+/i', $query, $m)) {
+		$id = slowlog_first_identifier(substr($query, strlen($m[0])));
+
+		if ($id !== '') {
+			$tables[$id] = $id;
+		}
+	} elseif (preg_match('/^(?:ANALYZE|OPTIMIZE|CHECK|REPAIR)\s+(?:NO_WRITE_TO_BINLOG\s+|LOCAL\s+)?TABLE\s+/i', $query, $m)) {
+		foreach (slowlog_split_top_level(substr($query, strlen($m[0])), ',') as $t) {
+			$id = slowlog_first_identifier($t);
+
+			if ($id !== '') {
+				$tables[$id] = $id;
+			}
 		}
 	} elseif (preg_match('/^RENAME\s+TABLE\s+(.*)$/i', $query, $m)) {
 		foreach (slowlog_split_top_level($m[1], ',') as $pair) {
@@ -1421,3 +1789,266 @@ function slowlog_strip_domain($host) {
 	$parts = explode('.', $host);
 	return str_replace('-new', '', $parts[0]);
 }
+
+/* parses a php.ini shorthand byte value (e.g. '8M', '2G', '-1'); returns null for unlimited */
+function slowlog_parse_ini_bytes($value) {
+	$value = trim((string) $value);
+
+	if ($value === '' || $value === '-1') {
+		return null;
+	}
+
+	$unit = strtolower(substr($value, -1));
+	$num  = (float) $value;
+
+	switch ($unit) {
+		case 'g':
+			return (int) ($num * 1024 * 1024 * 1024);
+		case 'm':
+			return (int) ($num * 1024 * 1024);
+		case 'k':
+			return (int) ($num * 1024);
+		default:
+			return (int) $value;
+	}
+}
+
+/*
+ * Checks the current request's upload-related php.ini settings for anything likely to make a
+ * large slow-query-log import fail, so slowlog_import() can surface it before the user even
+ * tries. This plugin already forces max_execution_time/memory_limit to unlimited for its own
+ * requests (see the ini_set() calls at the top of slowlog.php), so those are only flagged if
+ * that override didn't actually take (e.g. blocked by disable_functions or an open_basedir/
+ * PHP_INI_SYSTEM restriction on the host) - and even when it does take, an independent web
+ * server/proxy timeout (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM
+ * request_terminate_timeout) is outside PHP's control and can't be detected from here.
+ */
+function slowlog_upload_environment_status() {
+	$max_execution_time = ini_get('max_execution_time');
+	$memory_limit       = ini_get('memory_limit');
+	$upload_max_filesize = ini_get('upload_max_filesize');
+	$post_max_size        = ini_get('post_max_size');
+
+	$upload_max_bytes = slowlog_parse_ini_bytes($upload_max_filesize);
+	$post_max_bytes    = slowlog_parse_ini_bytes($post_max_size);
+
+	$warnings = array();
+
+	if ((int) $max_execution_time !== 0) {
+		$warnings[] = __('max_execution_time is %d seconds (not unlimited) for this request - a large import could be killed mid-run. Some web servers/proxies (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) enforce their own independent cutoff that this setting cannot override.', $max_execution_time, 'slowlog');
+	}
+
+	if ($memory_limit !== '-1') {
+		$warnings[] = __('memory_limit is %s (not unlimited) for this request - a very large slow query log can exceed this while it is being read/imported.', $memory_limit, 'slowlog');
+	}
+
+	if ($post_max_bytes !== null && $upload_max_bytes !== null && $post_max_bytes < $upload_max_bytes) {
+		$warnings[] = __('post_max_size (%s) is smaller than upload_max_filesize (%s) - uploads up to the advertised limit will still be rejected.', $post_max_size, $upload_max_filesize, 'slowlog');
+	}
+
+	if ($upload_max_bytes !== null && $upload_max_bytes < (64 * 1024 * 1024)) {
+		$warnings[] = __('upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB.', $upload_max_filesize, 'slowlog');
+	}
+
+	return array(
+		'max_execution_time' => $max_execution_time,
+		'memory_limit'       => $memory_limit,
+		'warnings'           => $warnings,
+	);
+}
+
+/*
+ * Shared unit/suffix labels for each summable metric, used by both the raw-totals chart
+ * (slowlog_get_chart_object()) and the box-whisker distribution chart
+ * (slowlog_get_stats_chart_object()) so the two stay in sync.
+ */
+function slowlog_chart_measures() {
+	return array(
+		'count' => array(
+			'unit'   => __esc('Queries', 'slowlog'),
+			'suffix' => __esc('Total Queries', 'slowlog')
+		),
+		'rows_sent' => array(
+			'unit'   => __esc('Rows', 'slowlog'),
+			'suffix' => __esc('Rows Returned', 'slowlog')
+		),
+		'rows_examined' => array(
+			'unit'   => __esc('Rows', 'slowlog'),
+			'suffix' => __esc('Rows Examined', 'slowlog')
+		),
+		'lock_time' => array(
+			'unit'   => __esc('Seconds', 'slowlog'),
+			'suffix' => __esc('Lock Seconds', 'slowlog')
+		),
+		'query_time' => array(
+			'unit'   => __esc('Seconds', 'slowlog'),
+			'suffix' => __esc('Query Seconds', 'slowlog')
+		),
+		'rows_affected' => array(
+			'unit'   => __esc('Rows', 'slowlog'),
+			'suffix' => __esc('Rows Affected', 'slowlog')
+		),
+		'bytes_sent' => array(
+			'unit'   => __esc('Bytes', 'slowlog'),
+			'suffix' => __esc('Bytes Sent', 'slowlog')
+		)
+	);
+}
+
+/*
+ * Reads the cached box-whisker summary (plugin_slowlog_stats) for one metric, scoped to
+ * either methods or tables, and shapes it into the categories/box-data/p95-data arrays
+ * renderBoxChart() expects. Ordered/limited the same way as slowlog_get_chart_object() (by
+ * total value descending, top 10 for tables) so the raw and whisker charts for the same
+ * metric show categories in the same order.
+ */
+function slowlog_get_stats_chart_object($chart_type, $measure) {
+	$id = get_filter_request_var('logid');
+
+	$description = db_fetch_cell_prepared('SELECT description
+		FROM plugin_slowlog
+		WHERE logid = ?',
+		array($id));
+
+	$scope = ($chart_type != 'tables') ? 'method' : 'table';
+	$limit = ($scope == 'table') ? ' LIMIT 10' : '';
+
+	$stats = db_fetch_assoc_prepared('SELECT scope_key, sample_count, total_value,
+			min_value, p25_value, median_value, p75_value, p95_value, max_value
+		FROM plugin_slowlog_stats
+		WHERE logid = ?
+		AND scope = ?
+		AND metric = ?
+		ORDER BY total_value DESC' . $limit,
+		array($id, $scope, $measure));
+
+	$measures = slowlog_chart_measures();
+
+	$categories = array();
+	$box_data   = array();
+	$p95_data   = array();
+
+	foreach($stats as $row) {
+		$categories[] = $row['scope_key'];
+
+		$box_data[] = array(
+			'x' => $row['scope_key'],
+			'y' => array(
+				round((float) $row['min_value'], 3),
+				round((float) $row['p25_value'], 3),
+				round((float) $row['median_value'], 3),
+				round((float) $row['p75_value'], 3),
+				round((float) $row['max_value'], 3)
+			)
+		);
+
+		$p95_data[] = array(
+			'x' => $row['scope_key'],
+			'y' => round((float) $row['p95_value'], 3)
+		);
+	}
+
+	$title = $description . ' [ ' . $measures[$measure]['suffix'] . ' Distribution ]';
+
+	return array(
+		'title'      => $title,
+		'categories' => $categories,
+		'box_data'   => $box_data,
+		'p95_data'   => $p95_data,
+		'yaxislabel' => $measures[$measure]['unit']
+	);
+}
+
+/*
+ * Reads the live raw-totals (SUM per method/table) chart data for one metric, scoped to
+ * either methods or tables.
+ */
+function slowlog_get_chart_object($chart_type, $measure) {
+	$id = get_filter_request_var('logid');
+
+	$description = db_fetch_cell_prepared('SELECT description
+		FROM plugin_slowlog
+		WHERE logid = ?',
+		array($id));
+
+	if ($chart_type != 'tables') {
+		$details = db_fetch_assoc_prepared("SELECT
+			sm.method AS type,
+			COUNT(*) AS count,
+			SUM(query_time) AS query_time,
+			SUM(lock_time) AS lock_time,
+			SUM(rows_examined) AS rows_examined,
+			SUM(rows_sent) AS rows_sent,
+			SUM(rows_affected) AS rows_affected,
+			SUM(bytes_sent) AS bytes_sent
+			FROM plugin_slowlog_details_methods AS dm
+			INNER JOIN plugin_slowlog_details AS d
+			ON dm.logid = d.logid
+			AND dm.logentry = d.logentry
+			INNER JOIN plugin_slowlog_methods AS sm
+			ON dm.methodid = sm.methodid
+			WHERE d.logid = ?
+			GROUP BY sm.methodid
+			ORDER BY $measure DESC",
+			array($id));
+	} else {
+		$details = db_fetch_assoc_prepared("SELECT *
+			FROM (
+				SELECT table_name AS type,
+					COUNT(*) AS count,
+					SUM(query_time) AS query_time,
+					SUM(lock_time) AS lock_time,
+					SUM(rows_examined) AS rows_examined,
+					SUM(rows_sent) AS rows_sent,
+					SUM(rows_affected) AS rows_affected,
+					SUM(bytes_sent) AS bytes_sent
+				FROM plugin_slowlog_details_tables AS dt
+				INNER JOIN plugin_slowlog_details AS d
+				ON dt.logid=d.logid AND dt.logentry=d.logentry
+				WHERE d.logid = ?
+				GROUP BY table_name
+				UNION ALL
+				SELECT 'others' AS type,
+					COUNT(*) AS count,
+					SUM(query_time) AS query_time,
+					SUM(lock_time) AS lock_time,
+					SUM(rows_examined) AS rows_examined,
+					SUM(rows_sent) AS rows_sent,
+					SUM(rows_affected) AS rows_affected,
+					SUM(bytes_sent) AS bytes_sent
+				FROM plugin_slowlog_details AS d
+				LEFT JOIN plugin_slowlog_details_tables AS dt
+				ON dt.logid=d.logid AND dt.logentry=d.logentry
+				WHERE dt.table_name IS NULL
+				AND d.logid = ?
+				GROUP BY table_name
+			) AS fish
+			ORDER BY $measure DESC LIMIT 10",
+			array($id, $id));
+	}
+
+	$measures = slowlog_chart_measures();
+
+	// ApexCharts
+	if (cacti_sizeof($details)) {
+		$categories = array();
+		$values     = array();
+
+		foreach($details as $entry) {
+			$categories[] = $entry['type'];
+			$values[]     = $entry[$measure];
+		}
+
+		$title = $description . ' [ ' . $measures[$measure]['suffix'] . ' ]';
+
+		return array(
+			'title'      => $title,
+			'categories' => $categories,
+			'values'     => $values,
+			'yaxislabel' => $measures[$measure]['unit']
+		);
+	} else {
+		return array();
+	}
+}
+

@@ -41,6 +41,10 @@ beforeEach(function () {
 });
 
 it('does not use raw CREATE TABLE statements', function () {
+	// The CREATES/CREATE TEMPS method-dictionary fragments are stored lowercase
+	// ('create table'/'create temporary table') specifically so they don't collide with
+	// this check - matching against them in import_post_process() is case-insensitive
+	// (stripos()) either way.
 	$source = file_get_contents(realpath(__DIR__ . '/../../setup.php'));
 
 	expect($source)->not->toContain('CREATE TABLE');
@@ -60,6 +64,7 @@ it('creates every plugin table through the plugin API', function () {
 		'plugin_slowlog_tables',
 		'plugin_slowlog_table_names',
 		'plugin_slowlog_reserved_words',
+		'plugin_slowlog_stats',
 	));
 });
 
@@ -84,6 +89,15 @@ it('adds the new timeout column via the idempotent add-column API', function () 
 	expect($calls[0]['params'][2]['type'])->toBe('double');
 });
 
+it('widens plugin_slowlog_methods.query for existing installs before seeding longer fragments', function () {
+	slowlog_setup_table_new();
+
+	$calls = slowlog_test_calls_to($GLOBALS['__test_db_calls'], 'db_execute');
+	$sql   = array_column($calls, 'sql');
+
+	expect($sql)->toContain('ALTER TABLE plugin_slowlog_methods MODIFY COLUMN `query` varchar(96) NOT NULL');
+});
+
 it('defines a table_name dictionary with an is_cacti_table flag', function () {
 	slowlog_setup_table_new();
 
@@ -97,13 +111,33 @@ it('defines a table_name dictionary with an is_cacti_table flag', function () {
 	expect($columns)->toBe(array('tableid', 'table_name', 'is_cacti_table'));
 });
 
+it('defines the stats cache table keyed by logid/scope/scope_key/metric', function () {
+	slowlog_setup_table_new();
+
+	$calls = slowlog_test_calls_to($GLOBALS['__test_db_calls'], 'api_plugin_db_table_create');
+	$stats = current(array_filter($calls, function ($call) {
+		return $call['sql'] === 'plugin_slowlog_stats';
+	}));
+
+	$columns = array_column($stats['params'][2]['columns'], 'name');
+
+	expect($columns)->toBe(array(
+		'logid', 'scope', 'scope_key', 'metric', 'sample_count', 'total_value',
+		'min_value', 'p25_value', 'median_value', 'p75_value', 'p95_value', 'max_value',
+	));
+	expect($stats['params'][2]['primary'])->toBe(array('logid', 'scope', 'scope_key', 'metric'));
+});
+
 it('seeds the new methods introduced for this feature', function () {
 	slowlog_setup_table_new();
 
 	$seed = slowlog_test_calls_to($GLOBALS['__test_db_calls'], 'db_execute');
-	$sql  = $seed[0]['sql'];
+	$insert = current(array_filter($seed, function ($call) {
+		return strpos($call['sql'], 'INSERT IGNORE INTO `plugin_slowlog_methods`') !== false;
+	}));
+	$sql = $insert['sql'];
 
-	foreach (array('INFILES', 'GROUP BY', 'COUNTS', 'SHOWS', 'UNION ALLS', 'MAX_EXECUTION_TIME', 'MAX_STATEMENT_TIME', 'OTHER TABLES') as $method) {
+	foreach (array('INFILES', 'GROUP BY', 'COUNTS', 'SHOWS', 'UNION ALLS', 'MAX_EXECUTION_TIME', 'MAX_STATEMENT_TIME', 'OTHER TABLES', 'FORCE INDEX', 'ALTERS', 'DROPS', 'ANALYZES', 'OPTIMIZES', 'CREATES', 'CREATE TEMPS') as $method) {
 		expect($sql)->toContain("'" . $method . "'");
 	}
 });
@@ -117,5 +151,13 @@ it('re-running setup is safe to call again from slowlog_check_upgrade()', functi
 
 	$tables = slowlog_test_calls_to($GLOBALS['__test_db_calls'], 'api_plugin_db_table_create');
 
-	expect($tables)->toHaveCount(16);
+	expect($tables)->toHaveCount(18);
+});
+
+it('drops every plugin table on uninstall, including the stats cache', function () {
+	plugin_slowlog_uninstall();
+
+	$tables = array_column(slowlog_test_calls_to($GLOBALS['__test_db_calls'], 'api_plugin_drop_table'), 'sql');
+
+	expect($tables)->toContain('plugin_slowlog_stats');
 });
