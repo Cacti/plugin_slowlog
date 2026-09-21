@@ -49,11 +49,11 @@ switch (get_request_var('action')) {
 
 		break;
 	case 'viewmethods':
-		slowlog_viewchart('methods');
+		slowlog_view_charts('methods');
 
 		break;
 	case 'viewtables':
-		slowlog_viewchart('tables');
+		slowlog_view_charts('tables');
 
 		break;
 	case 'edit':
@@ -90,7 +90,7 @@ switch (get_request_var('action')) {
     The Save Function
    -------------------------- */
 
-function form_save() {
+function form_save(): void {
 	global $config;
 
 	if (isset($_POST['save_component_slowlog'])) {
@@ -175,15 +175,15 @@ function form_save() {
 	}
 }
 
-function form_actions() {
+function form_actions(): void {
 	global $config, $actions;
 
 	/* if we are to save this form, instead of display it */
 	if (isset($_POST['selected_items'])) {
-		$selected_items = sanitize_unserialize_selected_items(get_request_var('selected_items'));
+		$selected_items = sanitize_unserialize_selected_items(get_request_var('selected_items')) ?: array();
 
 		if ($_POST['drp_action'] == '1') { /* delete */
-			for ($i=0; $i<count($selected_items); $i++) {
+			for ($i=0; $i<cacti_sizeof($selected_items); $i++) {
 				/* ================= input validation ================= */
 				input_validate_input_number($selected_items[$i]);
 				/* ==================================================== */
@@ -220,7 +220,7 @@ function form_actions() {
 
 	form_start('slowlog.php');
 
-	html_start_box($actions[$_POST['drp_action']], '60%', '', '3', 'center', '');
+	html_start_box($actions[$_POST['drp_action']], '60%', '', 3, 'center', '');
 
 	if ($_POST['drp_action'] == '1') { /* delete */
 		print "<tr class='even'>
@@ -231,7 +231,7 @@ function form_actions() {
 		</tr>";
 	}
 
-	if (!isset($slowlog_array)) {
+	if (!cacti_sizeof($slowlog_array)) {
 		print "<tr><td><span class='textError'>" . __esc('You must select at least one Slowlog record.', 'slowlog') . "</span></td></tr>";
 		$save_html = '';
 	} else {
@@ -241,7 +241,7 @@ function form_actions() {
 	print "	<tr>
 		<td class='saveRow'>
 			<input type='hidden' name='action' value='actions'>
-			<input type='hidden' name='selected_items' value='" . (isset($slowlog_array) ? serialize($slowlog_array) : '') . "'>
+			<input type='hidden' name='selected_items' value='" . (cacti_sizeof($slowlog_array) ? serialize($slowlog_array) : '') . "'>
 			<input type='hidden' name='drp_action' value='" . $_POST['drp_action'] . "'>" . (strlen($save_html) ? "
 			<input type='submit' name='cancel' value='" . __esc('No', 'slowlog') . "'>
 			$save_html" : "<input type='submit' name='cancel' value='" . __esc('Return', 'slowlog') . "'>") . "
@@ -255,27 +255,22 @@ function form_actions() {
 	bottom_footer();
 }
 
-function api_slowlog_save($logid, $description, $length) {
+/**
+ * NOTE: this save path is currently unreachable from the UI - no form on this page posts
+ * save_component_slowlog - and was already unconditionally short-circuited by an early
+ * `return true;` before any of the save logic ran. Preserved as a no-op stub (removing the
+ * dead code below doesn't change behavior, since it never executed) rather than resurrecting
+ * untested save logic as part of a typing pass.
+ *
+ * @param mixed $logid
+ * @param mixed $description
+ * @param mixed $length
+ */
+function api_slowlog_save($logid, $description, $length): bool {
 	return true;
-
-	$save['logid']       = $logid;
-	$save['description'] = form_input_validate($description, 'description', '', false, 3);
-
-	$logid = 0;
-	if (!is_error_message()) {
-		$logid = sql_save($save, 'slowlog', 'logid');
-
-		if ($logid) {
-			raise_message(1);
-		} else {
-			raise_message(2);
-		}
-	}
-
-	return $logid;
 }
 
-function slowlog_import() {
+function slowlog_import(): void {
 	global $config;
 
 	$selected_theme = get_selected_theme();
@@ -392,7 +387,7 @@ function slowlog_import() {
 		print '</ul></div>';
 	}
 
-	html_start_box(__('Import MariaDB/MySQL Slowlog', 'slowlog'), '100%', '', '3', 'center', '');
+	html_start_box(__('Import MariaDB/MySQL Slowlog', 'slowlog'), '100%', '', 3, 'center', '');
 
 	draw_edit_form(
 		array(
@@ -574,7 +569,7 @@ function slowlog_import() {
 	<?php
 }
 
-function slowlog_request_validation() {
+function slowlog_request_validation(): void {
 	$logid = get_filter_request_var('logid');
 
 	$logdata = db_fetch_row_prepared('SELECT *
@@ -662,7 +657,7 @@ function slowlog_request_validation() {
 	$_SESSION['sess_end_time']   = $_SESSION['sess_sl_det_date2'];
 }
 
-function slowlog_view_details() {
+function slowlog_view_details(): void {
 	global $config;
 
 	slowlog_request_validation();
@@ -838,15 +833,15 @@ function slowlog_view_details() {
 
 	$nav = html_nav_bar('slowlog.php?action=details&logid=' . get_request_var('logid'), MAX_DISPLAY_PAGES, get_request_var_request('page'), $rows, $total_rows, cacti_sizeof($display_text), __('Log Entries', 'slowlog'), 'page', 'main');
 
-	html_start_box(__('MariaDB/MySQL SlowLog Details', 'slowlog'), '100%', '', '3', 'center', '');
+	html_start_box(__('MariaDB/MySQL SlowLog Details', 'slowlog'), '100%', '', 3, 'center', '');
 	slowlog_details_filter();
 	html_end_box();
 
 	print $nav;
 
-	html_start_box('', '100%', '', '3', 'center', '');
+	html_start_box('', '100%', '', 3, 'center', '');
 
-	html_header_sort($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false, $jsprefix);
+	html_header_sort($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), 0, $jsprefix);
 
 	$i = 0;
 	if (cacti_sizeof($results)) {
@@ -887,7 +882,7 @@ function slowlog_view_details() {
 	}
 }
 
-function slowlog_view_charts($method) {
+function slowlog_view_charts(string $method): void {
 	global $config;
 
 	$selected_theme = get_selected_theme();
@@ -925,13 +920,13 @@ function slowlog_view_charts($method) {
 
 	slowlog_tabs();
 
-	html_start_box(__('Chart Filters', 'slowlog'), '100%', '', '3', 'center', '');
+	html_start_box(__('Chart Filters', 'slowlog'), '100%', '', 3, 'center', '');
 
 	slowlog_charts_filter($method, $id);
 
 	html_end_box();
 
-	html_start_box(__('MariaDB/MySQL SlowLog Results - By %s', ucfirst($method), 'slowlog'), '100%', '', '3', 'center', '');
+	html_start_box(__('MariaDB/MySQL SlowLog Results - By %s', ucfirst($method), 'slowlog'), '100%', '', 3, 'center', '');
 
 	print '<div style="width:100%;box-sizing:border-box;padding:8px" id="raw_count"></div>';
 
@@ -1218,7 +1213,7 @@ function slowlog_view_charts($method) {
  * multiselect + hide-max checkbox), persisted per chart type (methods vs tables have
  * different scope_key value sets, so they're kept in separate session buckets).
  */
-function slowlog_request_charts_validation($chart_type) {
+function slowlog_request_charts_validation(string $chart_type): void {
 	$filters = array(
 		'chart_scope' => array(
 			'filter'  => FILTER_CALLBACK,
@@ -1237,8 +1232,12 @@ function slowlog_request_charts_validation($chart_type) {
 	validate_store_request_vars($filters, 'sess_sl_chart_' . $chart_type);
 }
 
-/* splits the persisted comma-separated 'chart_scope' request var into a clean array */
-function slowlog_get_chart_scope_filter() {
+/**
+ * splits the persisted comma-separated 'chart_scope' request var into a clean array
+ *
+ * @return array<int, string>
+ */
+function slowlog_get_chart_scope_filter(): array {
 	$raw = get_request_var('chart_scope');
 
 	if (trim($raw) == '') {
@@ -1259,7 +1258,7 @@ function slowlog_get_chart_scope_filter() {
  * slowlog_request_charts_validation()/validate_store_request_vars() same as every
  * other filter in this plugin.
  */
-function slowlog_charts_filter($method, $id) {
+function slowlog_charts_filter(string $method, int $id): void {
 	$selected = slowlog_get_chart_scope_filter();
 
 	if ($method == 'tables') {
@@ -1291,7 +1290,7 @@ function slowlog_charts_filter($method, $id) {
 							<?php print html_escape($scope_label);?>
 						</td>
 						<td>
-							<select id='chart_scope' multiple size='6' onChange='applyChartsFilter()'>
+							<select id='chart_scope' multiple size='6'>
 								<?php
 								foreach ($scope_items as $value) {
 									print '<option value="' . html_escape($value) . '"' . (in_array($value, $selected, true) ? ' selected' : '') . '>' . html_escape($value) . '</option>';
@@ -1301,7 +1300,7 @@ function slowlog_charts_filter($method, $id) {
 						</td>
 						<td>
 							<label>
-								<input type='checkbox' id='hide_max' onChange='applyChartsFilter()'<?php print (get_request_var('hide_max') == 'on' ? ' checked' : '');?>>
+								<input type='checkbox' id='hide_max'<?php print (get_request_var('hide_max') == 'on' ? ' checked' : '');?>>
 								<?php print __('Hide Max (use p95 instead)', 'slowlog');?>
 							</label>
 						</td>
@@ -1331,6 +1330,31 @@ function slowlog_charts_filter($method, $id) {
 			}
 
 			$(function() {
+				$('#chart_scope').multiselect({
+					menuHeight: $(window).height() * .7,
+					menuWidth: 'auto',
+					noneSelectedText: '<?php print html_escape($scope_label);?>',
+					selectedText: function(numChecked, numTotal, checkedItems) {
+						return numChecked + ' <?php print __esc('Selected', 'slowlog');?>';
+					},
+					checkAllText: '<?php print __esc('All', 'slowlog');?>',
+					uncheckAllText: '<?php print __esc('None', 'slowlog');?>',
+					close: function(event, ui) {
+						applyChartsFilter();
+					},
+					open: function(event, ui) {
+						$("input[type='search']:first").focus();
+					}
+				}).multiselectfilter({
+					label: '<?php print __esc('Search', 'slowlog');?>',
+					placeholder: '<?php print __esc('Enter keyword', 'slowlog');?>',
+					width: 200
+				});
+
+				$('#hide_max').on('change', function() {
+					applyChartsFilter();
+				});
+
 				$('#chartsfilter').submit(function(event) {
 					event.preventDefault();
 					applyChartsFilter();
@@ -1342,7 +1366,7 @@ function slowlog_charts_filter($method, $id) {
 	<?php
 }
 
-function slowlog_view_query() {
+function slowlog_view_query(): void {
 	global $config;
 
 	$entry = db_fetch_row_prepared('SELECT *
@@ -1353,7 +1377,7 @@ function slowlog_view_query() {
 
 	slowlog_tabs();
 
-	html_start_box(__('MariaDB/MySQL SlowLog Query Details', 'slowlog'), '100%', '', '3', 'center', '');
+	html_start_box(__('MariaDB/MySQL SlowLog Query Details', 'slowlog'), '100%', '', 3, 'center', '');
 
 	form_alternate_row();
 
@@ -1382,11 +1406,11 @@ function slowlog_view_query() {
 	form_end_row();
 	html_end_box(false);
 
-	html_start_box(__('Original Query', 'slowlog'), '100%', '', '3', 'center', '');
+	html_start_box(__('Original Query', 'slowlog'), '100%', '', 3, 'center', '');
 
 	form_alternate_row();
 
-	$oquery = str_replace('","', '", "', $entry['oquery']);
+	$oquery = str_replace('","', '", "', (string) $entry['oquery']);
 	$oquery = str_replace("','", "', '", $oquery);
 
 	print "<td><pre style='white-space:pre-wrap'>" . $oquery . '</pre></td>';
@@ -1396,7 +1420,7 @@ function slowlog_view_query() {
 	html_end_box(false);
 }
 
-function slowlog_request_summary_validation() {
+function slowlog_request_summary_validation(): void {
 	/* ================= input validation and session storage ================= */
 	$filters = array(
 		'rows' => array(
@@ -1429,7 +1453,7 @@ function slowlog_request_summary_validation() {
 	/* ================= input validation ================= */
 }
 
-function slowlog_view() {
+function slowlog_view(): void {
 	global $config, $actions;
 
 	slowlog_request_summary_validation();
@@ -1439,7 +1463,10 @@ function slowlog_view() {
 	$sql_orderby = get_order_string();
 
 	if (get_request_var('filter') != '') {
-		$sql_where = ($sql_where != '' ? ' AND ': 'WHERE ') . '(description LIKE ?)';
+		// $sql_where is always '' here (this is the only WHERE-building clause in this
+		// function), so the previous ternary's "AND" branch was always unreachable dead
+		// logic - simplified to the one condition that ever actually ran.
+		$sql_where = 'WHERE (description LIKE ?)';
 		$sql_params[] = '%' . get_request_var('filter') . '%';
 	}
 
@@ -1451,13 +1478,13 @@ function slowlog_view() {
 
 	slowlog_tabs();
 
-	html_start_box(__('MariaDB/MySQL SlowLog File Filters', 'slowlog'), '100%', '', '3', 'center', 'slowlog.php?action=edit');
+	html_start_box(__('MariaDB/MySQL SlowLog File Filters', 'slowlog'), '100%', '', 3, 'center', 'slowlog.php?action=edit');
 	filter();
 	html_end_box();
 
 	form_start('slowlog.php', 'chk');
 
-	html_start_box('', '100%', '', '3', 'center', '');
+	html_start_box('', '100%', '', 3, 'center', '');
 
 	$display_text = array(
 		'nosort' => array(
@@ -1586,7 +1613,7 @@ function slowlog_view() {
  *                      'save' or 'create'. otherwise this field should be
  *                      properly auto-detected.
  */
-function slowlog_save_button($cancel_action = '', $action = 'save', $force_type = '', $key_field = 'id') {
+function slowlog_save_button(string $cancel_action = '', string $action = 'save', string $force_type = '', string $key_field = 'id'): void {
 	global $config;
 
 	if (substr_count($cancel_action, '.php')) {
@@ -1625,6 +1652,13 @@ function slowlog_save_button($cancel_action = '', $action = 'save', $force_type 
 		} elseif ($force_type == 'import') {
 			$sname = 'import';
 			$salt  = __esc('Import', 'slowlog');
+		} else {
+			// $force_type was passed a value other than 'save'/'create'/'import' - fall back
+			// to the same default the main branch above uses, rather than leaving $sname/$salt
+			// undefined (this was a latent "might not be defined" bug for any unrecognized
+			// $force_type value).
+			$sname = 'save';
+			$salt  = __esc('Save', 'slowlog');
 		}
 	}
 
@@ -1642,7 +1676,7 @@ function slowlog_save_button($cancel_action = '', $action = 'save', $force_type 
 	<?php
 }
 
-function filter() {
+function filter(): void {
 	global $config;
 
 	?>
@@ -1691,7 +1725,7 @@ function filter() {
 	<?php
 }
 
-function slowlog_details_filter() {
+function slowlog_details_filter(): void {
 	global $config, $item_rows, $graph_timespans, $graph_timeshifts;
 
 	?>
