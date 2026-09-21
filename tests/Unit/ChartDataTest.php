@@ -79,10 +79,27 @@ it('reads sample_count off the cached stats (not total_value) for the count meas
 	expect($data['title'])->toBe('My Log [ Total Queries ]');
 });
 
-it('returns an empty array when there are no rows to chart', function () {
+it('returns the full shape with empty categories/values when there are no rows to chart', function () {
 	slowlog_test_mock_db('db_fetch_assoc_prepared', 'FROM plugin_slowlog_stats', array());
 
-	expect(slowlog_get_chart_object('methods', 'query_time'))->toBe(array());
+	$data = slowlog_get_chart_object('methods', 'query_time');
+
+	expect($data['categories'])->toBe(array());
+	expect($data['values'])->toBe(array());
+	expect($data['title'])->toBe('My Log [ Query Seconds ]');
+	expect($data['yaxislabel'])->toBe('Seconds');
+});
+
+it('does not cap table results to 10 when an explicit scope filter is applied', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', function ($sql, $params) {
+		return strpos($sql, 'FROM plugin_slowlog_stats') !== false && strpos($sql, 'LIMIT 10') === false;
+	}, array(
+		array('scope_key' => 'users', 'value' => 5),
+	));
+
+	$data = slowlog_get_chart_object('tables', 'bytes_sent', array('users'));
+
+	expect($data['categories'])->toBe(array('users'));
 });
 
 it('shapes cached percentile rows into box-whisker data plus a separate p95 series', function () {
@@ -113,6 +130,19 @@ it('scopes the stats lookup to table (not method) for the tables chart type', fu
 	));
 
 	$data = slowlog_get_stats_chart_object('tables', 'query_time');
+
+	expect($data['categories'])->toBe(array('users'));
+});
+
+it('does not cap box-whisker table results to 10 when an explicit scope filter is applied', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', function ($sql, $params) {
+		return strpos($sql, 'FROM plugin_slowlog_stats') !== false && strpos($sql, 'LIMIT 10') === false;
+	}, array(
+		array('scope_key' => 'users', 'sample_count' => 1, 'total_value' => 5,
+			'min_value' => 5, 'p25_value' => 5, 'median_value' => 5, 'p75_value' => 5, 'p95_value' => 5, 'max_value' => 5),
+	));
+
+	$data = slowlog_get_stats_chart_object('tables', 'query_time', array('users'));
 
 	expect($data['categories'])->toBe(array('users'));
 });

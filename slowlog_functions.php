@@ -1944,7 +1944,10 @@ function slowlog_get_stats_chart_object($chart_type, $measure, array $scope_filt
 		array($id));
 
 	$scope = ($chart_type != 'tables') ? 'method' : 'table';
-	$limit = ($scope == 'table') ? ' LIMIT 10' : '';
+
+	// Only cap to the top 10 tables when the user hasn't picked explicit scopes to chart -
+	// otherwise a selected table beyond the top 10 by value would be silently dropped.
+	$limit = ($scope == 'table' && !cacti_sizeof($scope_filter)) ? ' LIMIT 10' : '';
 
 	$params = array($id, $scope, $measure);
 	$scope_where = '';
@@ -2018,7 +2021,10 @@ function slowlog_get_chart_object($chart_type, $measure, array $scope_filter = a
 		array($id));
 
 	$scope = ($chart_type != 'tables') ? 'method' : 'table';
-	$limit = ($scope == 'table') ? ' LIMIT 10' : '';
+
+	// Only cap to the top 10 tables when the user hasn't picked explicit scopes to chart -
+	// otherwise a selected table beyond the top 10 by value would be silently dropped.
+	$limit = ($scope == 'table' && !cacti_sizeof($scope_filter)) ? ' LIMIT 10' : '';
 
 	// 'count' isn't itself a tracked metric - every tracked metric's cached sample_count is
 	// identical for a given scope_key (they're all counted over the same matched detail
@@ -2049,25 +2055,23 @@ function slowlog_get_chart_object($chart_type, $measure, array $scope_filter = a
 
 	$measures = slowlog_chart_measures();
 
-	if (cacti_sizeof($stats)) {
-		$categories = array();
-		$values     = array();
+	$categories = array();
+	$values     = array();
 
-		foreach($stats as $entry) {
-			$categories[] = $entry['scope_key'];
-			$values[]     = $entry['value'];
-		}
-
-		$title = $description . ' [ ' . $measures[$measure]['suffix'] . ' ]';
-
-		return array(
-			'title'      => $title,
-			'categories' => $categories,
-			'values'     => $values,
-			'yaxislabel' => $measures[$measure]['unit']
-		);
-	} else {
-		return array();
+	foreach($stats as $entry) {
+		$categories[] = $entry['scope_key'];
+		$values[]     = $entry['value'];
 	}
+
+	$title = $description . ' [ ' . $measures[$measure]['suffix'] . ' ]';
+
+	// Always return the full shape (with empty categories/values when $stats is empty) so
+	// callers can safely index every key without a null-guard of their own.
+	return array(
+		'title'      => $title,
+		'categories' => $categories,
+		'values'     => $values,
+		'yaxislabel' => $measures[$measure]['unit']
+	);
 }
 
