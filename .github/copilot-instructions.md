@@ -135,6 +135,18 @@ api_plugin_register_realm('slowlog', 'slowlog.php', 'Plugin -> MySQL Slow Log Vi
 2. Use the `api_slowlog_*` functions for save/remove rather than inlining SQL in UI pages.
 3. Wrap all user-facing strings with `__('text', 'slowlog')`.
 
+## Static Analysis Tooling (PHPStan / PHP-CS-Fixer)
+
+This plugin has no per-repo `composer.json`, `phpstan.neon`, `phpstan-stubs.php`, or
+`.php-cs-fixer.php`, and none should be added/committed. When asked to run a PHPStan/
+PHP-CS-Fixer pass (level 8 typing, style fixes, etc.), set up composer + phpstan/
+php-cs-fixer + a stub file for unresolvable Cacti core symbols as **scratch tooling only**
+(e.g. outside the repo, or in files deleted before the final commit), adapted from Cacti
+core's own `.phpstan.neon`/`.php-cs-fixer.php` baseline. Only commit the resulting source
+changes (type annotations, genuine bug fixes, formatting) to the plugin's actual PHP
+files - never the tooling config/stub/lockfiles themselves. This applies to every
+`plugin_*` repo, not just this one.
+
 ## Common Pitfalls to Avoid
 
 ```php
