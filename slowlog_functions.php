@@ -356,8 +356,37 @@ function slowlog_collect_stats_by_matched_table(int $logid, array &$values, int 
 	} while ($batch_count === $chunk_size);
 }
 
+/*
+ * The scope_key used for the synthetic "no recognized table" bucket. Ordinarily just
+ * 'others', but a real table can legitimately be named that too - since both would
+ * otherwise merge into the same plugin_slowlog_stats/chart-category bucket (and, from
+ * the By Table chart, become indistinguishable when drilling down to slowlog.php?table=...),
+ * fall back to the first candidate below no real table_name for this log collides with.
+ */
+function slowlog_others_bucket_key(int $logid): string {
+	$candidates = array('others', 'others (unmatched)', 'others (unmatched queries)');
+
+	foreach ($candidates as $candidate) {
+		$collision = db_fetch_cell_prepared('SELECT 1
+			FROM plugin_slowlog_details_tables
+			WHERE logid = ?
+			AND table_name = ?
+			LIMIT 1',
+			array($logid, $candidate));
+
+		if (!$collision) {
+			return $candidate;
+		}
+	}
+
+	// All candidates collided (astronomically unlikely) - fall back to something
+	// no real, human-typed table name would ever contain.
+	return "\x00others";
+}
+
 function slowlog_collect_stats_by_unmatched_table(int $logid, array &$values, int $chunk_size = 5000, array &$totals = array()): void {
 	$last_logentry = 0;
+	$bucket_key    = slowlog_others_bucket_key($logid);
 
 	do {
 		$rows = db_fetch_assoc_prepared('SELECT d.logentry,
@@ -377,7 +406,7 @@ function slowlog_collect_stats_by_unmatched_table(int $logid, array &$values, in
 			$last_logentry = $row['logentry'];
 
 			foreach(SLOWLOG_STATS_METRICS as $metric) {
-				slowlog_accumulate_stat_value($values, $totals, 'others', $metric, (float) $row[$metric]);
+				slowlog_accumulate_stat_value($values, $totals, $bucket_key, $metric, (float) $row[$metric]);
 			}
 		}
 	} while ($batch_count === $chunk_size);
@@ -2153,6 +2182,8 @@ function slowlog_get_chart_object_live(int $logid, string $scope, string $measur
 			ORDER BY value DESC" . $limit,
 			array($logid));
 	} else {
+		$bucket_key = slowlog_others_bucket_key($logid);
+
 		return db_fetch_assoc_prepared("SELECT *
 			FROM (
 				SELECT table_name AS scope_key,
@@ -2163,7 +2194,7 @@ function slowlog_get_chart_object_live(int $logid, string $scope, string $measur
 				WHERE d.logid = ?
 				GROUP BY table_name
 				UNION ALL
-				SELECT 'others' AS scope_key,
+				SELECT ? AS scope_key,
 					$agg AS value
 				FROM plugin_slowlog_details AS d
 				LEFT JOIN plugin_slowlog_details_tables AS dt
@@ -2173,7 +2204,7 @@ function slowlog_get_chart_object_live(int $logid, string $scope, string $measur
 				GROUP BY table_name
 			) AS fish
 			ORDER BY value DESC" . $limit,
-			array($logid, $logid));
+			array($logid, $bucket_key, $logid));
 	}
 }
 

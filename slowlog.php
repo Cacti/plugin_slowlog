@@ -728,20 +728,22 @@ function slowlog_view_details(): void {
 		$sql_params[] = get_request_var('table');
 	}
 
-	if (get_request_var('mmethod') == '-2') { // Aggregate by method
+	// method_name (set by clicking a bar on the By Method chart, which only knows the
+	// method's name, not its id) takes priority over the mmethod dropdown, including its
+	// '-2' (aggregate/N/A) option - it always needs the slm join below, since it filters
+	// on slm.method directly.
+	$has_method_name = (get_request_var('method_name') != '');
+
+	if ($has_method_name) {
+		$sql_where .= ($sql_where != '' ? ' AND':'WHERE') . ' slm.method = ?';
+
+		$sql_params[] = get_request_var('method_name');
+	} elseif (get_request_var('mmethod') == '-2') { // Aggregate by method
 		$agg_by_method = true;
 	} elseif (get_request_var('mmethod') != '-1') {
 		$sql_where .= ($sql_where != '' ? ' AND':'WHERE') . ' slm.methodid = ?';
 
 		$sql_params[] = get_request_var('mmethod');
-	}
-
-	// Set directly by clicking a bar on the By Method chart (which only knows the method's
-	// name, not its id), rather than through the mmethod dropdown above.
-	if (get_request_var('method_name') != '') {
-		$sql_where .= ($sql_where != '' ? ' AND':'WHERE') . ' slm.method = ?';
-
-		$sql_params[] = get_request_var('method_name');
 	}
 
 	if (!$agg_by_table) {
@@ -964,6 +966,11 @@ function slowlog_view_charts(string $method): void {
 	// method's id isn't known client-side (only its name, from the chart's categories).
 	$drilldown_field = ($method == 'tables') ? 'table' : 'method_name';
 
+	// The synthetic "no recognized table" bucket's category label - not necessarily the
+	// literal string 'others', since a real table can be named that too (see
+	// slowlog_others_bucket_key()). Only tables charts have this bucket.
+	$others_bucket_key = ($method == 'tables') ? slowlog_others_bucket_key($id) : null;
+
 	// Chart titles are built from the user-supplied import description, so every dynamic
 	// value dropped into this inline <script> block must go through json_encode() with the
 	// HEX flags (not raw string concatenation) - otherwise a description containing '"',
@@ -984,7 +991,8 @@ function slowlog_view_charts(string $method): void {
 		json_encode($height, $json_flags)              . ','  .
 		json_encode($width, $json_flags)                . ','  .
 		json_encode($drilldown_field, $json_flags)      . ','  .
-		json_encode((int) $id, $json_flags)             . ');' . PHP_EOL;
+		json_encode((int) $id, $json_flags)             . ','  .
+		json_encode($others_bucket_key, $json_flags)    . ');' . PHP_EOL;
 
 	foreach($rate_metrics as $key => $measure) {
 		$data = slowlog_get_chart_object($method, $measure, $scope_filter);
@@ -999,7 +1007,8 @@ function slowlog_view_charts(string $method): void {
 			json_encode($height, $json_flags)              . ','  .
 			json_encode($width, $json_flags)                . ','  .
 			json_encode($drilldown_field, $json_flags)      . ','  .
-			json_encode((int) $id, $json_flags)             . ');' . PHP_EOL;
+			json_encode((int) $id, $json_flags)             . ','  .
+			json_encode($others_bucket_key, $json_flags)    . ');' . PHP_EOL;
 
 		$stats = slowlog_get_stats_chart_object($method, $measure, $scope_filter, $hide_max);
 
@@ -1051,7 +1060,7 @@ function slowlog_view_charts(string $method): void {
 		return value.toFixed(0) + suffix;
 	}
 
-	function renderChart(chartid, title, yaxislabel, categories, data, mode, height, width, drilldownField, logid) {
+	function renderChart(chartid, title, yaxislabel, categories, data, mode, height, width, drilldownField, logid, othersBucketKey) {
 		var options = {
 			id: chartid,
 			title: {
@@ -1077,9 +1086,11 @@ function slowlog_view_charts(string $method): void {
 							return;
 						}
 
-						// The 'others' category (no recognized table) is a synthetic bucket;
-						// the details page expects its dedicated sentinel value, not the label.
-						if (drilldownField == 'table' && category == 'others') {
+						// The synthetic "no recognized table" bucket is a real category value (see
+						// slowlog_others_bucket_key() - not necessarily the literal string 'others',
+						// since a real table can be named that too), mapped to the details page's
+						// dedicated sentinel value rather than sent through as a table name.
+						if (drilldownField == 'table' && othersBucketKey !== null && category == othersBucketKey) {
 							category = '-2';
 						}
 
@@ -1306,7 +1317,8 @@ function slowlog_get_chart_scope_filter(): array {
  * other filter in this plugin.
  */
 function slowlog_charts_filter(string $method, int $id): void {
-	$selected = slowlog_get_chart_scope_filter();
+	$selected           = slowlog_get_chart_scope_filter();
+	$others_bucket_key  = ($method == 'tables') ? slowlog_others_bucket_key($id) : null;
 
 	if ($method == 'tables') {
 		$scope_label = __('Select Table', 'slowlog');
@@ -1317,7 +1329,7 @@ function slowlog_charts_filter(string $method, int $id): void {
 			ORDER BY table_name',
 			array($id)), 'value');
 
-		$scope_items[] = 'others';
+		$scope_items[] = $others_bucket_key;
 	} else {
 		$scope_label = __('Select Method', 'slowlog');
 
@@ -1340,7 +1352,9 @@ function slowlog_charts_filter(string $method, int $id): void {
 							<select id='chart_scope' multiple size='6'>
 								<?php
 								foreach ($scope_items as $value) {
-									print '<option value="' . html_escape($value) . '"' . (in_array($value, $selected, true) ? ' selected' : '') . '>' . html_escape($value) . '</option>';
+									$label = ($others_bucket_key !== null && $value === $others_bucket_key) ? __('Others', 'slowlog') : $value;
+
+									print '<option value="' . html_escape($value) . '"' . (in_array($value, $selected, true) ? ' selected' : '') . '>' . html_escape($label) . '</option>';
 								}
 								?>
 							</select>
