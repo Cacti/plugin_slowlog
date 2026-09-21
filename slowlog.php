@@ -1559,18 +1559,17 @@ function slowlog_view() {
 	html_end_box(false);
 
 	// At least one import is still Pre-Processing (the background ingest worker hasn't
-	// finished) - reload via Cacti's own AJAX page navigation so the status column
-	// updates without the user having to refresh manually.
+	// finished) - use Cacti's built-in page refresh timer so the status column updates
+	// without a manual refresh. setupPageTimeout() clears/recreates this timer on every
+	// AJAX navigation, so it can't stack or fire against a page the user has since left.
 	if ($has_pending) {
 		?>
 		<script type="text/javascript">
-		setTimeout(function() {
-			if (typeof loadPage === 'function') {
-				loadPage(window.location.href, true);
-			} else {
-				window.location.reload();
-			}
-		}, 5000);
+		refreshIsLogout = false;
+		refreshPage     = '<?php print sanitize_uri($_SERVER['REQUEST_URI']); ?>';
+		refreshMSeconds = 5000;
+		refreshFunction = '';
+		setupPageTimeout();
 		</script>
 		<?php
 	}
