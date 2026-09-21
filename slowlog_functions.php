@@ -133,7 +133,7 @@ const SLOWLOG_IMPORT_BATCH_SIZE = 1000;
  * @param int|float $p
  */
 function slowlog_percentile(array $sorted, $p): float {
-	$n = cacti_count($sorted);
+	$n = cacti_sizeof($sorted);
 
 	if ($n === 0) {
 		return 0.0;
@@ -170,9 +170,9 @@ const SLOWLOG_STATS_SAMPLE_CAP = 20000;
  * slowlog_compute_stats()) that only pass in a bounded sample of the real population.
  */
 function slowlog_summarize_values(array $values, ?int $exact_count = null, ?float $exact_sum = null): array {
-	$count = ($exact_count !== null) ? $exact_count : cacti_count($values);
+	$count = ($exact_count !== null) ? $exact_count : cacti_sizeof($values);
 
-	if ($count === 0 || !cacti_count($values)) {
+	if ($count === 0 || !cacti_sizeof($values)) {
 		return array(
 			'sample_count' => 0,
 			'total_value'  => 0.0,
@@ -195,7 +195,7 @@ function slowlog_summarize_values(array $values, ?int $exact_count = null, ?floa
 		'median_value' => slowlog_percentile($values, 50),
 		'p75_value'    => slowlog_percentile($values, 75),
 		'p95_value'    => slowlog_percentile($values, 95),
-		'max_value'    => $values[cacti_count($values) - 1],
+		'max_value'    => $values[cacti_sizeof($values) - 1],
 	);
 }
 
@@ -217,7 +217,7 @@ function slowlog_accumulate_stat_value(array &$values, array &$totals, string $s
 		$values[$scope_key][$metric] = array();
 	}
 
-	if (cacti_count($values[$scope_key][$metric]) < SLOWLOG_STATS_SAMPLE_CAP) {
+	if (cacti_sizeof($values[$scope_key][$metric]) < SLOWLOG_STATS_SAMPLE_CAP) {
 		$values[$scope_key][$metric][] = $value;
 	} else {
 		$slot = mt_rand(0, $totals[$scope_key][$metric]['count'] - 1);
@@ -558,7 +558,7 @@ function slowlog_classify_other_tables_against_list(int $logid, array $reference
 		return;
 	}
 
-	$placeholders = implode(', ', array_fill(0, cacti_count($other_tables), '?'));
+	$placeholders = implode(', ', array_fill(0, cacti_sizeof($other_tables), '?'));
 
 	$rows = db_fetch_assoc_prepared('SELECT DISTINCT logentry
 		FROM plugin_slowlog_details_tables
