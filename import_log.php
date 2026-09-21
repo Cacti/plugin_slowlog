@@ -59,6 +59,14 @@ if (cacti_sizeof($parms)) {
 	$options = getopt($shortopts, $longopts);
 
 	foreach($options as $arg => $value) {
+		// getopt() returns an array instead of a scalar when an option is repeated more than
+		// once on the command line - none of the options below are meant to be repeatable, so
+		// normalize to the last occurrence (a defensive fallback; a real invocation will only
+		// ever pass each of these once).
+		if (is_array($value)) {
+			$value = end($value);
+		}
+
 		switch($arg) {
 			case 'logfile':
 				$logfile = $value;
@@ -120,6 +128,12 @@ if (cacti_sizeof($parms)) {
 	}
 }
 
+if ($logid !== false && !preg_match('/^[1-9][0-9]*$/', trim((string) $logid))) {
+	print __('ERROR: Invalid --logid value \'%s\', must be a positive integer', $logid, 'slowlog') . PHP_EOL . PHP_EOL;
+	display_help();
+	exit(1);
+}
+
 if ($logfile !== false) {
 	if ($table_mode === 'reference' && trim($table_names) === '') {
 		print 'ERROR: --table-mode=reference requires --table-names="..." for a --logfile import' . PHP_EOL . PHP_EOL;
@@ -136,7 +150,7 @@ if ($logfile !== false) {
 		@unlink($logfile);
 	}
 } elseif ($logid !== false) {
-	import_post_process($logid, $table_names, $usecacti, $table_mode);
+	import_post_process((int) $logid, $table_names, $usecacti, $table_mode);
 } elseif ($reprocess !== false) {
 	if (strtolower($reprocess) == 'all') {
 		slowlog_reprocess_all($table_names, $usecacti, $table_mode);
@@ -150,12 +164,12 @@ if ($logfile !== false) {
 }
 
 /*  display_version - displays version information */
-function display_version() {
+function display_version(): void {
 	$version = get_cacti_cli_version();
 	print "Cacti Import Slowlog, Version $version, " . COPYRIGHT_YEARS . PHP_EOL;
 }
 
-function display_help() {
+function display_help(): void {
 	display_version();
 
 	print PHP_EOL . 'usage: import_log.php [ --usecacti | --table-mode=cacti|reference|all ] --logid=N | --logfile=S | --reprocess=N|all' . PHP_EOL . PHP_EOL;

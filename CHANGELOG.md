@@ -12,6 +12,13 @@
 * security: Chart titles (built from the user-supplied import description) are now emitted via json_encode() with JSON_HEX_* flags instead of raw string concatenation into the inline chart-rendering <script> block, preventing a crafted description from breaking out of the JS string/script context
 * feature: The Import Logfile page now shows the current max_execution_time/memory_limit alongside the existing upload_max_filesize/post_max_size, and a WARNING banner listing anything in the current server configuration likely to cause a large import to fail (non-unlimited execution time/memory, post_max_size smaller than upload_max_filesize, or a very small upload_max_filesize)
 * feature: The import form now shows a live upload progress indicator (an ApexCharts donut with the percentage in its center, alongside Pace.js's existing top-of-page bar), driven by the browser's native xhr.upload.progress event - no php.ini session.upload_progress setting or web server buffering configuration required
+* refactor: Add PHPDoc/native return and parameter type declarations to every function in the plugin, verified against a PHPStan level 8 analysis run (0 errors, no baseline/ignores) using Cacti core's own PHPStan/PHP-CS-Fixer baseline config - analysis tooling was run locally only and is not part of this repo
+* bug: `form_actions()`'s "you must select at least one record" check tested `isset($slowlog_array)` instead of whether it was empty - since `$slowlog_array` is always initialized to `array()` earlier in the function, that check could never actually trigger; now correctly checks for an empty selection
+* bug: `slowlog_save_button()` left `$sname`/`$salt` undefined when called with a `$force_type` other than `'save'`/`'create'`/`'import'`, instead of falling back to a sane default like the rest of the function does
+* bug: `import_post_process()`'s per-line MariaDB/MySQL slow-log field parser (`$data[2]`/`$data[4]`/etc. after `preg_split()`) and `$entries = file($logfile)` no longer risk operating on a `false` result if the (practically never seen) parse/read failure case is ever hit
+* bug: `slowlog_version()`/`plugin_slowlog_version()` no longer fatal if the plugin's `INFO` file is unreadable/malformed - `parse_ini_file()` failure now degrades to an empty info array instead of accessing an offset on `false`
+* bug: `setup.php`'s reserved-word seeding no longer risks iterating a `false` result if `file(keywords.txt)` ever fails to read
+* bug: `form_actions()`'s bulk-delete handler no longer risks calling `count()`/array-offset access on a `false` result if `sanitize_unserialize_selected_items()` is given a tampered/non-array `selected_items` value
 
 --- 2.3 ---
 

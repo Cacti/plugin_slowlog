@@ -247,13 +247,17 @@ if (!function_exists('html_escape')) {
 }
 
 if (!function_exists('__')) {
-	function __($text, $domain = '') {
+	// Widened to variadic (real Cacti signature, include/global_languages.php) purely so
+	// PHPStan accepts the printf-style extra-args/domain calls used throughout this plugin
+	// (e.g. __('%d Chars', 1024, 'slowlog')) - behavior is unchanged from before (still just
+	// returns $text verbatim) so no existing test's expected output changes.
+	function __($text, ...$args) {
 		return $text;
 	}
 }
 
 if (!function_exists('__esc')) {
-	function __esc($text, $domain = '') {
+	function __esc($text, ...$args) {
 		return htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 	}
 }
