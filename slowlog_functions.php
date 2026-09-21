@@ -745,6 +745,10 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 				} elseif (strpos($l, '# Query_time:') !== false) {
 					$data = preg_split('/\s+/', $l) ?: array();
 
+					if (cacti_sizeof($data) < 9) {
+						continue;
+					}
+
 					$query_time    = $data[2];
 					$lock_time     = $data[4];
 					$rows_sent     = $data[6];
@@ -752,10 +756,18 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 				} elseif (strpos($l, '# Rows_affected:') !== false) {
 					$data = preg_split('/\s+/', $l) ?: array();
 
+					if (cacti_sizeof($data) < 5) {
+						continue;
+					}
+
 					$rows_affected = $data[2];
 					$bytes_sent    = $data[4];
 				} elseif (strpos($l, '# Thread_id:') !== false) {
 					$data = preg_split('/\s+/', $l) ?: array();
+
+					if (cacti_sizeof($data) < 7) {
+						continue;
+					}
 
 					$thread_id     = $data[2];
 					$schema        = $data[4];

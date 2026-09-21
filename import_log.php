@@ -144,7 +144,13 @@ if ($logfile !== false) {
 		@unlink($logfile);
 	}
 } elseif ($logid !== false) {
-	import_post_process($logid, $table_names, $usecacti, $table_mode);
+	if (!preg_match('/^[1-9][0-9]*$/', trim((string) $logid))) {
+		print "ERROR: Invalid --logid value '$logid', must be a positive integer" . PHP_EOL . PHP_EOL;
+		display_help();
+		exit(1);
+	}
+
+	import_post_process((int) $logid, $table_names, $usecacti, $table_mode);
 } elseif ($reprocess !== false) {
 	if (strtolower($reprocess) == 'all') {
 		slowlog_reprocess_all($table_names, $usecacti, $table_mode);

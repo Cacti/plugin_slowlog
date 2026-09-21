@@ -87,7 +87,15 @@ function slowlog_check_upgrade(): void {
 		return;
 	}
 
-	$info    = slowlog_version();
+	$info = slowlog_version();
+
+	// The rest of this function indexes 'version'/'longname'/etc. directly - bail out rather
+	// than risk undefined-key warnings and writing null metadata into plugin_config if the
+	// INFO file is ever unreadable/malformed.
+	if (!isset($info['version'])) {
+		return;
+	}
+
 	$current = $info['version'];
 	$old     = db_fetch_cell_prepared('SELECT version
 		FROM plugin_config
