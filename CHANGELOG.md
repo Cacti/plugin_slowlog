@@ -2,6 +2,8 @@
 
 --- 2.4 ---
 
+* feature: The Table Name, Method, User, and Host columns on the details list are now clickable, setting that value as a filter; each active filter shows a trash-can icon next to its label in the filter bar to clear just that one filter
+* feature: Clicking a bar on the By Method/By Table raw-totals charts now opens the details page filtered to that method/table (and resets any other active detail filters)
 * bug: The By Method/By Table chart scope multiselect's selection wasn't taking effect - chart_scope's FILTER_CALLBACK/sanitize_search_string validation stripped the commas out of the submitted comma-delimited list, collapsing any multi-selection into one unsplittable value. Switched to FILTER_DEFAULT with its own post-validation against the actual method/table allow-list for that log
 * chore: Harmonize CI workflow, issue/PR templates, and PHP-compatibility test structure with the shared Cacti plugin baseline
 * feature: The By Method/By Table chart scope select is now a searchable jQuery multiselect (matching the widget used elsewhere in Cacti core) instead of a plain multi-select list box

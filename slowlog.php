@@ -598,6 +598,11 @@ function slowlog_request_validation(): void {
 			'default' => '-1',
 			'options' => array('options' => 'sanitize_search_string')
 		),
+		'method_name' => array(
+			'filter' => FILTER_CALLBACK,
+			'default' => '',
+			'options' => array('options' => 'sanitize_search_string')
+		),
 		'host' => array(
 			'filter' => FILTER_CALLBACK,
 			'default' => '-1',
@@ -723,7 +728,17 @@ function slowlog_view_details(): void {
 		$sql_params[] = get_request_var('table');
 	}
 
-	if (get_request_var('mmethod') == '-2') { // Aggregate by method
+	// method_name (set by clicking a bar on the By Method chart, which only knows the
+	// method's name, not its id) takes priority over the mmethod dropdown, including its
+	// '-2' (aggregate/N/A) option - it always needs the slm join below, since it filters
+	// on slm.method directly.
+	$has_method_name = (get_request_var('method_name') != '');
+
+	if ($has_method_name) {
+		$sql_where .= ($sql_where != '' ? ' AND':'WHERE') . ' slm.method = ?';
+
+		$sql_params[] = get_request_var('method_name');
+	} elseif (get_request_var('mmethod') == '-2') { // Aggregate by method
 		$agg_by_method = true;
 	} elseif (get_request_var('mmethod') != '-1') {
 		$sql_where .= ($sql_where != '' ? ' AND':'WHERE') . ' slm.methodid = ?';
@@ -855,12 +870,22 @@ function slowlog_view_details(): void {
 				<a class='pic' href='slowlog.php?action=query&logid=<?php print $r['logid'];?>&logentry=<?php print $r['logentry'];?>'><i class='fas fa-search-plus pic' title='<?php print __esc('View Details', 'slowlog');?>'></i></a>
 			</td>
 			<td>
-				<a class='pic' class='linkEditMain' href='<?php print html_escape('slowlog.php?action=details&table=' . $table . '&logid=' . $r['logid']);?>'><?php print html_escape($table);?></a>
+				<a class='pic linkEditMain' href='<?php print html_escape(slowlog_details_filter_url('table', $r['table_name'] != '' ? $r['table_name'] : '-2'));?>'><?php print html_escape($table);?></a>
 			</td>
-			<td><?php print $r['method'];?></td>
+			<td>
+				<?php if ($r['method'] != '' && $r['method'] != 'N/A') {?>
+				<a class='pic linkEditMain' href='<?php print html_escape(slowlog_details_filter_url('method_name', $r['method']));?>'><?php print html_escape($r['method']);?></a>
+				<?php } else {?>
+				<?php print html_escape($r['method']);?>
+				<?php }?>
+			</td>
 			<td><?php print $r['date'];?></td>
-			<td><?php print filter_value($r['user'], get_request_var('filter'));?></td>
-			<td><?php print filter_value($r['host'], get_request_var('filter'));?></td>
+			<td>
+				<a class='pic linkEditMain' href='<?php print html_escape(slowlog_details_filter_url('user', $r['user']));?>'><?php print filter_value($r['user'], get_request_var('filter'));?></a>
+			</td>
+			<td>
+				<a class='pic linkEditMain' href='<?php print html_escape(slowlog_details_filter_url('host', $r['host']));?>'><?php print filter_value($r['host'], get_request_var('filter'));?></a>
+			</td>
 			<td class='right'><?php print number_format_i18n($r['query_time']);?></td>
 			<td class='right'><?php print number_format_i18n($r['lock_time']);?></td>
 			<td class='right'><?php print number_format_i18n($r['rows_sent']);?></td>
@@ -946,6 +971,16 @@ function slowlog_view_charts(string $method): void {
 	$width  = '100%';
 	$height = 400;
 
+	// Bar charts drill down to the details page, filtered to the clicked category; tables
+	// filter by table name already, methods need the name-based method_name filter since a
+	// method's id isn't known client-side (only its name, from the chart's categories).
+	$drilldown_field = ($method == 'tables') ? 'table' : 'method_name';
+
+	// The synthetic "no recognized table" bucket's category label - not necessarily the
+	// literal string 'others', since a real table can be named that too (see
+	// slowlog_others_bucket_key()). Only tables charts have this bucket.
+	$others_bucket_key = ($method == 'tables') ? slowlog_others_bucket_key($id) : null;
+
 	// Chart titles are built from the user-supplied import description, so every dynamic
 	// value dropped into this inline <script> block must go through json_encode() with the
 	// HEX flags (not raw string concatenation) - otherwise a description containing '"',
@@ -964,7 +999,10 @@ function slowlog_view_charts(string $method): void {
 		json_encode($data['values'], $json_flags)      . ','  .
 		json_encode($mode, $json_flags)                . ','  .
 		json_encode($height, $json_flags)              . ','  .
-		json_encode($width, $json_flags)                . ');' . PHP_EOL;
+		json_encode($width, $json_flags)                . ','  .
+		json_encode($drilldown_field, $json_flags)      . ','  .
+		json_encode((int) $id, $json_flags)             . ','  .
+		json_encode($others_bucket_key, $json_flags)    . ');' . PHP_EOL;
 
 	foreach($rate_metrics as $key => $measure) {
 		$data = slowlog_get_chart_object($method, $measure, $scope_filter);
@@ -977,7 +1015,10 @@ function slowlog_view_charts(string $method): void {
 			json_encode($data['values'], $json_flags)      . ','  .
 			json_encode($mode, $json_flags)                . ','  .
 			json_encode($height, $json_flags)              . ','  .
-			json_encode($width, $json_flags)                . ');' . PHP_EOL;
+			json_encode($width, $json_flags)                . ','  .
+			json_encode($drilldown_field, $json_flags)      . ','  .
+			json_encode((int) $id, $json_flags)             . ','  .
+			json_encode($others_bucket_key, $json_flags)    . ');' . PHP_EOL;
 
 		$stats = slowlog_get_stats_chart_object($method, $measure, $scope_filter, $hide_max);
 
@@ -1029,7 +1070,7 @@ function slowlog_view_charts(string $method): void {
 		return value.toFixed(0) + suffix;
 	}
 
-	function renderChart(chartid, title, yaxislabel, categories, data, mode, height, width) {
+	function renderChart(chartid, title, yaxislabel, categories, data, mode, height, width, drilldownField, logid, othersBucketKey) {
 		var options = {
 			id: chartid,
 			title: {
@@ -1046,12 +1087,39 @@ function slowlog_view_charts(string $method): void {
 				height:  height,
 				width:   width,
 				redrawOnParentResize: true,
-				redrawOnWindowResize: true
+				redrawOnWindowResize: true,
+				events: {
+					dataPointSelection: function(event, chartContext, config) {
+						var category = categories[config.dataPointIndex];
+
+						if (category === undefined) {
+							return;
+						}
+
+						// The synthetic "no recognized table" bucket is a real category value (see
+						// slowlog_others_bucket_key() - not necessarily the literal string 'others',
+						// since a real table can be named that too), mapped to the details page's
+						// dedicated sentinel value rather than sent through as a table name.
+						if (drilldownField == 'table' && othersBucketKey !== null && category == othersBucketKey) {
+							category = '-2';
+						}
+
+						var strURL = 'slowlog.php?action=details&logid=' + logid + '&reset=true';
+						strURL += '&' + drilldownField + '=' + encodeURIComponent(category);
+
+						if (typeof loadPage === 'function') {
+							loadPage(strURL, true);
+						} else {
+							window.location.href = strURL;
+						}
+					}
+				}
 			},
 			plotOptions: {
 				bar: {
 					columnWidth: '70%',
-					distributed: true
+					distributed: true,
+					cursor: 'pointer'
 				}
 			},
 			dropShadow: {
@@ -1278,9 +1346,10 @@ function slowlog_get_chart_scope_filter(): array {
  * other filter in this plugin.
  */
 function slowlog_charts_filter(string $method, int $id): void {
-	$selected    = slowlog_get_chart_scope_filter();
-	$scope_label = ($method == 'tables') ? __('Select Table', 'slowlog') : __('Select Method', 'slowlog');
-	$scope_items = slowlog_get_chart_scope_items($method, $id);
+	$selected          = slowlog_get_chart_scope_filter();
+	$scope_label       = ($method == 'tables') ? __('Select Table', 'slowlog') : __('Select Method', 'slowlog');
+	$scope_items       = slowlog_get_chart_scope_items($method, $id);
+	$others_bucket_key = ($method == 'tables') ? slowlog_others_bucket_key($id) : null;
 
 	?>
 	<tr class='even'>
@@ -1295,7 +1364,9 @@ function slowlog_charts_filter(string $method, int $id): void {
 							<select id='chart_scope' multiple size='6'>
 								<?php
 								foreach ($scope_items as $value) {
-									print '<option value="' . html_escape($value) . '"' . (in_array($value, $selected, true) ? ' selected' : '') . '>' . html_escape($value) . '</option>';
+									$label = ($others_bucket_key !== null && $value === $others_bucket_key) ? __('Others', 'slowlog') : $value;
+
+									print '<option value="' . html_escape($value) . '"' . (in_array($value, $selected, true) ? ' selected' : '') . '>' . html_escape($label) . '</option>';
 								}
 								?>
 							</select>
@@ -1757,7 +1828,7 @@ function slowlog_details_filter(): void {
 							</select>
 						</td>
 						<td>
-							<?php print __('Method', 'slowlog');?>
+							<?php print __('Method', 'slowlog');?><?php print slowlog_details_filter_clear_glyph('mmethod');?>
 						</td>
 						<td>
 							<select id='mmethod' onChange='applyFilter()'>
@@ -1778,7 +1849,7 @@ function slowlog_details_filter(): void {
 							</select>
 						</td>
 						<td>
-							<?php print __('Tables', 'slowlog');?>
+							<?php print __('Tables', 'slowlog');?><?php print slowlog_details_filter_clear_glyph('table');?>
 						</td>
 						<td>
 							<select id='table' onChange='applyFilter()'>
@@ -1839,7 +1910,7 @@ function slowlog_details_filter(): void {
 							<input type='text' id='filter' size='40' value='<?php print html_escape_request_var('filter');?>'>
 						</td>
 						<td>
-							<?php print __('User', 'slowlog');?>
+							<?php print __('User', 'slowlog');?><?php print slowlog_details_filter_clear_glyph('user');?>
 						</td>
 						<td>
 							<select id='myuser' onChange='applyFilter()'>
@@ -1867,7 +1938,7 @@ function slowlog_details_filter(): void {
 							</select>
 						</td>
 						<td>
-							<?php print __('Host', 'slowlog');?>
+							<?php print __('Host', 'slowlog');?><?php print slowlog_details_filter_clear_glyph('host');?>
 						</td>
 						<td>
 							<select id='host' onChange='applyFilter()'>
