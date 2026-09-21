@@ -1238,7 +1238,9 @@ function slowlog_request_charts_validation(string $chart_type): void {
 	// Reject any submitted scope value that isn't an actual method/table for this log,
 	// since chart_scope now skips sanitize_search_string and feeds straight into an
 	// IN (...) clause in slowlog_get_chart_object()/slowlog_get_stats_chart_object().
-	$allowed  = slowlog_get_chart_scope_items($chart_type, (int) get_request_var('logid'));
+	// get_filter_request_var() rejects non-numeric logid values consistently with every
+	// other chart query, rather than a raw (int) cast silently coercing them (e.g. "123abc").
+	$allowed  = slowlog_get_chart_scope_items($chart_type, (int) get_filter_request_var('logid'));
 	$selected = slowlog_get_chart_scope_filter();
 	$valid    = array_values(array_intersect($selected, $allowed));
 
