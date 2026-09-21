@@ -183,7 +183,7 @@ function form_actions(): void {
 		$selected_items = sanitize_unserialize_selected_items(get_request_var('selected_items')) ?: array();
 
 		if ($_POST['drp_action'] == '1') { /* delete */
-			for ($i=0; $i<count($selected_items); $i++) {
+			for ($i=0; $i<cacti_count($selected_items); $i++) {
 				/* ================= input validation ================= */
 				input_validate_input_number($selected_items[$i]);
 				/* ==================================================== */
@@ -231,7 +231,7 @@ function form_actions(): void {
 		</tr>";
 	}
 
-	if (!count($slowlog_array)) {
+	if (!cacti_count($slowlog_array)) {
 		print "<tr><td><span class='textError'>" . __esc('You must select at least one Slowlog record.', 'slowlog') . "</span></td></tr>";
 		$save_html = '';
 	} else {
@@ -241,7 +241,7 @@ function form_actions(): void {
 	print "	<tr>
 		<td class='saveRow'>
 			<input type='hidden' name='action' value='actions'>
-			<input type='hidden' name='selected_items' value='" . (count($slowlog_array) ? serialize($slowlog_array) : '') . "'>
+			<input type='hidden' name='selected_items' value='" . (cacti_count($slowlog_array) ? serialize($slowlog_array) : '') . "'>
 			<input type='hidden' name='drp_action' value='" . $_POST['drp_action'] . "'>" . (strlen($save_html) ? "
 			<input type='submit' name='cancel' value='" . __esc('No', 'slowlog') . "'>
 			$save_html" : "<input type='submit' name='cancel' value='" . __esc('Return', 'slowlog') . "'>") . "
