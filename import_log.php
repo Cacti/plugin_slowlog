@@ -29,12 +29,15 @@ include(__DIR__ . '/slowlog_functions.php');
 $parms = $_SERVER['argv'];
 array_shift($parms);
 
-$logfile     = false;
-$logid       = false;
-$reprocess   = false;
-$usecacti    = false;
-$table_mode  = null;
-$table_names = '';
+$logfile      = false;
+$logid        = false;
+$reprocess    = false;
+$usecacti     = false;
+$table_mode   = null;
+$table_names  = '';
+$description  = 'Imported using import_log.php';
+$length       = -1;
+$delete_after = false;
 
 if (cacti_sizeof($parms)) {
 	$shortopts = 'VvHh';
@@ -46,6 +49,9 @@ if (cacti_sizeof($parms)) {
 		'usecacti',
 		'table-mode:',
 		'table-names:',
+		'description:',
+		'length:',
+		'delete-after',
 		'version',
 		'help'
 	);
@@ -84,6 +90,18 @@ if (cacti_sizeof($parms)) {
 				$table_names = $value;
 
 				break;
+			case 'description':
+				$description = $value;
+
+				break;
+			case 'length':
+				$length = (int) $value;
+
+				break;
+			case 'delete-after':
+				$delete_after = true;
+
+				break;
 			case 'version':
 			case 'V':
 			case 'v':
@@ -109,7 +127,14 @@ if ($logfile !== false) {
 		exit(1);
 	}
 
-	import_logfile($logfile, 'Imported using import_log.php', -1, $table_names, $usecacti, false, $table_mode);
+	// --logid alongside --logfile means the caller (the web upload handler) already
+	// inserted the parent record so its status is visible immediately - reuse it
+	// instead of creating a second one.
+	import_logfile($logfile, $description, $length, $table_names, $usecacti, false, $table_mode, $logid !== false ? (int) $logid : null);
+
+	if ($delete_after) {
+		@unlink($logfile);
+	}
 } elseif ($logid !== false) {
 	import_post_process($logid, $table_names, $usecacti, $table_mode);
 } elseif ($reprocess !== false) {
@@ -149,7 +174,16 @@ function display_help() {
 	print '                        (default).' . PHP_EOL;
 	print '    --table-names="t1 t2" - Space-separated reference table list for a --logfile' . PHP_EOL;
 	print '                        import; required with --table-mode=reference. Saved with' . PHP_EOL;
-	print '                        the import so --logid/--reprocess can reuse it later.' . PHP_EOL . PHP_EOL;
+	print '                        the import so --logid/--reprocess can reuse it later.' . PHP_EOL;
+	print '    --logid=N together with --logfile=S - Reuse an already-created parent record' . PHP_EOL;
+	print '                        (e.g. one inserted up front by a caller) instead of' . PHP_EOL;
+	print '                        creating a new one.' . PHP_EOL;
+	print '    --description=S - LogFile description to save with a --logfile import' . PHP_EOL;
+	print '                        (default: "Imported using import_log.php").' . PHP_EOL;
+	print '    --length=N   - Truncate each imported query to N characters, -1 for no limit' . PHP_EOL;
+	print '                        (default: -1). Only used with --logfile.' . PHP_EOL;
+	print '    --delete-after - Delete the --logfile after a successful import (used by the' . PHP_EOL;
+	print '                        web upload handler to clean up its staged copy).' . PHP_EOL . PHP_EOL;
 }
 
 

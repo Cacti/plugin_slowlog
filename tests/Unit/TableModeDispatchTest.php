@@ -136,7 +136,7 @@ it('wires a --table-names option into the import_log.php CLI and forwards it', f
 	$source = file_get_contents(realpath(__DIR__ . '/../../import_log.php'));
 
 	expect($source)->toContain("'table-names:'");
-	expect($source)->toContain('import_logfile($logfile, \'Imported using import_log.php\', -1, $table_names, $usecacti, false, $table_mode);');
+	expect($source)->toContain('import_logfile($logfile, $description, $length, $table_names, $usecacti, false, $table_mode, $logid !== false ? (int) $logid : null);');
 });
 
 it('rejects --table-mode=reference with --logfile when --table-names is missing', function () {

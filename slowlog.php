@@ -91,6 +91,8 @@ switch (get_request_var('action')) {
    -------------------------- */
 
 function form_save() {
+	global $config;
+
 	if (isset($_POST['save_component_slowlog'])) {
 		$logid = api_slowlog_save($_POST['logid'], $_POST['description'], $_POST['length']);
 
@@ -101,9 +103,6 @@ function form_save() {
 
 	if (isset($_POST['save_component_import'])) {
 		if (($_FILES['import_file']['tmp_name'] != 'none') && ($_FILES['import_file']['tmp_name'] != '')) {
-			/* file upload */
-			$csv_data = file($_FILES['import_file']['tmp_name']);
-
 			$table_mode = get_nfilter_request_var('table_mode');
 
 			if (!in_array($table_mode, array('cacti', 'reference', 'all'), true)) {
@@ -117,20 +116,55 @@ function form_save() {
 				exit;
 			}
 
-			/* obtain debug information if it's set */
-			$debug_data = import_logfile(
-				$_FILES['import_file']['tmp_name'],
-				get_nfilter_request_var('description'),
-				get_nfilter_request_var('length'),
-				get_nfilter_request_var('table_names'),
-				$table_mode == 'cacti',
-				true,
-				$table_mode
-			);
+			// Stage the upload outside of PHP's request-scoped tmp handling - the
+			// heavy ingest below runs in a background worker after this request ends,
+			// and the original tmp_name is deleted as soon as we return.
+			$import_path = sys_get_temp_dir() . '/slowlog_upload_' . uniqid('', true) . '.log';
 
-			if (cacti_sizeof($debug_data) > 0) {
-				$_SESSION['import_debug_info'] = $debug_data;
+			if (!move_uploaded_file($_FILES['import_file']['tmp_name'], $import_path)) {
+				raise_message('slowlog_upload_failed', __('ERROR: Unable to stage the uploaded Slowlog file for import.', 'slowlog'), MESSAGE_LEVEL_ERROR);
+
+				header('Location: slowlog.php');
+				exit;
 			}
+
+			// Insert the parent record up front (import_status defaults to 0/Pre-Processing
+			// so it's visible in the list immediately), then hand the entire ingest - not
+			// just post-processing - to a background worker. Reading/parsing/inserting a
+			// multi-hundred-MB log inline in this request can easily exceed a front-end
+			// reverse proxy's own read timeout, which PHP's max_execution_time can't override.
+			$save['logid']         = 0;
+			$save['description']   = get_nfilter_request_var('description');
+			$save['import_date']   = date('Y-m-d H:i:s');
+			$save['import_lines']  = 0;
+			$save['import_tables'] = get_nfilter_request_var('table_names');
+			$save['start_time']    = date('Y-m-d H:i:s');
+			$save['end_time']      = date('Y-m-d H:i:s');
+
+			$logid = sql_save($save, 'plugin_slowlog', 'logid');
+
+			if (empty($logid)) {
+				raise_message('slowlog_upload_failed', __('ERROR: Unable to create the Slowlog import record.', 'slowlog'), MESSAGE_LEVEL_ERROR);
+
+				header('Location: slowlog.php');
+				exit;
+			}
+
+			$php = cacti_escapeshellcmd(read_config_option('path_php_binary'));
+
+			$cmd  = $config['base_path'] . '/plugins/slowlog/import_log.php';
+			$cmd .= ' --logid=' . $logid;
+			$cmd .= ' --logfile=' . cacti_escapeshellarg($import_path);
+			$cmd .= ' --description=' . cacti_escapeshellarg(get_nfilter_request_var('description'));
+			$cmd .= ' --length=' . cacti_escapeshellarg(get_nfilter_request_var('length'));
+			$cmd .= $table_mode == 'cacti' ? ' --usecacti' : '';
+			$cmd .= ' --table-mode=' . cacti_escapeshellarg($table_mode);
+			$cmd .= trim(get_nfilter_request_var('table_names')) !== '' ? ' --table-names=' . cacti_escapeshellarg(trim(get_nfilter_request_var('table_names'))) : '';
+			$cmd .= ' --delete-after';
+
+			exec_background($php, $cmd);
+
+			raise_message('import_pre', __('The Slowlog has been queued and will be imported in the background. Refresh this page to track progress.', 'slowlog'), MESSAGE_LEVEL_INFO);
 		} else {
 			header('Location: slowlog.php');
 			exit;
@@ -449,7 +483,11 @@ function slowlog_import() {
 		// named import_file, and takes over that submit with a FormData/XHR upload so the
 		// browser's native xhr.upload.progress event can drive a real byte-accurate donut -
 		// no php.ini session.upload_progress setting or web server buffering config needed.
-		$(document).on('submit', 'form', function(event) {
+		// Namespaced and unbound first because this inline script re-runs every time Cacti's
+		// AJAX page navigation reloads this content - without this, each reload would stack
+		// another duplicate handler, firing the upload (and the import behind it) once per
+		// stacked handler for a single submit.
+		$(document).off('submit.slowlogUpload').on('submit.slowlogUpload', 'form', function(event) {
 			var form      = this;
 			var fileField = $(form).find('input[name="import_file"]')[0];
 
@@ -1345,6 +1383,8 @@ function slowlog_view() {
 				$status = '<span class="deviceRecovering">' . __('Post-Processing', 'slowlog') . '</span>';
 			} elseif ($entry['import_status'] == 2) {
 				$status = '<span class="deviceUp">' . __('Complete', 'slowlog') . '</span>';
+			} elseif ($entry['import_status'] == 3) {
+				$status = '<span class="deviceDown">' . __('Bad File Format', 'slowlog') . '</span>';
 			} else {
 				$status = '<span class="deviceDown">' . __('Unknown', 'slowlog') . '</span>';
 			}
