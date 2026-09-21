@@ -102,7 +102,9 @@ function form_save(): void {
 	}
 
 	if (isset($_POST['save_component_import'])) {
-		if (($_FILES['import_file']['tmp_name'] != 'none') && ($_FILES['import_file']['tmp_name'] != '')) {
+		$upload_error = isset($_FILES['import_file']['error']) ? (int) $_FILES['import_file']['error'] : UPLOAD_ERR_NO_FILE;
+
+		if ($upload_error === UPLOAD_ERR_OK && $_FILES['import_file']['tmp_name'] != '') {
 			$table_mode = get_nfilter_request_var('table_mode');
 
 			if (!in_array($table_mode, array('cacti', 'reference', 'all'), true)) {
@@ -166,6 +168,12 @@ function form_save(): void {
 
 			raise_message('import_pre', __('The Slowlog has been queued and will be imported in the background. Refresh this page to track progress.', 'slowlog'), MESSAGE_LEVEL_INFO);
 		} else {
+			// UPLOAD_ERR_NO_FILE just means nothing was selected - every other code means the
+			// browser attempted an upload and the server rejected or lost it.
+			if ($upload_error !== UPLOAD_ERR_NO_FILE) {
+				raise_message('slowlog_upload_failed', slowlog_upload_error_message($upload_error), MESSAGE_LEVEL_ERROR);
+			}
+
 			header('Location: slowlog.php');
 			exit;
 		}
@@ -941,7 +949,7 @@ function slowlog_view_charts(string $method): void {
 	slowlog_request_charts_validation($method);
 
 	$scope_filter = slowlog_get_chart_scope_filter();
-	$hide_max     = (get_request_var('hide_max') == 'on');
+	$include_max  = (get_request_var('include_max') == 'on');
 
 	slowlog_tabs();
 
@@ -991,24 +999,11 @@ function slowlog_view_charts(string $method): void {
 
 	$data = slowlog_get_chart_object($method, 'count', $scope_filter);
 
-	$output .= 'renderChart(' .
-		'"raw_count",' .
-		json_encode($data['title'], $json_flags)       . ','  .
-		json_encode($data['yaxislabel'], $json_flags)  . ','  .
-		json_encode($data['categories'], $json_flags)  . ','  .
-		json_encode($data['values'], $json_flags)      . ','  .
-		json_encode($mode, $json_flags)                . ','  .
-		json_encode($height, $json_flags)              . ','  .
-		json_encode($width, $json_flags)                . ','  .
-		json_encode($drilldown_field, $json_flags)      . ','  .
-		json_encode((int) $id, $json_flags)             . ','  .
-		json_encode($others_bucket_key, $json_flags)    . ');' . PHP_EOL;
-
-	foreach($rate_metrics as $key => $measure) {
-		$data = slowlog_get_chart_object($method, $measure, $scope_filter);
-
+	// A scope item with zero matched rows has nothing to chart - skip it rather than
+	// render an empty/misleading chart shell.
+	if (cacti_sizeof($data['categories'])) {
 		$output .= 'renderChart(' .
-			'"raw_' . $key . '",' .
+			'"raw_count",' .
 			json_encode($data['title'], $json_flags)       . ','  .
 			json_encode($data['yaxislabel'], $json_flags)  . ','  .
 			json_encode($data['categories'], $json_flags)  . ','  .
@@ -1019,19 +1014,40 @@ function slowlog_view_charts(string $method): void {
 			json_encode($drilldown_field, $json_flags)      . ','  .
 			json_encode((int) $id, $json_flags)             . ','  .
 			json_encode($others_bucket_key, $json_flags)    . ');' . PHP_EOL;
+	}
 
-		$stats = slowlog_get_stats_chart_object($method, $measure, $scope_filter, $hide_max);
+	foreach($rate_metrics as $key => $measure) {
+		$data = slowlog_get_chart_object($method, $measure, $scope_filter);
 
-		$output .= 'renderBoxChart(' .
-			'"box_' . $key . '",' .
-			json_encode($stats['title'], $json_flags)       . ','  .
-			json_encode($stats['yaxislabel'], $json_flags)  . ','  .
-			json_encode($stats['categories'], $json_flags)  . ','  .
-			json_encode($stats['box_data'], $json_flags)    . ','  .
-			json_encode($stats['p95_data'], $json_flags)    . ','  .
-			json_encode($mode, $json_flags)                 . ','  .
-			json_encode($height, $json_flags)               . ','  .
-			json_encode($width, $json_flags)                 . ');' . PHP_EOL;
+		if (cacti_sizeof($data['categories'])) {
+			$output .= 'renderChart(' .
+				'"raw_' . $key . '",' .
+				json_encode($data['title'], $json_flags)       . ','  .
+				json_encode($data['yaxislabel'], $json_flags)  . ','  .
+				json_encode($data['categories'], $json_flags)  . ','  .
+				json_encode($data['values'], $json_flags)      . ','  .
+				json_encode($mode, $json_flags)                . ','  .
+				json_encode($height, $json_flags)              . ','  .
+				json_encode($width, $json_flags)                . ','  .
+				json_encode($drilldown_field, $json_flags)      . ','  .
+				json_encode((int) $id, $json_flags)             . ','  .
+				json_encode($others_bucket_key, $json_flags)    . ');' . PHP_EOL;
+		}
+
+		$stats = slowlog_get_stats_chart_object($method, $measure, $scope_filter, $include_max);
+
+		if (cacti_sizeof($stats['categories'])) {
+			$output .= 'renderBoxChart(' .
+				'"box_' . $key . '",' .
+				json_encode($stats['title'], $json_flags)       . ','  .
+				json_encode($stats['yaxislabel'], $json_flags)  . ','  .
+				json_encode($stats['categories'], $json_flags)  . ','  .
+				json_encode($stats['box_data'], $json_flags)    . ','  .
+				json_encode($stats['p95_data'], $json_flags)    . ','  .
+				json_encode($mode, $json_flags)                 . ','  .
+				json_encode($height, $json_flags)               . ','  .
+				json_encode($width, $json_flags)                 . ');' . PHP_EOL;
+		}
 	}
 
 	html_end_box(false);
@@ -1278,7 +1294,7 @@ function slowlog_view_charts(string $method): void {
 
 /*
  * Input validation and session storage for the chart filters (method/table scope
- * multiselect + hide-max checkbox + Top N selectmenu), persisted per chart type (methods
+ * multiselect + Top N selectmenu + include-max checkbox), persisted per chart type (methods
  * vs tables have different scope_key value sets, so they're kept in separate session
  * buckets).
  */
@@ -1294,7 +1310,7 @@ function slowlog_request_charts_validation(string $chart_type): void {
 			'pageset' => true,
 			'default' => ''
 		),
-		'hide_max' => array(
+		'include_max' => array(
 			'filter'  => FILTER_CALLBACK,
 			'pageset' => true,
 			'default' => '',
@@ -1345,12 +1361,12 @@ function slowlog_get_chart_scope_filter(): array {
 
 /*
  * One-line filter row above the By Method/By Table charts: a multiselect of the
- * available methods (or tables) to restrict which categories are charted, a
- * checkbox to swap the box-whisker's max value for its p95 (the true max is often
- * a rare outlier that flattens the rest of the box on the chart's Y axis), and the
- * usual Go/Clear buttons. Filter state is persisted via
- * slowlog_request_charts_validation()/validate_store_request_vars() same as every
- * other filter in this plugin.
+ * available methods (or tables) to restrict which categories are charted, a Top N
+ * selectmenu, a checkbox to include the box-whisker's true max value (p95 is shown
+ * instead by default, since a rare true-max outlier can otherwise flatten the rest of
+ * the box on the chart's Y axis), and the usual Go/Clear buttons. Filter state is
+ * persisted via slowlog_request_charts_validation()/validate_store_request_vars() same
+ * as every other filter in this plugin.
  */
 function slowlog_charts_filter(string $method, int $id): void {
 	$selected          = slowlog_get_chart_scope_filter();
@@ -1379,12 +1395,6 @@ function slowlog_charts_filter(string $method, int $id): void {
 							</select>
 						</td>
 						<td>
-							<label>
-								<input type='checkbox' id='hide_max'<?php print (get_request_var('hide_max') == 'on' ? ' checked' : '');?>>
-								<?php print __('Hide Max (use p95 instead)', 'slowlog');?>
-							</label>
-						</td>
-						<td>
 							<?php print __('Top', 'slowlog');?>
 						</td>
 						<td>
@@ -1395,6 +1405,12 @@ function slowlog_charts_filter(string $method, int $id): void {
 								}
 								?>
 							</select>
+						</td>
+						<td>
+							<label>
+								<input type='checkbox' id='include_max'<?php print (get_request_var('include_max') == 'on' ? ' checked' : '');?>>
+								<?php print __('Include Max', 'slowlog');?>
+							</label>
 						</td>
 						<td>
 							<span>
@@ -1410,8 +1426,8 @@ function slowlog_charts_filter(string $method, int $id): void {
 				var strURL = 'slowlog.php?action=<?php print $method == 'tables' ? 'tables' : 'methods';?>&header=false&logid=<?php print (int) $id;?>';
 
 				strURL += '&chart_scope=' + ($('#chart_scope').val() || []).join(',');
-				strURL += '&hide_max=' + ($('#hide_max').is(':checked') ? 'on' : '');
 				strURL += '&chart_top=' + $('#chart_top').val();
+				strURL += '&include_max=' + ($('#include_max').is(':checked') ? 'on' : '');
 
 				loadPageNoHeader(strURL);
 			}
@@ -1444,7 +1460,7 @@ function slowlog_charts_filter(string $method, int $id): void {
 					width: 200
 				});
 
-				$('#hide_max').on('change', function() {
+				$('#include_max').on('change', function() {
 					applyChartsFilter();
 				});
 

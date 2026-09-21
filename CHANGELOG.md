@@ -3,6 +3,11 @@
 --- 2.5 ---
 
 * feature: Add composite (logid, metric) indexes on plugin_slowlog_details for query_time, lock_time, rows_sent, rows_examined, rows_affected, and bytes_sent, so sorting the details list by any of these columns can use an index instead of a filesort - a standalone index on the metric alone wouldn't help, since every details query also filters on logid
+* feature: Move the chart filter bar's 'Top' selectmenu to immediately follow the Select Method/Select Table multiselect, ahead of the Include Max checkbox
+* feature: Rename the box-whisker chart's 'Hide Max (use p95 instead)' checkbox to 'Include Max', and default it unchecked - the box's top value now shows p95 (not the true, often outlier-skewed max) unless explicitly requested
+* bug: The Select Method/Select Table dropdowns listed every method in the global dictionary (or unconditionally appended the OTHER TABLES bucket), regardless of whether this specific log had any matching data - now scoped to plugin_slowlog_stats for this logid, so only methods/tables the log actually has cached results for are selectable
+* bug: A raw-totals or box-whisker chart with zero matched rows for a given method/table rendered an empty, misleading chart shell - now skipped entirely when there's nothing to chart
+* bug: A rejected file upload (exceeds upload_max_filesize/post_max_size, an interrupted transfer, a server-side write failure, etc.) silently redirected back to the import form with no indication anything went wrong - now raises a specific error-level message for every non-empty-selection upload failure
 
 --- 2.4 ---
 

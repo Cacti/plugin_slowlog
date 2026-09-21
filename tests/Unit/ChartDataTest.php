@@ -132,7 +132,7 @@ it('does not fall back to live aggregation when the log has a stats cache but th
 	expect($live_calls)->toBe(array());
 });
 
-it('shapes cached percentile rows into box-whisker data plus a separate p95 series', function () {
+it('shapes cached percentile rows into box-whisker data plus a separate p95 series, defaulting the box top to p95', function () {
 	slowlog_test_mock_db('db_fetch_assoc_prepared', 'FROM plugin_slowlog_stats', array(
 		array('scope_key' => 'SELECTS', 'sample_count' => 2, 'total_value' => 30,
 			'min_value' => 10, 'p25_value' => 12.5, 'median_value' => 15, 'p75_value' => 17.5, 'p95_value' => 19.5, 'max_value' => 20),
@@ -142,7 +142,7 @@ it('shapes cached percentile rows into box-whisker data plus a separate p95 seri
 
 	expect($data['categories'])->toBe(array('SELECTS'));
 	expect($data['box_data'])->toBe(array(
-		array('x' => 'SELECTS', 'y' => array(10.0, 12.5, 15.0, 17.5, 20.0)),
+		array('x' => 'SELECTS', 'y' => array(10.0, 12.5, 15.0, 17.5, 19.5)),
 	));
 	expect($data['p95_data'])->toBe(array(
 		array('x' => 'SELECTS', 'y' => 19.5),
@@ -175,4 +175,49 @@ it('does not cap box-whisker table results to 10 when an explicit scope filter i
 	$data = slowlog_get_stats_chart_object('tables', 'query_time', array('users'));
 
 	expect($data['categories'])->toBe(array('users'));
+});
+
+it('shows the true max instead of p95 when include_max is requested', function () {
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'FROM plugin_slowlog_stats', array(
+		array('scope_key' => 'SELECTS', 'sample_count' => 2, 'total_value' => 30,
+			'min_value' => 10, 'p25_value' => 12.5, 'median_value' => 15, 'p75_value' => 17.5, 'p95_value' => 19.5, 'max_value' => 20),
+	));
+
+	$data = slowlog_get_stats_chart_object('methods', 'query_time', array(), true);
+
+	expect($data['box_data'])->toBe(array(
+		array('x' => 'SELECTS', 'y' => array(10.0, 12.5, 15.0, 17.5, 20.0)),
+	));
+});
+
+it('scopes the method dropdown to scope_keys actually cached in plugin_slowlog_stats for this logid', function () {
+	slowlog_test_mock_db('db_fetch_cell_prepared', 'FROM plugin_slowlog_stats', 1);
+	slowlog_test_mock_db('db_fetch_assoc_prepared', function ($sql, $params) {
+		return strpos($sql, 'FROM plugin_slowlog_stats') !== false && in_array('method', $params, true);
+	}, array(
+		array('value' => 'SELECTS'),
+		array('value' => 'UPDATES'),
+	));
+
+	expect(slowlog_get_chart_scope_items('methods', 5))->toBe(array('SELECTS', 'UPDATES'));
+});
+
+it('scopes the table dropdown to scope_keys actually cached in plugin_slowlog_stats, without unconditionally appending the others bucket', function () {
+	slowlog_test_mock_db('db_fetch_cell_prepared', 'FROM plugin_slowlog_stats', 1);
+	slowlog_test_mock_db('db_fetch_assoc_prepared', function ($sql, $params) {
+		return strpos($sql, 'FROM plugin_slowlog_stats') !== false && in_array('table', $params, true);
+	}, array(
+		array('value' => 'users'),
+	));
+
+	expect(slowlog_get_chart_scope_items('tables', 5))->toBe(array('users'));
+});
+
+it('falls back to the raw method/table association tables for logs with no stats cache', function () {
+	slowlog_test_mock_db('db_fetch_cell_prepared', 'FROM plugin_slowlog_stats', false);
+	slowlog_test_mock_db('db_fetch_assoc_prepared', 'FROM plugin_slowlog_details_methods', array(
+		array('value' => 'SELECTS'),
+	));
+
+	expect(slowlog_get_chart_scope_items('methods', 5))->toBe(array('SELECTS'));
 });

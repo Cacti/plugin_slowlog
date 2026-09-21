@@ -1970,6 +1970,34 @@ function slowlog_upload_environment_status(): array {
 }
 
 /*
+ * Maps a PHP $_FILES[...]['error'] upload error code (anything but UPLOAD_ERR_OK/_NO_FILE) to
+ * a specific, translated message for raise_message(), so a rejected Slowlog upload (size
+ * limits, an interrupted transfer, a server-side write failure, etc.) is never silently
+ * dropped without feedback to the user.
+ *
+ * @param int $error_code One of the UPLOAD_ERR_* constants
+ *
+ * @return string The translated, user-facing error message
+ */
+function slowlog_upload_error_message(int $error_code): string {
+	switch ($error_code) {
+		case UPLOAD_ERR_INI_SIZE:
+		case UPLOAD_ERR_FORM_SIZE:
+			return __('ERROR: The uploaded Slowlog file exceeds the server\'s maximum upload filesize.', 'slowlog');
+		case UPLOAD_ERR_PARTIAL:
+			return __('ERROR: The Slowlog file upload was interrupted before it finished - please try again.', 'slowlog');
+		case UPLOAD_ERR_NO_TMP_DIR:
+			return __('ERROR: The server has no temporary folder configured to receive the uploaded Slowlog file.', 'slowlog');
+		case UPLOAD_ERR_CANT_WRITE:
+			return __('ERROR: The server failed to write the uploaded Slowlog file to disk.', 'slowlog');
+		case UPLOAD_ERR_EXTENSION:
+			return __('ERROR: A server extension blocked the Slowlog file upload.', 'slowlog');
+		default:
+			return __('ERROR: The Slowlog file upload failed (error code %d).', $error_code, 'slowlog');
+	}
+}
+
+/*
  * Shared unit/suffix labels for each summable metric, used by both the raw-totals chart
  * (slowlog_get_chart_object()) and the box-whisker distribution chart
  * (slowlog_get_stats_chart_object()) so the two stay in sync.
@@ -2014,10 +2042,11 @@ function slowlog_chart_measures(): array {
  * total value descending, capped to the chart filter's Top N selectmenu) so the raw and
  * whisker charts for the same metric show categories in the same order. $scope_filter
  * optionally restricts to specific scope_key values (the chart filter's multiselect);
- * $hide_max substitutes p95 for max in the box's top value, since a rare true-max outlier
- * can otherwise flatten the rest of the box.
+ * $include_max defaults to false so the box's top value is p95 (not the true max), since a
+ * rare true-max outlier can otherwise flatten the rest of the box - pass true to show the
+ * true max instead.
  */
-function slowlog_get_stats_chart_object(string $chart_type, string $measure, array $scope_filter = array(), bool $hide_max = false): array {
+function slowlog_get_stats_chart_object(string $chart_type, string $measure, array $scope_filter = array(), bool $include_max = false): array {
 	$id = (int) get_filter_request_var('logid');
 
 	$description = db_fetch_cell_prepared('SELECT description
@@ -2055,7 +2084,7 @@ function slowlog_get_stats_chart_object(string $chart_type, string $measure, arr
 	foreach($stats as $row) {
 		$categories[] = $row['scope_key'];
 
-		$box_max = $hide_max ? $row['p95_value'] : $row['max_value'];
+		$box_max = $include_max ? $row['max_value'] : $row['p95_value'];
 
 		$box_data[] = array(
 			'x' => $row['scope_key'],
@@ -2317,9 +2346,28 @@ function slowlog_details_filter_clear_glyph(string $field): string {
  * scope multiselect renders, and also the allow-list chart_scope's post-validation
  * filters submitted values down to (see slowlog_request_charts_validation()).
  *
+ * Reads scope_key values from plugin_slowlog_stats (scoped to this logid), not the master
+ * method dictionary or the raw table-association tables directly, so the dropdown only ever
+ * offers methods/tables this specific log actually has cached data for - a method that exists
+ * in the global dictionary (or a table with zero matched rows) never appears as a selectable,
+ * empty-chart-producing option. Falls back to the pre-cache raw tables for logs imported
+ * before plugin_slowlog_stats existed (slowlog_has_stats_cache() returns false for them),
+ * matching slowlog_get_chart_object()'s live-aggregation fallback.
+ *
  * @return array<int, string>
  */
 function slowlog_get_chart_scope_items(string $chart_type, int $id): array {
+	$scope = ($chart_type == 'tables') ? 'table' : 'method';
+
+	if (slowlog_has_stats_cache($id)) {
+		return array_column(db_fetch_assoc_prepared('SELECT DISTINCT scope_key AS value
+			FROM plugin_slowlog_stats
+			WHERE logid = ?
+			AND scope = ?
+			ORDER BY scope_key',
+			array($id, $scope)), 'value');
+	}
+
 	if ($chart_type == 'tables') {
 		$scope_items = array_column(db_fetch_assoc_prepared('SELECT DISTINCT table_name AS value
 			FROM plugin_slowlog_details_tables
@@ -2329,10 +2377,12 @@ function slowlog_get_chart_scope_items(string $chart_type, int $id): array {
 
 		$scope_items[] = slowlog_others_bucket_key($id);
 	} else {
-		$scope_items = array_column(db_fetch_assoc_prepared('SELECT method AS value
-			FROM plugin_slowlog_methods
-			ORDER BY method',
-			array()), 'value');
+		$scope_items = array_column(db_fetch_assoc_prepared('SELECT DISTINCT sm.method AS value
+			FROM plugin_slowlog_details_methods AS dm
+			INNER JOIN plugin_slowlog_methods AS sm ON sm.methodid = dm.methodid
+			WHERE dm.logid = ?
+			ORDER BY sm.method',
+			array($id)), 'value');
 	}
 
 	return $scope_items;

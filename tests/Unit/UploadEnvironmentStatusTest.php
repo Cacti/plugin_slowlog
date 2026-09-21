@@ -82,3 +82,19 @@ it('warns when memory_limit is not unlimited', function () {
 
 	expect(slowlog_test_warnings_matching($status['warnings'], 'memory_limit'))->not->toBeEmpty();
 });
+
+it('maps every recognized $_FILES upload error code to a distinct, translated message', function () {
+	$codes = array(UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE, UPLOAD_ERR_PARTIAL, UPLOAD_ERR_NO_TMP_DIR, UPLOAD_ERR_CANT_WRITE, UPLOAD_ERR_EXTENSION);
+
+	$messages = array_map('slowlog_upload_error_message', $codes);
+
+	expect(array_unique($messages))->toHaveCount(count($messages));
+
+	foreach ($messages as $message) {
+		expect($message)->toContain('ERROR:');
+	}
+});
+
+it('falls back to a generic message (including the numeric code) for an unrecognized upload error', function () {
+	expect(slowlog_upload_error_message(999))->toContain('999');
+});
