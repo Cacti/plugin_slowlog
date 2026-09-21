@@ -1290,7 +1290,7 @@ function slowlog_charts_filter(string $method, int $id): void {
 							<?php print html_escape($scope_label);?>
 						</td>
 						<td>
-							<select id='chart_scope' multiple size='6' onChange='applyChartsFilter()'>
+							<select id='chart_scope' multiple size='6'>
 								<?php
 								foreach ($scope_items as $value) {
 									print '<option value="' . html_escape($value) . '"' . (in_array($value, $selected, true) ? ' selected' : '') . '>' . html_escape($value) . '</option>';
@@ -1300,7 +1300,7 @@ function slowlog_charts_filter(string $method, int $id): void {
 						</td>
 						<td>
 							<label>
-								<input type='checkbox' id='hide_max' onChange='applyChartsFilter()'<?php print (get_request_var('hide_max') == 'on' ? ' checked' : '');?>>
+								<input type='checkbox' id='hide_max'<?php print (get_request_var('hide_max') == 'on' ? ' checked' : '');?>>
 								<?php print __('Hide Max (use p95 instead)', 'slowlog');?>
 							</label>
 						</td>
@@ -1330,6 +1330,31 @@ function slowlog_charts_filter(string $method, int $id): void {
 			}
 
 			$(function() {
+				$('#chart_scope').multiselect({
+					menuHeight: $(window).height() * .7,
+					menuWidth: 'auto',
+					noneSelectedText: '<?php print html_escape($scope_label);?>',
+					selectedText: function(numChecked, numTotal, checkedItems) {
+						return numChecked + ' <?php print __esc('Selected', 'slowlog');?>';
+					},
+					checkAllText: '<?php print __esc('All', 'slowlog');?>',
+					uncheckAllText: '<?php print __esc('None', 'slowlog');?>',
+					close: function(event, ui) {
+						applyChartsFilter();
+					},
+					open: function(event, ui) {
+						$("input[type='search']:first").focus();
+					}
+				}).multiselectfilter({
+					label: '<?php print __esc('Search', 'slowlog');?>',
+					placeholder: '<?php print __esc('Enter keyword', 'slowlog');?>',
+					width: 200
+				});
+
+				$('#hide_max').on('change', function() {
+					applyChartsFilter();
+				});
+
 				$('#chartsfilter').submit(function(event) {
 					event.preventDefault();
 					applyChartsFilter();

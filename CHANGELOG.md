@@ -2,6 +2,7 @@
 
 --- 2.4 ---
 
+* feature: The By Method/By Table chart scope select is now a searchable jQuery multiselect (matching the widget used elsewhere in Cacti core) instead of a plain multi-select list box
 * feature: Add `plugin_slowlog_stats` cache table storing per-method/per-table box-whisker statistics (min/p25/median/p75/p95/max) and totals for query_time, rows_sent, rows_examined, rows_affected, and bytes_sent, computed once during import/reprocess instead of aggregated live on each chart view
 * feature: Add box-whisker (rate distribution) charts alongside the existing raw-totals charts on the By Method/By Table pages
 * feature: The By Method/By Table raw-totals charts now read from the `plugin_slowlog_stats` cache instead of live-aggregating `plugin_slowlog_details` on every view, matching the box-whisker chart; falls back to the old live aggregation for logs imported before the cache existed, so upgrading doesn't blank their charts
