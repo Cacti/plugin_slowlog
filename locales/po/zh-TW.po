@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: developers@cacti.net\n"
-"POT-Creation-Date: 2024-08-10 11:22-0400\n"
+"POT-Creation-Date: 2026-09-21 15:28-0400\n"
 "PO-Revision-Date: 2024-08-10 11:42-0400\n"
 "Last-Translator: Linya Huang <linya0405@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://translate.cacti.net/projects/cacti/flowview/zh_Hant/>\n"
@@ -18,378 +18,517 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.4.4\n"
 
+#: import_log.php:132
+#, php-format
+msgid "ERROR: Invalid --logid value '%s', must be a positive integer"
+msgstr ""
+
 #: slowlog.php:36
 msgid "Delete"
 msgstr "刪除"
 
-#: slowlog.php:194
+#: slowlog.php:113
+msgid "ERROR: 'Detect all tables; group ... as OTHER TABLES' requires a list of Tables of Interest."
+msgstr ""
+
+#: slowlog.php:125
+msgid "ERROR: Unable to stage the uploaded Slowlog file for import."
+msgstr ""
+
+#: slowlog.php:147
+msgid "ERROR: Unable to create the Slowlog import record."
+msgstr ""
+
+#: slowlog.php:167
+msgid "The Slowlog has been queued and will be imported in the background. Refresh this page to track progress."
+msgstr ""
+
+#: slowlog.php:235
 msgid "You must select at least one Slowlog record."
 msgstr "您必須至少選擇一個 Slowlog 記錄。"
 
-#: slowlog.php:197
+#: slowlog.php:238
 msgid "Yes"
 msgstr "是"
 
-#: slowlog.php:205
+#: slowlog.php:246
 msgid "No"
 msgstr "否"
 
-#: slowlog.php:206 slowlog.php:1198 slowlog.php:1218
+#: slowlog.php:247 slowlog.php:1621 slowlog.php:1641
 msgid "Return"
 msgstr "返回"
 
-#: slowlog.php:254
+#: slowlog.php:294
 msgid "Import Template from Local File"
 msgstr "從本地文件導入模板"
 
-#: slowlog.php:255
+#: slowlog.php:295
 msgid "If the XML file containing template data is located on your local machine, select it here."
 msgstr "如果包含模板數據的XML文件位於本地計算機上，請在此處選擇它。"
 
-#: slowlog.php:260
+#: slowlog.php:300
 msgid "LogFile Description"
 msgstr "日誌文件說明"
 
-#: slowlog.php:261
+#: slowlog.php:301
 msgid "Please provide a description for this MySQL Slowlog file to be imported."
 msgstr "請提供要導入的此 MySQL Slowlog 檔的描述。"
 
-#: slowlog.php:262
+#: slowlog.php:302
 msgid "New Slow Log"
 msgstr "新的慢速日誌"
 
-#: slowlog.php:268
+#: slowlog.php:308
 msgid "Max Query Length"
 msgstr "最大查詢長度"
 
-#: slowlog.php:269
+#: slowlog.php:309
 msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
 msgstr "僅從 MySQL 慢查詢紀錄中導入 SQL 查詢的前 X 個字元。"
 
-#: slowlog.php:272
+#: slowlog.php:312 slowlog.php:1340
 msgid "All"
 msgstr "全部"
 
-#: slowlog.php:273 slowlog.php:274 slowlog.php:275 slowlog.php:276
-#: slowlog.php:277
+#: slowlog.php:313 slowlog.php:314 slowlog.php:315 slowlog.php:316
+#: slowlog.php:317
 #, php-format
 msgid "%d Chars"
 msgstr "%d Chars"
 
-#: slowlog.php:282
+#: slowlog.php:322
 msgid "Slowlog Table Names [ optional ]"
 msgstr "Slowlog 表名 [ 可選 ]"
 
-#: slowlog.php:283
+#: slowlog.php:323
 msgid "Leave Blank for Auto Detection which runs must faster."
 msgstr "為「自動檢測」留空，該檢測必須運行得更快。"
 
-#: slowlog.php:287
-msgid "Use This Cacti Database"
-msgstr "使用此仙人掌資料庫"
+#: slowlog.php:327
+msgid "Cacti Table Detection"
+msgstr ""
 
-#: slowlog.php:288
-msgid "Slowlog needs to know the tables names used in your slowlog.  If it's the Cacti database on this system, simply check the checkbox.  Otherwise, you will have to paste the output as show below under 'Tables of Interest', or leave blank to have the Post-process detect the Tables."
-msgstr "Slowlog 需要知道 slowlog 中使用的表名。 如果是此系統上的仙人掌資料庫，只需選中複選框即可。 否則，您必須粘貼如下所示的“感興趣的表”下的輸出，或者留空以讓後處理檢測表。"
+#: slowlog.php:328
+msgid "How to tell Cacti-native tables apart from other tables referenced in the slow query log. Defaults to detecting every table with no grouping."
+msgstr ""
 
-#: slowlog.php:293
+#: slowlog.php:331
+msgid "Detect all tables (no 'OTHER TABLES' grouping)"
+msgstr ""
+
+#: slowlog.php:332
+msgid "Use this Cacti Database; group other tables as 'OTHER TABLES'"
+msgstr ""
+
+#: slowlog.php:333
+msgid "Detect all tables; group tables not in the list below as 'OTHER TABLES'"
+msgstr ""
+
+#: slowlog.php:338
 msgid "Tables of Interest"
 msgstr "感興趣的表格"
 
-#: slowlog.php:294
-msgid "Please provide a space delimited list of tables that you are interested in.  If you provide this list of tables the MySQL Slow Query Log will be scanned for these entries and more details statistics will be provided.  In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
+#: slowlog.php:339
+#, fuzzy
+msgid "Only used by the 'Detect all tables; group ... as OTHER TABLES' option above. Please provide a space delimited list of known tables to compare against. In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
 msgstr "請提供您感興趣的以空白分隔的表清單。 如果您提供此表清單，將掃描 MySQL 慢查詢日誌以查找這些條目，並提供更多詳細資訊、統計資訊。 在 Linux/UNIX 中，您可以使用以下命令獲取表清單：<br><br> print 'mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e “show tables” <i><b>資料庫</b></i> |grep -v Tables_in' |tr '\\n' ' '<br><br>“<i><b>user</b></i>”、“<i><b>password</b></i>”和“<i><b>database</b></i>”的值將替換為您的值。"
 
-#: slowlog.php:302
+#: slowlog.php:347
 msgid "Upload Limits"
 msgstr "上傳限制"
 
-#: slowlog.php:303
+#: slowlog.php:348
 msgid "File Size upload limits in Cacti."
 msgstr "Cacti 中的檔大小上傳限制。"
 
-#: slowlog.php:307
+#: slowlog.php:352
 msgid "Max Upload Filesize"
 msgstr "最大上傳檔大小"
 
-#: slowlog.php:308
+#: slowlog.php:353
 msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
 msgstr "您的 Apache 伺服器允許上傳的最大檔案大小設置為右側的值。 目前，您無法上傳大於此值的檔。 如果您的 MySQL Slow 紀錄大於此值，則必須更改與 Apache 關聯的 <i>php.ini</i> 檔，找到變數 <b><i>upload_max_filesize</i></b> 並增加值。 之後，您必須重新啟動 Apache。"
 
-#: slowlog.php:313
+#: slowlog.php:358
 msgid "Max Post Size"
 msgstr "最大帖子大小"
 
-#: slowlog.php:314
+#: slowlog.php:359
 msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
 msgstr "您可以發佈到 Apache 伺服器的最大大小設定為右側的值。 如果您的 MySQL Slow 紀錄大於此值，則必須更改與 Apache 關聯的 <i>php.ini</i> 檔，找到變數 <b><i>post_max_size</i></b> 並增加其值。 之後，您必須重新啟動 Apache。"
 
-#: slowlog.php:321
-msgid "Import MariaDB/MySQL Slowlog"
-msgstr "導入 MariaDB/MySQL Slowlog"
+#: slowlog.php:364
+msgid "Max Execution Time"
+msgstr ""
 
-#: slowlog.php:407
-msgid "Queries"
-msgstr "查詢"
+#: slowlog.php:365
+msgid "How long (in seconds) this request is allowed to run for; 0 means unlimited. This plugin already raises it to unlimited for its own requests, but a web server or reverse proxy in front of PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) can still cut the request off independently - that cannot be detected or overridden from here."
+msgstr ""
 
-#: slowlog.php:408
-msgid "Total Queries"
-msgstr "查詢總數"
-
-#: slowlog.php:411 slowlog.php:415 slowlog.php:427 slowlog.php:1373
-msgid "Rows"
-msgstr "行"
-
-#: slowlog.php:412
-msgid "Rows Returned"
-msgstr "返回的行數"
-
-#: slowlog.php:416 slowlog.php:1000
-msgid "Rows Examined"
-msgstr "已檢查的行"
-
-#: slowlog.php:419 slowlog.php:423
+#: slowlog.php:366 slowlog_functions.php:1941 slowlog_functions.php:1945
 msgid "Seconds"
 msgstr "秒"
 
-#: slowlog.php:420
-msgid "Lock Seconds"
-msgstr "鎖定秒數"
+#: slowlog.php:366 slowlog.php:372
+msgid "Unlimited"
+msgstr ""
 
-#: slowlog.php:424
-msgid "Query Seconds"
-msgstr "查詢秒數"
+#: slowlog.php:370
+msgid "Memory Limit"
+msgstr ""
 
-#: slowlog.php:428 slowlog.php:1006
-msgid "Rows Affected"
-msgstr "受影響的行"
+#: slowlog.php:371
+msgid "How much memory this request is allowed to use; -1 means unlimited. This plugin already raises it to unlimited for its own requests. A very large slow query log being read/imported in a single request can exceed a limited value."
+msgstr ""
 
-#: slowlog.php:431
-msgid "Bytes"
-msgstr "位元組"
+#: slowlog.php:380
+msgid "The current server configuration may cause a large import to fail:"
+msgstr ""
 
-#: slowlog.php:432 slowlog.php:713 slowlog.php:1007
-msgid "Bytes Sent"
-msgstr "發送的位元組數"
+#: slowlog.php:380
+msgid "WARNING"
+msgstr ""
 
-#: slowlog.php:665 slowlog.php:1092
+#: slowlog.php:390
+msgid "Import MariaDB/MySQL Slowlog"
+msgstr "導入 MariaDB/MySQL Slowlog"
+
+#: slowlog.php:448
+msgid "Uploaded"
+msgstr ""
+
+#: slowlog.php:543
+msgid "Processing, please wait..."
+msgstr ""
+
+#: slowlog.php:557
+msgid "Upload failed - please try again."
+msgstr ""
+
+#: slowlog.php:778 slowlog.php:1491
 msgid "Actions"
 msgstr "動作"
 
-#: slowlog.php:668
+#: slowlog.php:781
 msgid "Table Name"
 msgstr "資料表名稱"
 
-#: slowlog.php:672 slowlog.php:1326
+#: slowlog.php:785 slowlog.php:1758
 msgid "Method"
 msgstr "方法"
 
-#: slowlog.php:676 slowlog.php:988
+#: slowlog.php:789 slowlog.php:1384
 msgid "Date"
 msgstr "日期"
 
-#: slowlog.php:680 slowlog.php:989 slowlog.php:1404
+#: slowlog.php:793 slowlog.php:1385 slowlog.php:1840
 msgid "User"
 msgstr "使用者"
 
-#: slowlog.php:684 slowlog.php:990 slowlog.php:1431
+#: slowlog.php:797 slowlog.php:1386 slowlog.php:1868
 msgid "Host"
 msgstr "主機"
 
-#: slowlog.php:688 slowlog.php:997
+#: slowlog.php:801 slowlog.php:1393
 msgid "Query Time"
 msgstr "查詢時間"
 
-#: slowlog.php:693 slowlog.php:998
+#: slowlog.php:806 slowlog.php:1394
 msgid "Lock Time"
 msgstr "鎖定時間"
 
-#: slowlog.php:698
+#: slowlog.php:811
 msgid "Sent"
 msgstr "發送"
 
-#: slowlog.php:703
+#: slowlog.php:816
 msgid "Examined"
 msgstr "檢查"
 
-#: slowlog.php:708
+#: slowlog.php:821
 msgid "Affected"
 msgstr "影響"
 
-#: slowlog.php:721
+#: slowlog.php:826 slowlog.php:1403 slowlog_functions.php:1954
+msgid "Bytes Sent"
+msgstr "發送的位元組數"
+
+#: slowlog.php:834
 msgid "Log Entries"
 msgstr "紀錄細節"
 
-#: slowlog.php:723
+#: slowlog.php:836
 msgid "MariaDB/MySQL SlowLog Details"
 msgstr "MariaDB/MySQL SlowLog 詳細資訊"
 
-#: slowlog.php:742
+#: slowlog.php:855
 msgid "View Details"
 msgstr "查看詳情"
 
-#: slowlog.php:805
+#: slowlog.php:923
+msgid "Chart Filters"
+msgstr ""
+
+#: slowlog.php:929
 #, php-format
 msgid "MariaDB/MySQL SlowLog Results - By %s"
 msgstr "MariaDB/MySQL SlowLog 結果 - 按 %s"
 
-#: slowlog.php:984
-msgid "MariaDB/MySQL SlowLog Query Details"
-msgstr "MariaDB/MySQL SlowLog 查詢詳情"
+#: slowlog.php:1265
+msgid "Select Table"
+msgstr ""
 
-#: slowlog.php:991
-msgid "IP"
-msgstr "IP"
+#: slowlog.php:1275
+#, fuzzy
+msgid "Select Method"
+msgstr "方法"
 
-#: slowlog.php:999
-msgid "Rows Sent"
-msgstr "已發送的行數"
+#: slowlog.php:1304
+msgid "Hide Max (use p95 instead)"
+msgstr ""
 
-#: slowlog.php:1013
-msgid "Original Query"
-msgstr "原始查詢"
-
-#: slowlog.php:1082
-msgid "MariaDB/MySQL SlowLog File Filters"
-msgstr "MariaDB/MySQL SlowLog 文件篩檢程式"
-
-#: slowlog.php:1095
-msgid "Description"
-msgstr "描述"
-
-#: slowlog.php:1099
-msgid "Import Status"
-msgstr "導入狀態"
-
-#: slowlog.php:1103
-msgid "Status String"
-msgstr "狀態字串"
-
-#: slowlog.php:1107
-msgid "ID"
-msgstr "ID"
-
-#: slowlog.php:1112
-msgid "Imported"
-msgstr "已匯入"
-
-#: slowlog.php:1117
-msgid "Lines"
-msgstr "明細列表"
-
-#: slowlog.php:1122
-msgid "Duration"
-msgstr "持續時間"
-
-#: slowlog.php:1127
-msgid "Start Date"
-msgstr "開始日期"
-
-#: slowlog.php:1132
-msgid "End Date"
-msgstr "結束日期"
-
-#: slowlog.php:1152
-msgid "Pre-Processing"
-msgstr "預處理"
-
-#: slowlog.php:1154
-msgid "Post-Processing"
-msgstr "后置处理"
-
-#: slowlog.php:1156
-msgid "Complete"
-msgstr "完成"
-
-#: slowlog.php:1158
-msgid "Unknown"
-msgstr "未知"
-
-#: slowlog.php:1200 slowlog.php:1214 slowlog.php:1225
-msgid "Save"
-msgstr "儲存"
-
-#: slowlog.php:1203 slowlog.php:1221
-msgid "Cancel"
-msgstr "取消"
-
-#: slowlog.php:1208 slowlog.php:1231
-msgid "Import"
-msgstr "匯入"
-
-#: slowlog.php:1211 slowlog.php:1228
-msgid "Create"
-msgstr "創建"
-
-#: slowlog.php:1259 slowlog.php:1398
-msgid "Search"
-msgstr "搜尋"
-
-#: slowlog.php:1308
-msgid "LogFile"
-msgstr "Logfile和Syslog / Eventlog"
-
-#: slowlog.php:1312 slowlog.php:1330 slowlog.php:1348 slowlog.php:1408
-#: slowlog.php:1435
-msgid "Any"
-msgstr "任何"
-
-#: slowlog.php:1331 slowlog.php:1350
-msgid "N/A"
-msgstr "不适用"
-
-#: slowlog.php:1344
-msgid "Tables"
-msgstr "表格"
-
-#: slowlog.php:1349
-msgid "Others"
-msgstr "其他"
-
-#: slowlog.php:1377
-msgid "Default"
-msgstr "預設"
-
-#: slowlog.php:1389
+#: slowlog.php:1309 slowlog.php:1825
 msgid "Go"
 msgstr "送出"
 
-#: slowlog.php:1390
+#: slowlog.php:1310 slowlog.php:1826
 msgid "Clear"
 msgstr "清除"
 
-#: slowlog.php:1462
+#: slowlog.php:1338
+#, fuzzy
+msgid "Selected"
+msgstr "影響"
+
+#: slowlog.php:1341
+msgid "None"
+msgstr ""
+
+#: slowlog.php:1349 slowlog.php:1689 slowlog.php:1834
+msgid "Search"
+msgstr "搜尋"
+
+#: slowlog.php:1350
+msgid "Enter keyword"
+msgstr ""
+
+#: slowlog.php:1380
+msgid "MariaDB/MySQL SlowLog Query Details"
+msgstr "MariaDB/MySQL SlowLog 查詢詳情"
+
+#: slowlog.php:1387
+msgid "IP"
+msgstr "IP"
+
+#: slowlog.php:1395
+msgid "Rows Sent"
+msgstr "已發送的行數"
+
+#: slowlog.php:1396 slowlog_functions.php:1938
+msgid "Rows Examined"
+msgstr "已檢查的行"
+
+#: slowlog.php:1402 slowlog_functions.php:1950
+msgid "Rows Affected"
+msgstr "受影響的行"
+
+#: slowlog.php:1409
+msgid "Original Query"
+msgstr "原始查詢"
+
+#: slowlog.php:1481
+msgid "MariaDB/MySQL SlowLog File Filters"
+msgstr "MariaDB/MySQL SlowLog 文件篩檢程式"
+
+#: slowlog.php:1494
+msgid "Description"
+msgstr "描述"
+
+#: slowlog.php:1498
+msgid "Import Status"
+msgstr "導入狀態"
+
+#: slowlog.php:1502
+msgid "Status String"
+msgstr "狀態字串"
+
+#: slowlog.php:1506
+msgid "ID"
+msgstr "ID"
+
+#: slowlog.php:1511
+msgid "Imported"
+msgstr "已匯入"
+
+#: slowlog.php:1516
+msgid "Lines"
+msgstr "明細列表"
+
+#: slowlog.php:1521
+msgid "Duration"
+msgstr "持續時間"
+
+#: slowlog.php:1526
+msgid "Start Date"
+msgstr "開始日期"
+
+#: slowlog.php:1531
+msgid "End Date"
+msgstr "結束日期"
+
+#: slowlog.php:1557
+msgid "Pre-Processing"
+msgstr "預處理"
+
+#: slowlog.php:1559
+msgid "Post-Processing"
+msgstr "后置处理"
+
+#: slowlog.php:1561
+msgid "Complete"
+msgstr "完成"
+
+#: slowlog.php:1563
+msgid "Bad File Format"
+msgstr ""
+
+#: slowlog.php:1565
+msgid "Unknown"
+msgstr "未知"
+
+#: slowlog.php:1623 slowlog.php:1637 slowlog.php:1648 slowlog.php:1661
+msgid "Save"
+msgstr "儲存"
+
+#: slowlog.php:1626 slowlog.php:1644
+msgid "Cancel"
+msgstr "取消"
+
+#: slowlog.php:1631 slowlog.php:1654
+msgid "Import"
+msgstr "匯入"
+
+#: slowlog.php:1634 slowlog.php:1651
+msgid "Create"
+msgstr "創建"
+
+#: slowlog.php:1738
+msgid "LogFile"
+msgstr "Logfile和Syslog / Eventlog"
+
+#: slowlog.php:1742 slowlog.php:1762 slowlog.php:1783 slowlog.php:1844
+#: slowlog.php:1872
+msgid "Any"
+msgstr "任何"
+
+#: slowlog.php:1763 slowlog.php:1785
+msgid "N/A"
+msgstr "不适用"
+
+#: slowlog.php:1779
+msgid "Tables"
+msgstr "表格"
+
+#: slowlog.php:1784
+msgid "Others"
+msgstr "其他"
+
+#: slowlog.php:1809 slowlog_functions.php:1933 slowlog_functions.php:1937
+#: slowlog_functions.php:1949
+msgid "Rows"
+msgstr "行"
+
+#: slowlog.php:1813
+msgid "Default"
+msgstr "預設"
+
+#: slowlog.php:1900
 msgid "From"
 msgstr "從"
 
-#: slowlog.php:1467
+#: slowlog.php:1905
 msgid "Start Date Selector"
 msgstr "開始日期選擇器"
 
-#: slowlog.php:1471
+#: slowlog.php:1909
 msgid "To"
 msgstr "到"
 
-#: slowlog.php:1476
+#: slowlog.php:1914
 msgid "End Date Selector"
 msgstr "結束日期選擇器"
 
-#: slowlog.php:1481
+#: slowlog.php:1919
 msgid "Shift Time Backward"
 msgstr "轉移時間倒退"
 
-#: slowlog.php:1482
+#: slowlog.php:1920
 msgid "Define Shifting Interval"
 msgstr "定義移位間隔"
 
-#: slowlog.php:1493
+#: slowlog.php:1931
 msgid "Shift Time Forward"
 msgstr "轉移時間"
 
-#: slowlog.php:1499
+#: slowlog.php:1937
 msgid "Custom"
 msgstr "自訂"
 
-#: slowlog_functions.php:290
+#: slowlog_functions.php:870
+msgid "Bad File Format - No Slow Query Log Entries Found"
+msgstr ""
+
+#: slowlog_functions.php:879
 msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
 msgstr "已攝取初始 Slowlog。 後期處理將在後台進行。 狀態完成後，您可以開始分析詳細資訊"
+
+#: slowlog_functions.php:1899
+#, php-format
+msgid "max_execution_time is %d seconds (not unlimited) for this request - a large import could be killed mid-run. Some web servers/proxies (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) enforce their own independent cutoff that this setting cannot override."
+msgstr ""
+
+#: slowlog_functions.php:1903
+#, php-format
+msgid "memory_limit is %s (not unlimited) for this request - a very large slow query log can exceed this while it is being read/imported."
+msgstr ""
+
+#: slowlog_functions.php:1907
+#, php-format
+msgid "post_max_size (%s) is smaller than upload_max_filesize (%s) - uploads up to the advertised limit will still be rejected."
+msgstr ""
+
+#: slowlog_functions.php:1911
+#, php-format
+msgid "upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB."
+msgstr ""
+
+#: slowlog_functions.php:1929
+msgid "Queries"
+msgstr "查詢"
+
+#: slowlog_functions.php:1930
+msgid "Total Queries"
+msgstr "查詢總數"
+
+#: slowlog_functions.php:1934
+msgid "Rows Returned"
+msgstr "返回的行數"
+
+#: slowlog_functions.php:1942
+msgid "Lock Seconds"
+msgstr "鎖定秒數"
+
+#: slowlog_functions.php:1946
+msgid "Query Seconds"
+msgstr "查詢秒數"
+
+#: slowlog_functions.php:1953
+msgid "Bytes"
+msgstr "位元組"
+
+#~ msgid "Slowlog needs to know the tables names used in your slowlog.  If it's the Cacti database on this system, simply check the checkbox.  Otherwise, you will have to paste the output as show below under 'Tables of Interest', or leave blank to have the Post-process detect the Tables."
+#~ msgstr "Slowlog 需要知道 slowlog 中使用的表名。 如果是此系統上的仙人掌資料庫，只需選中複選框即可。 否則，您必須粘貼如下所示的“感興趣的表”下的輸出，或者留空以讓後處理檢測表。"
+
+#~ msgid "Use This Cacti Database"
+#~ msgstr "使用此仙人掌資料庫"
