@@ -121,6 +121,9 @@ function slowlog_bulk_insert_table_rows(array $rows) {
 /* the 5 plugin_slowlog_details columns plugin_slowlog_stats tracks a distribution for */
 const SLOWLOG_STATS_METRICS = array('query_time', 'rows_sent', 'rows_examined', 'rows_affected', 'bytes_sent');
 
+/* number of plugin_slowlog_details rows accumulated per bulk INSERT during import */
+const SLOWLOG_IMPORT_BATCH_SIZE = 1000;
+
 /*
  * Linear-interpolation percentile (matches numpy's default / Excel PERCENTILE.INC) over an
  * already-sorted array of numeric values. $p is 0-100. Computed in PHP rather than via a SQL
@@ -772,7 +775,7 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 					}
 				}
 
-				if (cacti_sizeof($records) > 1) {
+				if (cacti_sizeof($records) >= SLOWLOG_IMPORT_BATCH_SIZE) {
 					// turn the records array into a string
 					$sql_data = implode(',', $records);
 					$lines   += sizeof($records);
@@ -807,13 +810,20 @@ function import_logfile($logfile, $description = 'Imported using import_log util
 				$bytes_sent      . ', ' .
 				db_qstr($oquery) . ', ' .
 				db_qstr($query)  . ')';
+			}
 
-				// turn the records array into a string
+			// Flush whatever's left in the batch (the trailing entry above, plus any
+			// records accumulated since the last SLOWLOG_IMPORT_BATCH_SIZE flush) - not
+			// gated behind $query, since a batch can still have unflushed rows even when
+			// the very last entry itself was empty.
+			if (cacti_sizeof($records)) {
 				$sql_data = implode(',', $records);
 				$lines   += sizeof($records);
 
 				// insert the records
 				db_execute($sql_prefix . $sql_data);
+
+				$records = array();
 			}
 
 			$values = db_fetch_row_prepared('SELECT COUNT(*) AS import_lines, MIN(date) AS start_time, MAX(date) AS end_time
@@ -1921,9 +1931,11 @@ function slowlog_chart_measures() {
  * either methods or tables, and shapes it into the categories/box-data/p95-data arrays
  * renderBoxChart() expects. Ordered/limited the same way as slowlog_get_chart_object() (by
  * total value descending, top 10 for tables) so the raw and whisker charts for the same
- * metric show categories in the same order.
+ * metric show categories in the same order. $scope_filter optionally restricts to specific
+ * scope_key values (the chart filter's multiselect); $hide_max substitutes p95 for max in the
+ * box's top value, since a rare true-max outlier can otherwise flatten the rest of the box.
  */
-function slowlog_get_stats_chart_object($chart_type, $measure) {
+function slowlog_get_stats_chart_object($chart_type, $measure, array $scope_filter = array(), $hide_max = false) {
 	$id = get_filter_request_var('logid');
 
 	$description = db_fetch_cell_prepared('SELECT description
@@ -1932,16 +1944,27 @@ function slowlog_get_stats_chart_object($chart_type, $measure) {
 		array($id));
 
 	$scope = ($chart_type != 'tables') ? 'method' : 'table';
-	$limit = ($scope == 'table') ? ' LIMIT 10' : '';
+
+	// Only cap to the top 10 tables when the user hasn't picked explicit scopes to chart -
+	// otherwise a selected table beyond the top 10 by value would be silently dropped.
+	$limit = ($scope == 'table' && !cacti_sizeof($scope_filter)) ? ' LIMIT 10' : '';
+
+	$params = array($id, $scope, $measure);
+	$scope_where = '';
+
+	if (cacti_sizeof($scope_filter)) {
+		$scope_where = ' AND scope_key IN (' . implode(',', array_fill(0, count($scope_filter), '?')) . ')';
+		$params      = array_merge($params, $scope_filter);
+	}
 
 	$stats = db_fetch_assoc_prepared('SELECT scope_key, sample_count, total_value,
 			min_value, p25_value, median_value, p75_value, p95_value, max_value
 		FROM plugin_slowlog_stats
 		WHERE logid = ?
 		AND scope = ?
-		AND metric = ?
+		AND metric = ?' . $scope_where . '
 		ORDER BY total_value DESC' . $limit,
-		array($id, $scope, $measure));
+		$params);
 
 	$measures = slowlog_chart_measures();
 
@@ -1952,6 +1975,8 @@ function slowlog_get_stats_chart_object($chart_type, $measure) {
 	foreach($stats as $row) {
 		$categories[] = $row['scope_key'];
 
+		$box_max = $hide_max ? $row['p95_value'] : $row['max_value'];
+
 		$box_data[] = array(
 			'x' => $row['scope_key'],
 			'y' => array(
@@ -1959,7 +1984,7 @@ function slowlog_get_stats_chart_object($chart_type, $measure) {
 				round((float) $row['p25_value'], 3),
 				round((float) $row['median_value'], 3),
 				round((float) $row['p75_value'], 3),
-				round((float) $row['max_value'], 3)
+				round((float) $box_max, 3)
 			)
 		);
 
@@ -1984,10 +2009,12 @@ function slowlog_get_stats_chart_object($chart_type, $measure) {
  * Reads the cached totals (plugin_slowlog_stats) for one metric, scoped to either methods or
  * tables, and shapes them into the categories/values arrays renderChart() expects. Reuses the
  * same stats cache the box-whisker chart (slowlog_get_stats_chart_object()) reads, rather than
- * live-aggregating plugin_slowlog_details on every chart view. Falls back to live aggregation
- * for logs imported before the stats cache existed, so upgrading doesn't blank their charts.
+ * live-aggregating plugin_slowlog_details on every chart view. $scope_filter optionally
+ * restricts to specific scope_key values (the chart filter's multiselect). Falls back to live
+ * aggregation for unfiltered logs imported before the stats cache existed, so upgrading doesn't
+ * blank their charts (live aggregation doesn't support $scope_filter).
  */
-function slowlog_get_chart_object($chart_type, $measure) {
+function slowlog_get_chart_object($chart_type, $measure, array $scope_filter = array()) {
 	if ($measure != 'count' && !in_array($measure, SLOWLOG_STATS_METRICS, true)) {
 		return array();
 	}
@@ -2000,7 +2027,10 @@ function slowlog_get_chart_object($chart_type, $measure) {
 		array($id));
 
 	$scope = ($chart_type != 'tables') ? 'method' : 'table';
-	$limit = ($scope == 'table') ? ' LIMIT 10' : '';
+
+	// Only cap to the top 10 tables when the user hasn't picked explicit scopes to chart -
+	// otherwise a selected table beyond the top 10 by value would be silently dropped.
+	$limit = ($scope == 'table' && !cacti_sizeof($scope_filter)) ? ' LIMIT 10' : '';
 
 	// 'count' isn't itself a tracked metric - every tracked metric's cached sample_count is
 	// identical for a given scope_key (they're all counted over the same matched detail
@@ -2013,42 +2043,49 @@ function slowlog_get_chart_object($chart_type, $measure) {
 		$value_column = 'total_value';
 	}
 
+	$params = array($id, $scope, $stats_metric);
+	$scope_where = '';
+
+	if (cacti_sizeof($scope_filter)) {
+		$scope_where = ' AND scope_key IN (' . implode(',', array_fill(0, count($scope_filter), '?')) . ')';
+		$params      = array_merge($params, $scope_filter);
+	}
+
 	$stats = db_fetch_assoc_prepared("SELECT scope_key, $value_column AS value
 		FROM plugin_slowlog_stats
 		WHERE logid = ?
 		AND scope = ?
-		AND metric = ?
+		AND metric = ?" . $scope_where . "
 		ORDER BY $value_column DESC" . $limit,
-		array($id, $scope, $stats_metric));
+		$params);
 
 	// No cached stats at all for this log (as opposed to cached stats that happen to have
 	// no rows for this scope/metric) means it was imported before the stats cache existed.
-	if (!cacti_sizeof($stats) && !slowlog_has_stats_cache($id)) {
+	// Live aggregation doesn't support scope filtering, so only fall back when unfiltered.
+	if (!cacti_sizeof($stats) && !cacti_sizeof($scope_filter) && !slowlog_has_stats_cache($id)) {
 		$stats = slowlog_get_chart_object_live($id, $scope, $measure, $limit);
 	}
 
 	$measures = slowlog_chart_measures();
 
-	if (cacti_sizeof($stats)) {
-		$categories = array();
-		$values     = array();
+	$categories = array();
+	$values     = array();
 
-		foreach($stats as $entry) {
-			$categories[] = $entry['scope_key'];
-			$values[]     = $entry['value'];
-		}
-
-		$title = $description . ' [ ' . $measures[$measure]['suffix'] . ' ]';
-
-		return array(
-			'title'      => $title,
-			'categories' => $categories,
-			'values'     => $values,
-			'yaxislabel' => $measures[$measure]['unit']
-		);
-	} else {
-		return array();
+	foreach($stats as $entry) {
+		$categories[] = $entry['scope_key'];
+		$values[]     = $entry['value'];
 	}
+
+	$title = $description . ' [ ' . $measures[$measure]['suffix'] . ' ]';
+
+	// Always return the full shape (with empty categories/values when $stats is empty) so
+	// callers can safely index every key without a null-guard of their own.
+	return array(
+		'title'      => $title,
+		'categories' => $categories,
+		'values'     => $values,
+		'yaxislabel' => $measures[$measure]['unit']
+	);
 }
 
 /*
