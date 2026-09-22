@@ -229,6 +229,48 @@ if (!function_exists('api_plugin_drop_table')) {
 	}
 }
 
+if (!function_exists('db_table_exists')) {
+	function db_table_exists($table) {
+		return slowlog_test_db_result('db_table_exists', $table, array($table), false);
+	}
+}
+
+if (!function_exists('db_update_table')) {
+	function db_update_table($table, $data) {
+		return slowlog_test_db_result('db_update_table', $table, array($table, $data), true);
+	}
+}
+
+$GLOBALS['__test_registered_hooks']  = array();
+$GLOBALS['__test_registered_realms'] = array();
+
+if (!function_exists('api_plugin_register_hook')) {
+	function api_plugin_register_hook($plugin, $hook, $function, $file, $enabled = 1) {
+		$GLOBALS['__test_registered_hooks'][] = array(
+			'plugin'   => $plugin,
+			'hook'     => $hook,
+			'function' => $function,
+			'file'     => $file,
+			'enabled'  => $enabled,
+		);
+
+		return true;
+	}
+}
+
+if (!function_exists('api_plugin_register_realm')) {
+	function api_plugin_register_realm($plugin, $file, $description, $enabled = 1) {
+		$GLOBALS['__test_registered_realms'][] = array(
+			'plugin'      => $plugin,
+			'file'        => $file,
+			'description' => $description,
+			'enabled'     => $enabled,
+		);
+
+		return true;
+	}
+}
+
 if (!function_exists('read_config_option')) {
 	function read_config_option($name, $force = false) {
 		return '';
