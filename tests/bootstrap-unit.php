@@ -211,6 +211,14 @@ if (!function_exists('db_column_exists')) {
 	}
 }
 
+if (!function_exists('db_get_global_variable')) {
+	function db_get_global_variable($variable, $db_conn = false) {
+		// No fixture means an unknown server version, which slowlog_get_storage_engine()
+		// treats the same as MariaDB (defaults to Aria).
+		return slowlog_test_db_result('db_get_global_variable', $variable, array(), false);
+	}
+}
+
 if (!function_exists('api_plugin_db_add_column')) {
 	function api_plugin_db_add_column($plugin, $table, $data) {
 		return slowlog_test_db_result('api_plugin_db_add_column', $table, array($plugin, $table, $data), true);

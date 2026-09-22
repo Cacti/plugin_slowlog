@@ -145,6 +145,21 @@ function slowlog_check_dependencies(): bool {
 }
 
 /**
+ * Aria isn't available on plain MySQL (it's a MariaDB-only storage engine), so
+ * default to Aria everywhere and only fall back to InnoDB when the connected
+ * server is detected as real MySQL rather than MariaDB.
+ */
+function slowlog_get_storage_engine(): string {
+	$version = db_get_global_variable('version');
+
+	if ($version !== false && stripos($version, 'MariaDB') === false) {
+		return 'InnoDB';
+	}
+
+	return 'Aria';
+}
+
+/**
  * The plugin_slowlog_details schema, shared by the create path
  * (api_plugin_db_table_create() in slowlog_setup_table_new()) and the
  * upgrade path (db_update_table() in slowlog_check_upgrade()), so both stay
@@ -169,8 +184,8 @@ function slowlog_details_table_data(): array {
 	$data['columns'][] = array('name' => 'rows_examined', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false);
 	$data['columns'][] = array('name' => 'rows_affected', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'default' => 0);
 	$data['columns'][] = array('name' => 'bytes_sent', 'type' => 'bigint(20)', 'unsigned' => true, 'NULL' => false, 'default' => 0);
-	$data['columns'][] = array('name' => 'oquery', 'type' => 'text', 'NULL' => false);
-	$data['columns'][] = array('name' => 'query', 'type' => 'text', 'NULL' => false);
+	$data['columns'][] = array('name' => 'oquery', 'type' => 'mediumtext', 'NULL' => false);
+	$data['columns'][] = array('name' => 'query', 'type' => 'mediumtext', 'NULL' => false);
 	$data['columns'][] = array('name' => 'timeout', 'type' => 'double', 'NULL' => false, 'default' => 0, 'comment' => 'The timeout value detected in the query, if any');
 	// db_update_table()'s existing-primary-key diff path (lib/database.php) calls
 	// array_diff($data['primary'], ...) directly without normalizing a string to an array
@@ -189,8 +204,9 @@ function slowlog_details_table_data(): array {
 	$data['keys'][]     = array('name' => 'logid_rows_examined', 'columns' => array('logid', 'rows_examined'));
 	$data['keys'][]     = array('name' => 'logid_rows_affected', 'columns' => array('logid', 'rows_affected'));
 	$data['keys'][]     = array('name' => 'logid_bytes_sent', 'columns' => array('logid', 'bytes_sent'));
-	$data['type']       = 'Aria';
-	$data['row_format'] = 'Page';
+	$engine             = slowlog_get_storage_engine();
+	$data['type']       = $engine;
+	$data['row_format'] = ($engine === 'Aria') ? 'Page' : 'Dynamic';
 	$data['comment']    = 'Provides statistics on your slow query log';
 
 	return $data;
@@ -226,8 +242,9 @@ function slowlog_setup_table_new(): void {
 	$data['columns'][] = array('name' => 'methodid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false);
 	$data['primary']    = array('logid', 'logentry', 'methodid');
 	$data['keys'][]     = array('name' => 'id', 'columns' => array('id'));
-	$data['type']       = 'Aria';
-	$data['row_format'] = 'Page';
+	$engine             = slowlog_get_storage_engine();
+	$data['type']       = $engine;
+	$data['row_format'] = ($engine === 'Aria') ? 'Page' : 'Dynamic';
 
 	api_plugin_db_table_create('slowlog', 'plugin_slowlog_details_methods', $data);
 
@@ -238,8 +255,9 @@ function slowlog_setup_table_new(): void {
 	$data['columns'][] = array('name' => 'table_name', 'type' => 'varchar(45)', 'NULL' => false);
 	$data['primary']    = array('logid', 'logentry', 'table_name');
 	$data['keys'][]     = array('name' => 'tableid', 'columns' => array('tableid'));
-	$data['type']       = 'Aria';
-	$data['row_format'] = 'Page';
+	$engine             = slowlog_get_storage_engine();
+	$data['type']       = $engine;
+	$data['row_format'] = ($engine === 'Aria') ? 'Page' : 'Dynamic';
 
 	api_plugin_db_table_create('slowlog', 'plugin_slowlog_details_tables', $data);
 
