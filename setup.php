@@ -172,7 +172,10 @@ function slowlog_details_table_data(): array {
 	$data['columns'][] = array('name' => 'oquery', 'type' => 'text', 'NULL' => false);
 	$data['columns'][] = array('name' => 'query', 'type' => 'text', 'NULL' => false);
 	$data['columns'][] = array('name' => 'timeout', 'type' => 'double', 'NULL' => false, 'default' => 0, 'comment' => 'The timeout value detected in the query, if any');
-	$data['primary']    = 'logentry';
+	// db_update_table()'s existing-primary-key diff path (lib/database.php) calls
+	// array_diff($data['primary'], ...) directly without normalizing a string to an array
+	// first, unlike db_table_create() - so this must be an array even for a single column.
+	$data['primary']    = array('logentry');
 	$data['keys'][]     = array('name' => 'logid', 'columns' => array('logid'));
 	$data['keys'][]     = array('name' => 'user', 'columns' => array('user'));
 	$data['keys'][]     = array('name' => 'host', 'columns' => array('host'));

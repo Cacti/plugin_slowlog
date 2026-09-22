@@ -1,5 +1,9 @@
 ## ChangeLog
 
+--- 2.6 ---
+
+* bug: Fix a fatal error ("array_diff(): Argument #1 ($array) must be of type array, string given") thrown by db_update_table() on every page load once plugin_slowlog_details already exists - its primary key was declared as a bare string ('logentry'), but db_update_table()'s existing-primary-key diff path passes it straight to array_diff() without normalizing it to an array first. Declaring it as array('logentry') fixes the crash and matches how every other multi-column primary key in this plugin is already declared.
+
 --- 2.5 ---
 
 * feature: Add composite (logid, metric) indexes on plugin_slowlog_details for query_time, lock_time, rows_sent, rows_examined, rows_affected, and bytes_sent, so sorting the details list by any of these columns can use an index instead of a filesort - a standalone index on the metric alone wouldn't help, since every details query also filters on logid
