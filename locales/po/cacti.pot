@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cacti \n"
 "Report-Msgid-Bugs-To: developers@cacti.net\n"
-"POT-Creation-Date: 2026-09-21 15:59-0400\n"
+"POT-Creation-Date: 2026-09-21 17:10-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Cacti Developers <developers@cacti.net>>\n"
 "Language-Team: Cacti Developers <developers@cacti.net>\n"
@@ -26,452 +26,452 @@ msgstr ""
 msgid "Delete"
 msgstr ""
 
-#: slowlog.php:113
+#: slowlog.php:115
 msgid "ERROR: 'Detect all tables; group ... as OTHER TABLES' requires a list of Tables of Interest."
 msgstr ""
 
-#: slowlog.php:125
+#: slowlog.php:127
 msgid "ERROR: Unable to stage the uploaded Slowlog file for import."
 msgstr ""
 
-#: slowlog.php:147
+#: slowlog.php:149
 msgid "ERROR: Unable to create the Slowlog import record."
 msgstr ""
 
-#: slowlog.php:167
+#: slowlog.php:169
 msgid "The Slowlog has been queued and will be imported in the background. Refresh this page to track progress."
 msgstr ""
 
-#: slowlog.php:235
+#: slowlog.php:243
 msgid "You must select at least one Slowlog record."
 msgstr ""
 
-#: slowlog.php:238
+#: slowlog.php:246
 msgid "Yes"
 msgstr ""
 
-#: slowlog.php:246
+#: slowlog.php:254
 msgid "No"
 msgstr ""
 
-#: slowlog.php:247 slowlog.php:1718 slowlog.php:1738
+#: slowlog.php:255 slowlog.php:1734 slowlog.php:1754
 msgid "Return"
 msgstr ""
 
-#: slowlog.php:294
+#: slowlog.php:302
 msgid "Import Template from Local File"
 msgstr ""
 
-#: slowlog.php:295
+#: slowlog.php:303
 msgid "If the XML file containing template data is located on your local machine, select it here."
 msgstr ""
 
-#: slowlog.php:300
+#: slowlog.php:308
 msgid "LogFile Description"
 msgstr ""
 
-#: slowlog.php:301
+#: slowlog.php:309
 msgid "Please provide a description for this MySQL Slowlog file to be imported."
 msgstr ""
 
-#: slowlog.php:302
+#: slowlog.php:310
 msgid "New Slow Log"
 msgstr ""
 
-#: slowlog.php:308
+#: slowlog.php:316
 msgid "Max Query Length"
 msgstr ""
 
-#: slowlog.php:309
+#: slowlog.php:317
 msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
 msgstr ""
 
-#: slowlog.php:312 slowlog.php:1433
+#: slowlog.php:320 slowlog.php:1449
 msgid "All"
 msgstr ""
 
-#: slowlog.php:313 slowlog.php:314 slowlog.php:315 slowlog.php:316
-#: slowlog.php:317
+#: slowlog.php:321 slowlog.php:322 slowlog.php:323 slowlog.php:324
+#: slowlog.php:325
 #, php-format
 msgid "%d Chars"
 msgstr ""
 
-#: slowlog.php:322
+#: slowlog.php:330
 msgid "Slowlog Table Names [ optional ]"
 msgstr ""
 
-#: slowlog.php:323
+#: slowlog.php:331
 msgid "Leave Blank for Auto Detection which runs must faster."
 msgstr ""
 
-#: slowlog.php:327
+#: slowlog.php:335
 msgid "Cacti Table Detection"
 msgstr ""
 
-#: slowlog.php:328
+#: slowlog.php:336
 msgid "How to tell Cacti-native tables apart from other tables referenced in the slow query log. Defaults to detecting every table with no grouping."
 msgstr ""
 
-#: slowlog.php:331
+#: slowlog.php:339
 msgid "Detect all tables (no 'OTHER TABLES' grouping)"
 msgstr ""
 
-#: slowlog.php:332
+#: slowlog.php:340
 msgid "Use this Cacti Database; group other tables as 'OTHER TABLES'"
 msgstr ""
 
-#: slowlog.php:333
+#: slowlog.php:341
 msgid "Detect all tables; group tables not in the list below as 'OTHER TABLES'"
 msgstr ""
 
-#: slowlog.php:338
+#: slowlog.php:346
 msgid "Tables of Interest"
 msgstr ""
 
-#: slowlog.php:339
+#: slowlog.php:347
 msgid "Only used by the 'Detect all tables; group ... as OTHER TABLES' option above. Please provide a space delimited list of known tables to compare against. In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
 msgstr ""
 
-#: slowlog.php:347
+#: slowlog.php:355
 msgid "Upload Limits"
 msgstr ""
 
-#: slowlog.php:348
+#: slowlog.php:356
 msgid "File Size upload limits in Cacti."
 msgstr ""
 
-#: slowlog.php:352
+#: slowlog.php:360
 msgid "Max Upload Filesize"
 msgstr ""
 
-#: slowlog.php:353
+#: slowlog.php:361
 msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
 msgstr ""
 
-#: slowlog.php:358
+#: slowlog.php:366
 msgid "Max Post Size"
 msgstr ""
 
-#: slowlog.php:359
+#: slowlog.php:367
 msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
 msgstr ""
 
-#: slowlog.php:364
+#: slowlog.php:372
 msgid "Max Execution Time"
 msgstr ""
 
-#: slowlog.php:365
+#: slowlog.php:373
 msgid "How long (in seconds) this request is allowed to run for; 0 means unlimited. This plugin already raises it to unlimited for its own requests, but a web server or reverse proxy in front of PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) can still cut the request off independently - that cannot be detected or overridden from here."
 msgstr ""
 
-#: slowlog.php:366 slowlog_functions.php:1992 slowlog_functions.php:1996
+#: slowlog.php:374 slowlog_functions.php:2020 slowlog_functions.php:2024
 msgid "Seconds"
 msgstr ""
 
-#: slowlog.php:366 slowlog.php:372
+#: slowlog.php:374 slowlog.php:380
 msgid "Unlimited"
 msgstr ""
 
-#: slowlog.php:370
+#: slowlog.php:378
 msgid "Memory Limit"
 msgstr ""
 
-#: slowlog.php:371
+#: slowlog.php:379
 msgid "How much memory this request is allowed to use; -1 means unlimited. This plugin already raises it to unlimited for its own requests. A very large slow query log being read/imported in a single request can exceed a limited value."
 msgstr ""
 
-#: slowlog.php:380
+#: slowlog.php:388
 msgid "The current server configuration may cause a large import to fail:"
 msgstr ""
 
-#: slowlog.php:380
+#: slowlog.php:388
 msgid "WARNING"
 msgstr ""
 
-#: slowlog.php:390
+#: slowlog.php:398
 msgid "Import MariaDB/MySQL Slowlog"
 msgstr ""
 
-#: slowlog.php:448
+#: slowlog.php:456
 msgid "Uploaded"
 msgstr ""
 
-#: slowlog.php:543
+#: slowlog.php:551
 msgid "Processing, please wait..."
 msgstr ""
 
-#: slowlog.php:557
+#: slowlog.php:565
 msgid "Upload failed - please try again."
 msgstr ""
 
-#: slowlog.php:793 slowlog.php:1588
+#: slowlog.php:801 slowlog.php:1604
 msgid "Actions"
 msgstr ""
 
-#: slowlog.php:796
+#: slowlog.php:804
 msgid "Table Name"
 msgstr ""
 
-#: slowlog.php:800 slowlog.php:1855
+#: slowlog.php:808 slowlog.php:1871
 msgid "Method"
 msgstr ""
 
-#: slowlog.php:804 slowlog.php:1481
+#: slowlog.php:812 slowlog.php:1497
 msgid "Date"
 msgstr ""
 
-#: slowlog.php:808 slowlog.php:1482 slowlog.php:1937
+#: slowlog.php:816 slowlog.php:1498 slowlog.php:1953
 msgid "User"
 msgstr ""
 
-#: slowlog.php:812 slowlog.php:1483 slowlog.php:1965
+#: slowlog.php:820 slowlog.php:1499 slowlog.php:1981
 msgid "Host"
 msgstr ""
 
-#: slowlog.php:816 slowlog.php:1490
+#: slowlog.php:824 slowlog.php:1506
 msgid "Query Time"
 msgstr ""
 
-#: slowlog.php:821 slowlog.php:1491
+#: slowlog.php:829 slowlog.php:1507
 msgid "Lock Time"
 msgstr ""
 
-#: slowlog.php:826
+#: slowlog.php:834
 msgid "Sent"
 msgstr ""
 
-#: slowlog.php:831
+#: slowlog.php:839
 msgid "Examined"
 msgstr ""
 
-#: slowlog.php:836
+#: slowlog.php:844
 msgid "Affected"
 msgstr ""
 
-#: slowlog.php:841 slowlog.php:1500 slowlog_functions.php:2005
+#: slowlog.php:849 slowlog.php:1516 slowlog_functions.php:2033
 msgid "Bytes Sent"
 msgstr ""
 
-#: slowlog.php:849
+#: slowlog.php:857
 msgid "Log Entries"
 msgstr ""
 
-#: slowlog.php:851
+#: slowlog.php:859
 msgid "MariaDB/MySQL SlowLog Details"
 msgstr ""
 
-#: slowlog.php:870
+#: slowlog.php:878
 msgid "View Details"
 msgstr ""
 
-#: slowlog.php:948
+#: slowlog.php:956
 msgid "Chart Filters"
 msgstr ""
 
-#: slowlog.php:954
+#: slowlog.php:962
 #, php-format
 msgid "MariaDB/MySQL SlowLog Results - By %s"
 msgstr ""
 
-#: slowlog.php:1357
+#: slowlog.php:1373
 msgid "Select Method"
 msgstr ""
 
-#: slowlog.php:1357
+#: slowlog.php:1373
 msgid "Select Table"
 msgstr ""
 
-#: slowlog.php:1374 slowlog.php:1881
+#: slowlog.php:1390 slowlog.php:1897
 msgid "Others"
 msgstr ""
 
-#: slowlog.php:1384
-msgid "Hide Max (use p95 instead)"
-msgstr ""
-
-#: slowlog.php:1388
+#: slowlog.php:1398
 msgid "Top"
 msgstr ""
 
-#: slowlog.php:1401 slowlog.php:1922
+#: slowlog.php:1412
+msgid "Include Max"
+msgstr ""
+
+#: slowlog.php:1417 slowlog.php:1938
 msgid "Go"
 msgstr ""
 
-#: slowlog.php:1402 slowlog.php:1923
+#: slowlog.php:1418 slowlog.php:1939
 msgid "Clear"
 msgstr ""
 
-#: slowlog.php:1431
+#: slowlog.php:1447
 msgid "Selected"
 msgstr ""
 
-#: slowlog.php:1434
+#: slowlog.php:1450
 msgid "None"
 msgstr ""
 
-#: slowlog.php:1442 slowlog.php:1786 slowlog.php:1931
+#: slowlog.php:1458 slowlog.php:1802 slowlog.php:1947
 msgid "Search"
 msgstr ""
 
-#: slowlog.php:1443
+#: slowlog.php:1459
 msgid "Enter keyword"
 msgstr ""
 
-#: slowlog.php:1477
+#: slowlog.php:1493
 msgid "MariaDB/MySQL SlowLog Query Details"
 msgstr ""
 
-#: slowlog.php:1484
+#: slowlog.php:1500
 msgid "IP"
 msgstr ""
 
-#: slowlog.php:1492
+#: slowlog.php:1508
 msgid "Rows Sent"
 msgstr ""
 
-#: slowlog.php:1493 slowlog_functions.php:1989
+#: slowlog.php:1509 slowlog_functions.php:2017
 msgid "Rows Examined"
 msgstr ""
 
-#: slowlog.php:1499 slowlog_functions.php:2001
+#: slowlog.php:1515 slowlog_functions.php:2029
 msgid "Rows Affected"
 msgstr ""
 
-#: slowlog.php:1506
+#: slowlog.php:1522
 msgid "Original Query"
 msgstr ""
 
-#: slowlog.php:1578
+#: slowlog.php:1594
 msgid "MariaDB/MySQL SlowLog File Filters"
 msgstr ""
 
-#: slowlog.php:1591
+#: slowlog.php:1607
 msgid "Description"
 msgstr ""
 
-#: slowlog.php:1595
+#: slowlog.php:1611
 msgid "Import Status"
 msgstr ""
 
-#: slowlog.php:1599
+#: slowlog.php:1615
 msgid "Status String"
 msgstr ""
 
-#: slowlog.php:1603
+#: slowlog.php:1619
 msgid "ID"
 msgstr ""
 
-#: slowlog.php:1608
+#: slowlog.php:1624
 msgid "Imported"
 msgstr ""
 
-#: slowlog.php:1613
+#: slowlog.php:1629
 msgid "Lines"
 msgstr ""
 
-#: slowlog.php:1618
+#: slowlog.php:1634
 msgid "Duration"
 msgstr ""
 
-#: slowlog.php:1623
+#: slowlog.php:1639
 msgid "Start Date"
 msgstr ""
 
-#: slowlog.php:1628
+#: slowlog.php:1644
 msgid "End Date"
 msgstr ""
 
-#: slowlog.php:1654
+#: slowlog.php:1670
 msgid "Pre-Processing"
 msgstr ""
 
-#: slowlog.php:1656
+#: slowlog.php:1672
 msgid "Post-Processing"
 msgstr ""
 
-#: slowlog.php:1658
+#: slowlog.php:1674
 msgid "Complete"
 msgstr ""
 
-#: slowlog.php:1660
+#: slowlog.php:1676
 msgid "Bad File Format"
 msgstr ""
 
-#: slowlog.php:1662
+#: slowlog.php:1678
 msgid "Unknown"
 msgstr ""
 
-#: slowlog.php:1720 slowlog.php:1734 slowlog.php:1745 slowlog.php:1758
+#: slowlog.php:1736 slowlog.php:1750 slowlog.php:1761 slowlog.php:1774
 msgid "Save"
 msgstr ""
 
-#: slowlog.php:1723 slowlog.php:1741
+#: slowlog.php:1739 slowlog.php:1757
 msgid "Cancel"
 msgstr ""
 
-#: slowlog.php:1728 slowlog.php:1751
+#: slowlog.php:1744 slowlog.php:1767
 msgid "Import"
 msgstr ""
 
-#: slowlog.php:1731 slowlog.php:1748
+#: slowlog.php:1747 slowlog.php:1764
 msgid "Create"
 msgstr ""
 
-#: slowlog.php:1835
+#: slowlog.php:1851
 msgid "LogFile"
 msgstr ""
 
-#: slowlog.php:1839 slowlog.php:1859 slowlog.php:1880 slowlog.php:1941
-#: slowlog.php:1969
+#: slowlog.php:1855 slowlog.php:1875 slowlog.php:1896 slowlog.php:1957
+#: slowlog.php:1985
 msgid "Any"
 msgstr ""
 
-#: slowlog.php:1860 slowlog.php:1882
+#: slowlog.php:1876 slowlog.php:1898
 msgid "N/A"
 msgstr ""
 
-#: slowlog.php:1876
+#: slowlog.php:1892
 msgid "Tables"
 msgstr ""
 
-#: slowlog.php:1906 slowlog_functions.php:1984 slowlog_functions.php:1988
-#: slowlog_functions.php:2000
+#: slowlog.php:1922 slowlog_functions.php:2012 slowlog_functions.php:2016
+#: slowlog_functions.php:2028
 msgid "Rows"
 msgstr ""
 
-#: slowlog.php:1910
+#: slowlog.php:1926
 msgid "Default"
 msgstr ""
 
-#: slowlog.php:1997
+#: slowlog.php:2013
 msgid "From"
 msgstr ""
 
-#: slowlog.php:2002
+#: slowlog.php:2018
 msgid "Start Date Selector"
 msgstr ""
 
-#: slowlog.php:2006
+#: slowlog.php:2022
 msgid "To"
 msgstr ""
 
-#: slowlog.php:2011
+#: slowlog.php:2027
 msgid "End Date Selector"
 msgstr ""
 
-#: slowlog.php:2016
+#: slowlog.php:2032
 msgid "Shift Time Backward"
 msgstr ""
 
-#: slowlog.php:2017
+#: slowlog.php:2033
 msgid "Define Shifting Interval"
 msgstr ""
 
-#: slowlog.php:2028
+#: slowlog.php:2044
 msgid "Shift Time Forward"
 msgstr ""
 
-#: slowlog.php:2034
+#: slowlog.php:2050
 msgid "Custom"
 msgstr ""
 
@@ -503,30 +503,55 @@ msgstr ""
 msgid "upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB."
 msgstr ""
 
-#: slowlog_functions.php:1980
+#: slowlog_functions.php:1986
+msgid "ERROR: The uploaded Slowlog file exceeds the server's maximum upload filesize."
+msgstr ""
+
+#: slowlog_functions.php:1988
+msgid "ERROR: The Slowlog file upload was interrupted before it finished - please try again."
+msgstr ""
+
+#: slowlog_functions.php:1990
+msgid "ERROR: The server has no temporary folder configured to receive the uploaded Slowlog file."
+msgstr ""
+
+#: slowlog_functions.php:1992
+msgid "ERROR: The server failed to write the uploaded Slowlog file to disk."
+msgstr ""
+
+#: slowlog_functions.php:1994
+msgid "ERROR: A server extension blocked the Slowlog file upload."
+msgstr ""
+
+#: slowlog_functions.php:1996
+#, php-format
+msgid "ERROR: The Slowlog file upload failed (error code %d)."
+msgstr ""
+
+#: slowlog_functions.php:2008
 msgid "Queries"
 msgstr ""
 
-#: slowlog_functions.php:1981
+#: slowlog_functions.php:2009
 msgid "Total Queries"
 msgstr ""
 
-#: slowlog_functions.php:1985
+#: slowlog_functions.php:2013
 msgid "Rows Returned"
 msgstr ""
 
-#: slowlog_functions.php:1993
+#: slowlog_functions.php:2021
 msgid "Lock Seconds"
 msgstr ""
 
-#: slowlog_functions.php:1997
+#: slowlog_functions.php:2025
 msgid "Query Seconds"
 msgstr ""
 
-#: slowlog_functions.php:2004
+#: slowlog_functions.php:2032
 msgid "Bytes"
 msgstr ""
 
-#: slowlog_functions.php:2312
+#: slowlog_functions.php:2341
 msgid "Clear this filter"
 msgstr ""
