@@ -83,18 +83,28 @@ it('warns when memory_limit is not unlimited', function () {
 	expect(slowlog_test_warnings_matching($status['warnings'], 'memory_limit'))->not->toBeEmpty();
 });
 
-it('maps every recognized $_FILES upload error code to a distinct, translated message', function () {
-	$codes = array(UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE, UPLOAD_ERR_PARTIAL, UPLOAD_ERR_NO_TMP_DIR, UPLOAD_ERR_CANT_WRITE, UPLOAD_ERR_EXTENSION);
+it('maps every recognized $_FILES upload error code to a translated message, sharing the file-too-large message between the two size-limit codes', function () {
+	// UPLOAD_ERR_INI_SIZE (php.ini's upload_max_filesize) and UPLOAD_ERR_FORM_SIZE (a form's
+	// MAX_FILE_SIZE) both mean "file too large" from the user's perspective, so they
+	// intentionally share one message - every other code gets its own distinct message.
+	$sizeCodes  = array(UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE);
+	$otherCodes = array(UPLOAD_ERR_PARTIAL, UPLOAD_ERR_NO_TMP_DIR, UPLOAD_ERR_CANT_WRITE, UPLOAD_ERR_EXTENSION);
 
-	$messages = array_map('slowlog_upload_error_message', $codes);
+	$sizeMessages  = array_map('slowlog_upload_error_message', $sizeCodes);
+	$otherMessages = array_map('slowlog_upload_error_message', $otherCodes);
 
-	expect(array_unique($messages))->toHaveCount(count($messages));
+	expect(array_unique($sizeMessages))->toHaveCount(1);
+	expect(array_unique($otherMessages))->toHaveCount(count($otherMessages));
+	expect($otherMessages)->not->toContain($sizeMessages[0]);
 
-	foreach ($messages as $message) {
+	foreach (array_merge($sizeMessages, $otherMessages) as $message) {
 		expect($message)->toContain('ERROR:');
 	}
 });
 
-it('falls back to a generic message (including the numeric code) for an unrecognized upload error', function () {
-	expect(slowlog_upload_error_message(999))->toContain('999');
+it('falls back to a generic message for an unrecognized upload error', function () {
+	// The test bootstrap's __() stub returns the raw, untranslated text verbatim (no sprintf
+	// substitution - see the stub's own comment), so assert against the literal placeholder
+	// rather than a substituted error code.
+	expect(slowlog_upload_error_message(999))->toContain('error code %d');
 });
