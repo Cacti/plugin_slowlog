@@ -46,6 +46,31 @@ it('does nothing on a page that does not need the version check', function () {
 	expect($GLOBALS['__test_db_calls'])->toBeEmpty();
 });
 
+it('bails out without touching the database when the INFO file is malformed', function () {
+        $stubBasePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'slowlog-test-bad-info';
+
+        if (!is_dir($stubBasePath . '/plugins/slowlog')) {
+                mkdir($stubBasePath . '/plugins/slowlog', 0777, true);
+        }
+
+        // Missing required keys (longname/author/homepage/name) so
+        // slowlog_version() returns an incomplete array.
+        file_put_contents($stubBasePath . '/plugins/slowlog/INFO', "[info]\nversion = 1.0\n");
+
+        $originalBasePath = $GLOBALS['config']['base_path'];
+        $GLOBALS['config']['base_path'] = $stubBasePath;
+
+        $_SERVER['PHP_SELF'] = '/cacti/plugins.php';
+
+        try {
+                slowlog_check_upgrade();
+        } finally {
+                $GLOBALS['config']['base_path'] = $originalBasePath;
+        }
+
+        expect($GLOBALS['__test_db_calls'])->toBeEmpty();
+});
+
 it('does nothing further when the stored version already matches', function () {
 	$info = slowlog_version();
 

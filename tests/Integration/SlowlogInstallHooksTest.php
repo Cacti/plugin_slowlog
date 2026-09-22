@@ -29,15 +29,18 @@ it('registers every hook slowlog depends on, its realm, and provisions its table
 		$hooks[$registered['hook']] = $registered;
 	}
 
-	foreach (array(
-		'config_arrays',
-		'draw_navigation_text',
-		'config_settings',
-		'top_header_tabs',
-		'top_graph_header_tabs',
-	) as $expected) {
+	$expectedHooks = array(
+		'config_arrays'         => 'slowlog_config_arrays',
+		'draw_navigation_text'  => 'slowlog_draw_navigation_text',
+		'config_settings'       => 'slowlog_config_settings',
+		'top_header_tabs'       => 'slowlog_show_tab',
+		'top_graph_header_tabs' => 'slowlog_show_tab',
+	);
+
+	foreach ($expectedHooks as $expected => $expectedFunction) {
 		expect($hooks)->toHaveKey($expected);
 		expect($hooks[$expected]['plugin'])->toBe('slowlog');
+		expect($hooks[$expected]['function'])->toBe($expectedFunction);
 		expect($hooks[$expected]['file'])->toBe('setup.php');
 	}
 
