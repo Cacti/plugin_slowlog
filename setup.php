@@ -22,6 +22,15 @@
  +-------------------------------------------------------------------------+
 */
 
+/**
+ * Registers this plugin's Cacti hooks (config arrays, navigation
+ * breadcrumbs, settings, tab display) and its slowlog.php realm, then
+ * creates the plugin's database tables and seeds their reference data.
+ * Invoked by the Cacti plugin framework when the plugin is
+ * installed/enabled.
+ *
+ * @return void
+ */
 function plugin_slowlog_install(): void {
 	api_plugin_register_hook('slowlog', 'config_arrays',         'slowlog_config_arrays',        'setup.php');
 	api_plugin_register_hook('slowlog', 'draw_navigation_text',  'slowlog_draw_navigation_text', 'setup.php');
@@ -35,7 +44,17 @@ function plugin_slowlog_install(): void {
 }
 
 /**
- * @return array<string, mixed>
+ * Reads this plugin's version/author metadata from its INFO file,
+ * tolerating a missing/malformed file. Called from
+ * plugin_slowlog_version() and slowlog_check_upgrade().
+ *
+ * @return array<string, mixed> The plugin's INFO file 'info' section
+ *                              (name, version, author, etc.), or an
+ *                              empty array if the file could not be
+ *                              read or parsed.
+ *
+ * @global array $config Cacti global configuration array; used to
+ *                       locate the plugin's INFO file.
  */
 function slowlog_version(): array {
 	global $config;
@@ -49,6 +68,12 @@ function slowlog_version(): array {
 	return $info['info'];
 }
 
+/**
+ * Drops all of this plugin's database tables. Invoked by the Cacti
+ * plugin framework when the plugin is uninstalled.
+ *
+ * @return void
+ */
 function plugin_slowlog_uninstall(): void {
 	api_plugin_drop_table('plugin_slowlog');
 	api_plugin_drop_table('plugin_slowlog_details');
@@ -61,12 +86,30 @@ function plugin_slowlog_uninstall(): void {
 	api_plugin_drop_table('plugin_slowlog_stats');
 }
 
+/**
+ * Here we will check to ensure everything is configured
+ *
+ * Runs any pending database schema upgrade check for this plugin.
+ * Invoked by the Cacti plugin framework on every page load to keep the
+ * plugin's schema current.
+ *
+ * @return bool Always true.
+ */
 function plugin_slowlog_check_config(): bool {
 	/* Here we will check to ensure everything is configured */
 	slowlog_check_upgrade();
 	return true;
 }
 
+/**
+ * Here we will upgrade to the newest version
+ *
+ * Runs any pending database schema upgrade check for this plugin.
+ * Invoked by the Cacti plugin framework when the plugin's installed
+ * version differs from its current version.
+ *
+ * @return bool Always false.
+ */
 function plugin_slowlog_upgrade(): bool {
 	/* Here we will upgrade to the newest version */
 	slowlog_check_upgrade();
@@ -74,12 +117,35 @@ function plugin_slowlog_upgrade(): bool {
 }
 
 /**
- * @return array<string, mixed>
+ * Reads this plugin's version/author metadata from its INFO file.
+ * Invoked by the Cacti plugin framework to display plugin information.
+ *
+ * @return array<string, mixed> The plugin's INFO file 'info' section, as
+ *                              returned by slowlog_version().
  */
 function plugin_slowlog_version(): array {
 	return slowlog_version();
 }
 
+/**
+ * Applies any pending database schema migrations for this plugin, based
+ * on comparing the installed version recorded in plugin_config against
+ * the current INFO file version: re-runs table creation (safe/no-op for
+ * existing tables/columns) and, for a pre-existing
+ * plugin_slowlog_details table, diffs and applies any new
+ * columns/indexes via db_update_table(). Only runs on plugins.php or
+ * slowlog.php to avoid the version lookup on every page. Called from
+ * plugin_slowlog_check_config() and plugin_slowlog_upgrade().
+ *
+ * @return void
+ *
+ * @global array  $config            Cacti global configuration array;
+ *                                   used to locate database/functions
+ *                                   libraries.
+ * @global object $database_default  Reserved/declared for parity with
+ *                                   the included library files; not used
+ *                                   directly here.
+ */
 function slowlog_check_upgrade(): void {
 	global $config, $database_default;
 	include_once($config['library_path'] . '/database.php');
@@ -139,6 +205,18 @@ function slowlog_check_upgrade(): void {
 	}
 }
 
+/**
+ * No-op dependency check. Invoked by the Cacti plugin framework to
+ * verify this plugin's dependencies are satisfied before
+ * installation/upgrade.
+ *
+ * @return bool Always true.
+ *
+ * @global array $plugins Reserved/declared for parity with other hook
+ *                        implementations; not used directly here.
+ * @global array $config  Cacti global configuration array (declared but
+ *                        not directly used here).
+ */
 function slowlog_check_dependencies(): bool {
 	global $plugins, $config;
 	return true;
@@ -148,6 +226,14 @@ function slowlog_check_dependencies(): bool {
  * Aria isn't available on plain MySQL (it's a MariaDB-only storage engine), so
  * default to Aria everywhere and only fall back to InnoDB when the connected
  * server is detected as real MySQL rather than MariaDB.
+ *
+ * Determines the appropriate storage engine to use for this plugin's
+ * high-write detail/summary tables. Called from
+ * slowlog_details_table_data() and slowlog_setup_table_new() when
+ * defining those tables.
+ *
+ * @return string 'InnoDB' when connected to real MySQL, otherwise
+ *                'Aria'.
  */
 function slowlog_get_storage_engine(): string {
 	$version = db_get_global_variable('version');
@@ -165,7 +251,16 @@ function slowlog_get_storage_engine(): string {
  * upgrade path (db_update_table() in slowlog_check_upgrade()), so both stay
  * in sync from a single definition.
  *
- * @return array<string, mixed>
+ * Builds the plugin_slowlog_details table definition (one row per
+ * imported slow-query log entry, with per-metric composite indexes for
+ * efficient sorted/filtered listing). Called from
+ * slowlog_setup_table_new() to create the table, and from
+ * slowlog_check_upgrade() to migrate an existing table to the current
+ * schema.
+ *
+ * @return array<string, mixed> The table definition array consumed by
+ *                              api_plugin_db_table_create()/
+ *                              db_update_table().
  */
 function slowlog_details_table_data(): array {
 	$data = array();
@@ -212,6 +307,17 @@ function slowlog_details_table_data(): array {
 	return $data;
 }
 
+/**
+ * Creates all of this plugin's database tables (log imports, detail
+ * rows and their per-method/per-table associations, the method/table-
+ * name/reserved-word reference dictionaries, and cached summary
+ * statistics), and seeds the method and reserved-word reference tables
+ * with their built-in data. Called from plugin_slowlog_install() during
+ * plugin installation, and re-run (safely, as a no-op for already-
+ * applied changes) from slowlog_check_upgrade() during upgrades.
+ *
+ * @return void
+ */
 function slowlog_setup_table_new(): void {
 	$data = array();
 	$data['columns'][] = array('name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true, 'comment' => 'The unique id for this log entry');
@@ -380,10 +486,29 @@ function slowlog_setup_table_new(): void {
 	api_plugin_db_table_create('slowlog', 'plugin_slowlog_stats', $data);
 }
 
+/**
+ * Triggers a schema-upgrade check. Invoked by the Cacti plugin framework
+ * via the 'config_arrays' hook.
+ *
+ * @return void
+ */
 function slowlog_config_arrays(): void {
 	slowlog_check_upgrade();
 }
 
+/**
+ * Registers this plugin's 'Misc' Settings tab (currently with no fields
+ * of its own; merges into any existing 'misc' tab). Invoked by the Cacti
+ * plugin framework via the 'config_settings' hook when rendering the
+ * Settings page.
+ *
+ * @return void
+ *
+ * @global array $tabs     Cacti's registered settings tabs; a 'misc'
+ *                         entry is added.
+ * @global array $settings Cacti's registered settings fields; a 'misc'
+ *                         entry is added/merged.
+ */
 function slowlog_config_settings(): void {
 	global $tabs, $settings;
 
@@ -400,9 +525,16 @@ function slowlog_config_settings(): void {
 }
 
 /**
- * @param array<string, array<string, mixed>> $nav
+ * Adds this plugin's page breadcrumb/navigation entries (viewer, import,
+ * delete, methods, tables, details, and query-detail views). Invoked by
+ * the Cacti plugin framework via the 'draw_navigation_text' hook.
  *
- * @return array<string, array<string, mixed>>
+ * @param array<string, array<string, mixed>> $nav Cacti's registered
+ *                                                 navigation text
+ *                                                 entries.
+ *
+ * @return array<string, array<string, mixed>> The $nav array with this
+ *                                             plugin's entries added.
  */
 function slowlog_draw_navigation_text(array $nav): array {
 	$nav['slowlog.php:']        = array('title' => 'MySQL Slowlog Viewer', 'mapping' => '', 'url' => 'slowlog.php', 'level' => '0');
@@ -417,6 +549,18 @@ function slowlog_draw_navigation_text(array $nav): array {
 	return $nav;
 }
 
+/**
+ * Renders this plugin's tab icon/link on device and graph header pages,
+ * when the current user is authorized for slowlog.php (checked once per
+ * session and cached). Invoked by the Cacti plugin framework via the
+ * 'top_header_tabs' and 'top_graph_header_tabs' hooks.
+ *
+ * @return void Outputs the tab link HTML directly (nothing if the user
+ *              lacks the slowlog.php realm).
+ *
+ * @global array $config Cacti global configuration array; used to build
+ *                       the tab link/image URLs.
+ */
 function slowlog_show_tab(): void {
 	global $config;
 

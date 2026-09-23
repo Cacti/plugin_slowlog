@@ -90,6 +90,22 @@ switch (get_request_var('action')) {
     The Save Function
    -------------------------- */
 
+/**
+ * Handles both the (currently unreachable, see api_slowlog_save())
+ * legacy save path and the actual slow-log file upload path: validates
+ * the uploaded file and table-mode options, stages the upload to a temp
+ * file, inserts a placeholder plugin_slowlog parent record, and hands
+ * off the full import (parse + classify + post-process) to a background
+ * import_log.php worker so a large log doesn't block this request past
+ * a front-end proxy's read timeout. Invoked from this file's dispatcher
+ * when the request's 'action' is 'save' or 'import'.
+ *
+ * @return void Redirects back to the Slowlog list/methods view; does
+ *              not return a value.
+ *
+ * @global array $config Cacti global configuration array; used to
+ *                       resolve the PHP binary and import_log.php path.
+ */
 function form_save(): void {
 	global $config;
 
@@ -183,6 +199,22 @@ function form_save(): void {
 	}
 }
 
+/**
+ * Handles the bulk-actions form for the Slowlog list (currently only
+ * delete). On first display, renders the confirmation dialog listing
+ * the selected imported logs; once confirmed, deletes each selected
+ * log. Invoked from this file's dispatcher when the request's 'action'
+ * is 'actions'.
+ *
+ * @return void Either redirects back to the list after deleting, or
+ *              prints the confirmation dialog and returns nothing.
+ *
+ * @global array $config  Cacti global configuration array (declared but
+ *                        not directly used here).
+ * @global array $actions Map of bulk-action ids to their display
+ *                        labels, used for the confirmation dialog
+ *                        title.
+ */
 function form_actions(): void {
 	global $config, $actions;
 
@@ -270,14 +302,31 @@ function form_actions(): void {
  * dead code below doesn't change behavior, since it never executed) rather than resurrecting
  * untested save logic as part of a typing pass.
  *
- * @param mixed $logid
- * @param mixed $description
- * @param mixed $length
+ * Currently unused/dead code: not called from anywhere else in this
+ * file (no form posts 'save_component_slowlog').
+ *
+ * @param mixed $logid       Unused.
+ * @param mixed $description Unused.
+ * @param mixed $length      Unused.
+ *
+ * @return bool Always true.
  */
 function api_slowlog_save($logid, $description, $length): bool {
 	return true;
 }
 
+/**
+ * Renders the slow-log file upload form (file picker, description,
+ * table-mode/table-names options, truncation length), loading the
+ * ApexCharts JS/CSS assets used by this plugin's chart views. Invoked
+ * from this file's dispatcher when the request's 'action' is 'edit'
+ * (via slowlog_render_with_layout()).
+ *
+ * @return void Outputs the import form HTML directly.
+ *
+ * @global array $config Cacti global configuration array; used to
+ *                       locate the ApexCharts assets and theme CSS.
+ */
 function slowlog_import(): void {
 	global $config;
 
@@ -577,6 +626,15 @@ function slowlog_import(): void {
 	<?php
 }
 
+/**
+ * Validates and stores the Details view's filter/sort/pagination
+ * variables (log id, method/host/user/table/date-range filters, free-
+ * text search) in the session, defaulting the date range to the
+ * selected log's own start/end time. Called from slowlog_view_details()
+ * before rendering the details table.
+ *
+ * @return void
+ */
 function slowlog_request_validation(): void {
 	$logid = get_filter_request_var('logid');
 
@@ -670,6 +728,18 @@ function slowlog_request_validation(): void {
 	$_SESSION['sess_end_time']   = $_SESSION['sess_sl_det_date2'];
 }
 
+/**
+ * Renders the Details view: a filterable, sortable, paginated table of
+ * individual slow-query log entries for a selected import, with links
+ * through to each entry's full query text. Invoked from this file's
+ * dispatcher when the request's 'action' is 'details' (via
+ * slowlog_render_with_layout()).
+ *
+ * @return void Outputs the details table HTML directly.
+ *
+ * @global array $config Cacti global configuration array; used to build
+ *                       result links.
+ */
 function slowlog_view_details(): void {
 	global $config;
 
@@ -915,6 +985,21 @@ function slowlog_view_details(): void {
 	}
 }
 
+/**
+ * Renders the 'By Method'/'By Table' charts view: loads ApexCharts
+ * assets themed to match the current Cacti theme, the scope/Top-N/
+ * include-max filter row, and box-whisker charts summarizing query
+ * timing/rows/bytes metrics grouped by method or table. Invoked from
+ * this file's dispatcher for 'viewmethods'/'viewtables' actions and the
+ * 'methods'/'tables' actions (via slowlog_render_with_layout()).
+ *
+ * @param string $method Which grouping to chart: 'methods' or 'tables'.
+ *
+ * @return void Outputs the charts view HTML directly.
+ *
+ * @global array $config Cacti global configuration array; used to
+ *                       locate the ApexCharts assets.
+ */
 function slowlog_view_charts(string $method): void {
 	global $config;
 
@@ -1298,6 +1383,19 @@ function slowlog_view_charts(string $method): void {
  * vs tables have different scope_key value sets, so they're kept in separate session
  * buckets).
  */
+/**
+ * Validates and stores the charts view's filter variables (selected
+ * method/table scope, Top N, include-max-value toggle) in the session,
+ * scoped per chart type, discarding any submitted scope value that isn't
+ * an actual method/table for the current log. Called from
+ * slowlog_view_charts() before rendering the charts.
+ *
+ * @param string $chart_type Which chart type's session scope to
+ *                           validate/store under: 'methods' or
+ *                           'tables'.
+ *
+ * @return void
+ */
 function slowlog_request_charts_validation(string $chart_type): void {
 	$filters = array(
 		// FILTER_DEFAULT (not FILTER_CALLBACK/sanitize_search_string): chart_scope is a
@@ -1345,7 +1443,12 @@ function slowlog_request_charts_validation(string $chart_type): void {
 /**
  * splits the persisted comma-separated 'chart_scope' request var into a clean array
  *
- * @return array<int, string>
+ * Called from slowlog_request_charts_validation() (to validate the
+ * scope against the allowed methods/tables) and slowlog_charts_filter()
+ * (to mark the currently selected options).
+ *
+ * @return array<int, string> The selected method/table names, with
+ *                            empty entries removed.
  */
 function slowlog_get_chart_scope_filter(): array {
 	$raw = get_request_var('chart_scope');
@@ -1367,6 +1470,20 @@ function slowlog_get_chart_scope_filter(): array {
  * the box on the chart's Y axis), and the usual Go/Clear buttons. Filter state is
  * persisted via slowlog_request_charts_validation()/validate_store_request_vars() same
  * as every other filter in this plugin.
+ */
+
+/**
+ * Renders the charts view's filter toolbar described above, plus its
+ * client-side JavaScript. Called from slowlog_view_charts() before the
+ * charts themselves are rendered.
+ *
+ * @param string $method Which grouping is being charted: 'methods' or
+ *                       'tables'.
+ * @param int    $id     The plugin_slowlog.logid being charted, used to
+ *                       resolve the available scope items and any
+ *                       'OTHER TABLES' bucket label.
+ *
+ * @return void Outputs HTML and JavaScript directly.
  */
 function slowlog_charts_filter(string $method, int $id): void {
 	$selected          = slowlog_get_chart_scope_filter();
@@ -1479,6 +1596,17 @@ function slowlog_charts_filter(string $method, int $id): void {
 	<?php
 }
 
+/**
+ * Renders the full detail view for a single slow-query log entry: its
+ * date/user/host/IP, timing/row/byte metrics, and original query text.
+ * Invoked from this file's dispatcher when the request's 'action' is
+ * 'query' (via slowlog_render_with_layout()).
+ *
+ * @return void Outputs the query detail HTML directly.
+ *
+ * @global array $config Cacti global configuration array (declared but
+ *                       not directly used here).
+ */
 function slowlog_view_query(): void {
 	global $config;
 
@@ -1533,6 +1661,13 @@ function slowlog_view_query(): void {
 	html_end_box(false);
 }
 
+/**
+ * Validates and stores the main Slowlog list's filter/sort/pagination
+ * variables (free-text search, sort column/direction) in the session.
+ * Called from slowlog_view() before rendering the list.
+ *
+ * @return void
+ */
 function slowlog_request_summary_validation(): void {
 	/* ================= input validation and session storage ================= */
 	$filters = array(
@@ -1566,6 +1701,20 @@ function slowlog_request_summary_validation(): void {
 	/* ================= input validation ================= */
 }
 
+/**
+ * Renders the main Slowlog list page: validates the request, draws the
+ * filter toolbar, and prints the paginated, sortable table of imported
+ * slow-query logs with their import status/progress. Invoked from this
+ * file's dispatcher for the default (no 'action') request (via
+ * slowlog_render_with_layout()).
+ *
+ * @return void Outputs the list page HTML directly.
+ *
+ * @global array $config  Cacti global configuration array; used to
+ *                        build result links.
+ * @global array $actions Map of bulk-action ids to their display
+ *                        labels, used to populate the actions dropdown.
+ */
 function slowlog_view(): void {
 	global $config, $actions;
 
@@ -1722,9 +1871,33 @@ function slowlog_view(): void {
 /**
  * slowlog_save_button - draws a (save|create) and cancel button at the bottom of
  * an html edit form
- * @param $force_type - if specified, will force the 'action' button to be either
- *                      'save' or 'create'. otherwise this field should be
- *                      properly auto-detected.
+ *
+ * Renders the shared Save/Cancel button row used by this plugin's edit
+ * forms, choosing the appropriate button label (Save/Create/Import) and
+ * cancel target/label based on the current action and whether a form is
+ * creating vs. editing an existing record. Called from the import form
+ * (slowlog_import()) and other edit views to render their submit
+ * controls.
+ *
+ * @param string $cancel_action The Cancel button's target: either a
+ *                              '.php' page to link to directly, or
+ *                              'return'/empty to go back to the
+ *                              Slowlog list; defaults to ''.
+ * @param string $action        The form action to submit as (posted in
+ *                              a hidden 'action' field); defaults to
+ *                              'save'.
+ * @param string $force_type    Force the Save button's label/name to
+ *                              'save', 'create', or 'import' regardless
+ *                              of auto-detection; defaults to '' (auto-
+ *                              detect).
+ * @param string $key_field     The GET parameter name used to detect
+ *                              whether this is a new (empty) or
+ *                              existing record; defaults to 'id'.
+ *
+ * @return void Outputs the button row HTML directly.
+ *
+ * @global array $config Cacti global configuration array (declared but
+ *                       not directly used here).
  */
 function slowlog_save_button(string $cancel_action = '', string $action = 'save', string $force_type = '', string $key_field = 'id'): void {
 	global $config;
@@ -1789,6 +1962,16 @@ function slowlog_save_button(string $cancel_action = '', string $action = 'save'
 	<?php
 }
 
+/**
+ * Renders the main Slowlog list's filter toolbar (free-text search) and
+ * its client-side JavaScript. Called from slowlog_view() before the
+ * logs table itself is rendered.
+ *
+ * @return void Outputs HTML and JavaScript directly.
+ *
+ * @global array $config Cacti global configuration array (declared but
+ *                       not directly used here).
+ */
 function filter(): void {
 	global $config;
 
@@ -1838,6 +2021,25 @@ function filter(): void {
 	<?php
 }
 
+/**
+ * Renders the Details view's filter toolbar (method/host/user/table/
+ * date-range/free-text filters, rows-per-page) and its client-side
+ * JavaScript. Called from slowlog_view_details() before the details
+ * table itself is rendered.
+ *
+ * @return void Outputs HTML and JavaScript directly.
+ *
+ * @global array $config           Cacti global configuration array.
+ * @global array $item_rows        Rows-per-page options offered by
+ *                                 Cacti core, used to populate the
+ *                                 'rows' select list.
+ * @global array $graph_timespans  Cacti's predefined graph timespan
+ *                                 options, used for the date-range
+ *                                 picker.
+ * @global array $graph_timeshifts Cacti's predefined graph timeshift
+ *                                 options, used for the date-range
+ *                                 picker.
+ */
 function slowlog_details_filter(): void {
 	global $config, $item_rows, $graph_timespans, $graph_timeshifts;
 

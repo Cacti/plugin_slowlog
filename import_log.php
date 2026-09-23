@@ -163,12 +163,29 @@ if ($logfile !== false) {
 	}
 }
 
-/*  display_version - displays version information */
+/**
+ * display_version - displays version information
+ *
+ * Prints this script's name/Cacti version/copyright. Called from the
+ * CLI argument parser for the '--version'/'-V'/'-v' flag, and from
+ * display_help() to prefix the usage text.
+ *
+ * @return void
+ */
 function display_version(): void {
 	$version = get_cacti_cli_version();
 	print "Cacti Import Slowlog, Version $version, " . COPYRIGHT_YEARS . PHP_EOL;
 }
 
+/**
+ * Prints this script's version banner followed by its command-line
+ * usage/argument summary (import modes, table-mode options, reprocess,
+ * description, length truncation, and post-import cleanup). Called from
+ * the CLI argument parser for the '--help'/'-H'/'-h' flag, and whenever
+ * an invalid argument is supplied.
+ *
+ * @return void
+ */
 function display_help(): void {
 	display_version();
 
