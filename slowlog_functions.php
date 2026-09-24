@@ -64,9 +64,9 @@ function slowlog_render_with_layout(callable $render_callback): void {
  * Builds a space-separated list of every table name across every
  * database on the connected MySQL/MariaDB server (excluding
  * information_schema and mysql), used to distinguish Cacti's own tables
- * from others in a slow log. Called from import_post_process() and
- * slowlog_check_upgrade()-related classification logic when the
- * '--usecacti'/'cacti' table-mode is in effect.
+ * from others in a slow log. Called from import_logfile() (when
+ * '--usecacti' is passed) and import_post_process() (in 'cacti' table
+ * mode).
  *
  * @return string A space-separated list of all table names found.
  */

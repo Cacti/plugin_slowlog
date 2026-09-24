@@ -1875,9 +1875,8 @@ function slowlog_view(): void {
  * Renders the shared Save/Cancel button row used by this plugin's edit
  * forms, choosing the appropriate button label (Save/Create/Import) and
  * cancel target/label based on the current action and whether a form is
- * creating vs. editing an existing record. Called from the import form
- * (slowlog_import()) and other edit views to render their submit
- * controls.
+ * creating vs. editing an existing record. Currently an available
+ * helper with no production call sites in this repository.
  *
  * @param string $cancel_action The Cancel button's target: either a
  *                              '.php' page to link to directly, or
