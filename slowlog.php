@@ -1668,7 +1668,7 @@ function slowlog_view_query(): void {
 	$oquery = str_replace('","', '", "', (string) ($entry['oquery'] ?? ''));
 	$oquery = str_replace("','", "', '", $oquery);
 
-	print "<td><pre style='white-space:pre-wrap'>" . $oquery . '</pre></td>';
+	print "<td><pre style='white-space:pre-wrap'>" . html_escape($oquery) . '</pre></td>';
 
 	form_end_row();
 
