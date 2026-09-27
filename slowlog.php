@@ -332,12 +332,12 @@ function slowlog_import(): void {
 
 	$selected_theme = get_selected_theme();
 
-	print '<script type="text/javascript" src="' . $config['url_path'] . 'plugins/slowlog/js/apexcharts.js"></script>';
+	print get_md5_include_js('plugins/slowlog/js/apexcharts.js');
 
 	if (file_exists($config['base_path'] . "/plugins/slowlog/themes/$selected_theme/apexcharts.css")) {
-		print '<link href="' . html_escape($config['url_path'] . "plugins/slowlog/themes/$selected_theme/apexcharts.css") . '" type="text/css" rel="stylesheet">';
+		print get_md5_include_css("plugins/slowlog/themes/$selected_theme/apexcharts.css");
 	} else {
-		print '<link href="' . html_escape($config['url_path'] . "plugins/slowlog/js/apexcharts.css") . '" type="text/css" rel="stylesheet">';
+		print get_md5_include_css('plugins/slowlog/js/apexcharts.css');
 	}
 
 	$upload_max_filesize = ini_get('upload_max_filesize') . 'Bytes';
@@ -466,7 +466,7 @@ function slowlog_import(): void {
 		<div id="slowlog_upload_donut" style="width:160px;height:160px;margin:0 auto;"></div>
 		<div id="slowlog_upload_progress_text" style="margin-top:4px;"></div>
 	</div>
-	<script type="text/javascript">
+	<script type="text/javascript" <?php print plugin_slowlog_csp_nonce(); ?>>
 	(function() {
 		var xhrInFlight = null;
 		var donutChart  = null;
@@ -1021,12 +1021,12 @@ function slowlog_view_charts(string $method): void {
 			$mode = 'light';
 	}
 
-	print '<script type="text/javascript" src="' . $config['url_path'] . 'plugins/slowlog/js/apexcharts.js"></script>';
+	print get_md5_include_js('plugins/slowlog/js/apexcharts.js');
 
 	if (file_exists($config['base_path'] . "/plugins/slowlog/themes/$selected_theme/apexcharts.css")) {
-		print '<link href="' . html_escape($config['url_path'] . "plugins/slowlog/themes/$selected_theme/apexcharts.css") . '" type="text/css" rel="stylesheet">';
+		print get_md5_include_css("plugins/slowlog/themes/$selected_theme/apexcharts.css");
 	} else {
-		print '<link href="' . html_escape($config['url_path'] . "plugins/slowlog/js/apexcharts.css") . '" type="text/css" rel="stylesheet">';
+		print get_md5_include_css('plugins/slowlog/js/apexcharts.css');
 	}
 
 	$id = get_filter_request_var('logid');
@@ -1138,7 +1138,7 @@ function slowlog_view_charts(string $method): void {
 	html_end_box(false);
 
 	?>
-	<script type="text/javascript">
+	<script type="text/javascript" <?php print plugin_slowlog_csp_nonce(); ?>>
 
 	function convertLabel(value) {
 		var suffix = '';
@@ -1538,7 +1538,7 @@ function slowlog_charts_filter(string $method, int $id): void {
 					</tr>
 				</table>
 			</form>
-			<script type='text/javascript'>
+			<script type='text/javascript' <?php print plugin_slowlog_csp_nonce(); ?>>
 			function applyChartsFilter() {
 				var strURL = 'slowlog.php?action=<?php print $method == 'tables' ? 'tables' : 'methods';?>&header=false&logid=<?php print (int) $id;?>';
 
@@ -1853,7 +1853,7 @@ function slowlog_view(): void {
 	// AJAX navigation, so it can't stack or fire against a page the user has since left.
 	if ($has_pending) {
 		?>
-		<script type="text/javascript">
+		<script type="text/javascript" <?php print plugin_slowlog_csp_nonce(); ?>>
 		refreshIsLogout = false;
 		refreshPage     = <?php print json_encode(sanitize_uri($_SERVER['REQUEST_URI'])); ?>;
 		refreshMSeconds = 5000;
@@ -1996,7 +1996,7 @@ function filter(): void {
 				</table>
 			</td>
 			<td>
-				<script type='text/javascript'>
+				<script type='text/javascript' <?php print plugin_slowlog_csp_nonce(); ?>>
 				function applyFilter() {
 					var strURL = '?action=select&header=false&filter=' + $('#filter').val();
 					loadPageNoHeader(strURL);
@@ -2263,7 +2263,7 @@ function slowlog_details_filter(): void {
 						</td>
 				</table>
 			</form>
-			<script type='text/javascript'>
+			<script type='text/javascript' <?php print plugin_slowlog_csp_nonce(); ?>>
 			var date1Open = false;
 			var date2Open = false;
 			var pageTab   = <?php print json_encode(get_request_var('tab'));?>;

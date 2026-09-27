@@ -2,6 +2,7 @@
 
 --- 2.6 ---
 
+* security: Add a version-safe CSP nonce (`plugin_slowlog_csp_nonce()`) to every inline `<script>` tag so pages stay compatible with Cacti's Content-Security-Policy nonce enforcement, while falling back cleanly on older Cacti releases that lack the `CactiSecureHeaders` class
 * bug: Fix a fatal error ("array_diff(): Argument #1 ($array) must be of type array, string given") thrown by db_update_table() on every page load once plugin_slowlog_details already exists - its primary key was declared as a bare string ('logentry'), but db_update_table()'s existing-primary-key diff path passes it straight to array_diff() without normalizing it to an array first. Declaring it as array('logentry') fixes the crash and matches how every other multi-column primary key in this plugin is already declared.
 
 --- 2.5 ---
