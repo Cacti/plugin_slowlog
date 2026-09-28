@@ -25,7 +25,7 @@
 include(__DIR__ . '/../../include/cli_check.php');
 include(__DIR__ . '/slowlog_functions.php');
 
-/* process calling arguments */
+// process calling arguments
 $parms = $_SERVER['argv'];
 array_shift($parms);
 
@@ -42,7 +42,7 @@ $delete_after = false;
 if (cacti_sizeof($parms)) {
 	$shortopts = 'VvHh';
 
-	$longopts = array(
+	$longopts = [
 		'logfile:',
 		'logid:',
 		'reprocess:',
@@ -54,11 +54,11 @@ if (cacti_sizeof($parms)) {
 		'delete-after',
 		'version',
 		'help'
-	);
+	];
 
 	$options = getopt($shortopts, $longopts);
 
-	foreach($options as $arg => $value) {
+	foreach ($options as $arg => $value) {
 		// getopt() returns an array instead of a scalar when an option is repeated more than
 		// once on the command line - none of the options below are meant to be repeatable, so
 		// normalize to the last occurrence (a defensive fallback; a real invocation will only
@@ -216,5 +216,3 @@ function display_help(): void {
 	print '    --delete-after - Delete the --logfile after a successful import (used by the' . PHP_EOL;
 	print '                        web upload handler to clean up its staged copy).' . PHP_EOL . PHP_EOL;
 }
-
-

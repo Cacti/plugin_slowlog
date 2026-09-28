@@ -2,6 +2,8 @@
 
 --- 2.6 ---
 
+* bug: Fix reflected XSS and unvalidated bulk-action risk in the Slowlog list's bulk-actions form (form_actions()) - the confirmation dialog indexed its actions menu and echoed the drp_action value back into a hidden field directly from raw, unescaped $_POST data with no validation against the known action set; now uses get_nfilter_request_var(), validates against the known action ids before use, and html-escapes the echoed value
+
 * bug: Fix a fatal error ("array_diff(): Argument #1 ($array) must be of type array, string given") thrown by db_update_table() on every page load once plugin_slowlog_details already exists - its primary key was declared as a bare string ('logentry'), but db_update_table()'s existing-primary-key diff path passes it straight to array_diff() without normalizing it to an array first. Declaring it as array('logentry') fixes the crash and matches how every other multi-column primary key in this plugin is already declared.
 
 --- 2.5 ---
