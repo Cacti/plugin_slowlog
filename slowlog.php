@@ -1514,7 +1514,7 @@ function slowlog_charts_filter(string $method, int $id): void {
 							<?php print html_escape($scope_label); ?>
 						</td>
 						<td>
-							<select id='chart_scope' multiple size='6'>
+							<select id='chart_scope' class='select2-multi-count' data-select-count-text='<?php print __esc('Selected', 'slowlog'); ?>' multiple size='6'>
 								<?php
 								foreach ($scope_items as $value) {
 									$label = ($others_bucket_key !== null && $value === $others_bucket_key) ? __('Others', 'slowlog') : $value;
@@ -1569,26 +1569,37 @@ function slowlog_charts_filter(string $method, int $id): void {
 			}
 
 			$(function() {
-				$('#chart_scope').multiselect({
-					menuHeight: $(window).height() * .7,
-					menuWidth: 'auto',
-					noneSelectedText: '<?php print html_escape($scope_label); ?>',
-					selectedText: function(numChecked, numTotal, checkedItems) {
-						return numChecked + ' <?php print __esc('Selected', 'slowlog'); ?>';
-					},
-					checkAllText: '<?php print __esc('All', 'slowlog'); ?>',
-					uncheckAllText: '<?php print __esc('None', 'slowlog'); ?>',
-					close: function(event, ui) {
+				var $scope = $('#chart_scope');
+
+				// Cacti core turns this select into a select2 (via the select2-multi-count
+				// class) whenever select2 is loaded; only fall back to the jquery-multiselect
+				// widget when it isn't, so the two don't both render on the same control.
+				if ($.fn.select2) {
+					$scope.on('select2:close', function() {
 						applyChartsFilter();
-					},
-					open: function(event, ui) {
-						$("input[type='search']:first").focus();
-					}
-				}).multiselectfilter({
-					label: '<?php print __esc('Search', 'slowlog'); ?>',
-					placeholder: '<?php print __esc('Enter keyword', 'slowlog'); ?>',
-					width: 200
-				});
+					});
+				} else {
+					$scope.multiselect({
+						menuHeight: $(window).height() * .7,
+						menuWidth: 'auto',
+						noneSelectedText: '<?php print html_escape($scope_label); ?>',
+						selectedText: function(numChecked, numTotal, checkedItems) {
+							return numChecked + ' <?php print __esc('Selected', 'slowlog'); ?>';
+						},
+						checkAllText: '<?php print __esc('All', 'slowlog'); ?>',
+						uncheckAllText: '<?php print __esc('None', 'slowlog'); ?>',
+						close: function(event, ui) {
+							applyChartsFilter();
+						},
+						open: function(event, ui) {
+							$("input[type='search']:first").focus();
+						}
+					}).multiselectfilter({
+						label: '<?php print __esc('Search', 'slowlog'); ?>',
+						placeholder: '<?php print __esc('Enter keyword', 'slowlog'); ?>',
+						width: 200
+					});
+				}
 
 				$('#include_max').on('change', function() {
 					applyChartsFilter();
