@@ -1514,7 +1514,7 @@ function slowlog_charts_filter(string $method, int $id): void {
 							<?php print html_escape($scope_label); ?>
 						</td>
 						<td>
-							<select id='chart_scope' class='select2-multi-count' data-select-count-text='<?php print __esc('Selected', 'slowlog'); ?>' multiple size='6'>
+							<select id='chart_scope' class='select2-multi-count' data-select-all-text='<?php print html_escape($scope_label); ?>' data-select-count-text='<?php print __esc('Selected', 'slowlog'); ?>' multiple size='6'>
 								<?php
 								foreach ($scope_items as $value) {
 									$label = ($others_bucket_key !== null && $value === $others_bucket_key) ? __('Others', 'slowlog') : $value;
