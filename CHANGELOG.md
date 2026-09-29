@@ -2,6 +2,7 @@
 
 --- 2.6 ---
 
+* bug: Fix the By Method/By Table chart scope filter rendering two overlapping widgets (a select2 multi-select and the jQuery multiselect) with an overlapping search box - `slowlog_charts_filter()` unconditionally applied `.multiselect()` to `#chart_scope` while Cacti core independently turned the same plain `<select>` into a select2. The control now carries the `select2-multi-count` class and prefers select2 when it is loaded (binding `select2:close` to re-apply the filter), only falling back to the jquery-multiselect widget when select2 is unavailable; its empty-selection state preserves the original `Select Method`/`Select Table` prompt rather than an inaccurate `All Selected`
 * security: Add a version-safe CSP nonce (`plugin_slowlog_csp_nonce()`) to every inline `<script>` tag so pages stay compatible with Cacti's Content-Security-Policy nonce enforcement, while falling back cleanly on older Cacti releases that lack the `CactiSecureHeaders` class
 * bug: Fix reflected XSS and unvalidated bulk-action risk in the Slowlog list's bulk-actions form (form_actions()) - the confirmation dialog indexed its actions menu and echoed the drp_action value back into a hidden field directly from raw, unescaped $_POST data with no validation against the known action set; now uses get_nfilter_request_var(), validates against the known action ids before use, and html-escapes the echoed value
 
