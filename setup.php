@@ -58,7 +58,7 @@ function plugin_slowlog_install(): void {
 
 	api_plugin_register_realm('slowlog', 'slowlog.php', 'Plugin -> MySQL Slow Log Viewer', 1);
 
-	include_once($config['base_path'] . '/plugins/slowlog/includes/database.php');
+	require_once($config['base_path'] . '/plugins/slowlog/includes/database.php');
 
 	slowlog_setup_table_new();
 }
@@ -97,7 +97,7 @@ function slowlog_version(): array {
 function plugin_slowlog_uninstall(): void {
 	global $config;
 
-	include_once($config['base_path'] . '/plugins/slowlog/includes/database.php');
+	require_once($config['base_path'] . '/plugins/slowlog/includes/database.php');
 
 	slowlog_drop_tables();
 }
@@ -166,9 +166,9 @@ function plugin_slowlog_version(): array {
  */
 function slowlog_check_upgrade(): void {
 	global $config, $database_default;
-	include_once($config['library_path'] . '/database.php');
-	include_once($config['library_path'] . '/functions.php');
-	include_once($config['base_path'] . '/plugins/slowlog/includes/database.php');
+	require_once($config['library_path'] . '/database.php');
+	require_once($config['library_path'] . '/functions.php');
+	require_once($config['base_path'] . '/plugins/slowlog/includes/database.php');
 
 	// Let's only run this check if we are on a page that actually needs the data
 	$files = ['plugins.php', 'slowlog.php'];

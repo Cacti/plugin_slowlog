@@ -49,7 +49,7 @@ if (!function_exists('slowlog_test_method_calls')) {
 }
 
 beforeEach(function () {
-	TestCase::loadPluginSource('slowlog_functions.php');
+	TestCase::loadPluginSource('includes/slowlog_functions.php');
 
 	slowlog_test_mock_db('db_fetch_cell_prepared', "WHERE method = 'OTHER TABLES'", 22);
 });
@@ -106,7 +106,7 @@ it("does not let the 'OTHER TABLES' fragment leak into ordinary query-text match
 	// If 'OTHER TABLES' were treated like a normal fragment-matched method, stripos() against
 	// its own (never-appearing-in-real-SQL) fragment would simply never match - this proves it
 	// is excluded from that loop entirely rather than relying on it coincidentally not matching.
-	$source = file_get_contents(realpath(__DIR__ . '/../../slowlog_functions.php'));
+	$source = file_get_contents(realpath(__DIR__ . '/../../includes/slowlog_functions.php'));
 
 	expect($source)->toContain("\$row['method'] != 'OTHER TABLES'");
 });

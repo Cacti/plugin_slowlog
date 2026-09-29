@@ -22,7 +22,7 @@
 uses(TestCase::class);
 
 beforeEach(function () {
-	TestCase::loadPluginSource('slowlog_functions.php');
+	TestCase::loadPluginSource('includes/slowlog_functions.php');
 });
 
 it('keeps a bare hostname unchanged', function () {

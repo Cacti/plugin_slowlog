@@ -40,7 +40,7 @@ if (!function_exists('slowlog_test_renderer')) {
 }
 
 beforeEach(function () {
-	TestCase::loadPluginSource('slowlog_functions.php');
+	TestCase::loadPluginSource('includes/slowlog_functions.php');
 	$GLOBALS['slowlog_events'] = array();
 });
 

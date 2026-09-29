@@ -56,7 +56,7 @@ if (!function_exists('slowlog_test_stats_insert_tuples')) {
 }
 
 beforeEach(function () {
-	TestCase::loadPluginSource('slowlog_functions.php');
+	TestCase::loadPluginSource('includes/slowlog_functions.php');
 
 	slowlog_test_mock_db('db_fetch_assoc_prepared', 'plugin_slowlog_details_methods', array(
 		array('id' => 1, 'scope_key' => 'SELECTS', 'query_time' => 10, 'rows_sent' => 1, 'rows_examined' => 100, 'rows_affected' => 0, 'bytes_sent' => 500),

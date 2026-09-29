@@ -27,17 +27,19 @@ When generating code for this repository:
 ```
 slowlog/                   # Repository root (install to plugins/slowlog/ in Cacti)
 ├── images/                  # UI icons
-├── js/                        # Chart rendering client-side code
-├── locales/                     # Internationalization files
-├── tests/                         # Test suite
-├── themes/                          # CSS theme overlays
-├── import_log.php                     # CLI slow-query-log importer
-├── keywords.txt                         # SQL reserved-word list used by the parser
-├── slowlog.php                            # Main viewer/administration UI
-├── slowlog_functions.php                    # Log parsing, import, and charting logic
-├── INFO                                       # Plugin metadata (name, version, compat)
+├── includes/                  # Library/helper files, require_once'd from the entry points
+│   ├── database.php             # Schema management: table defs + create/upgrade/drop helpers
+│   └── slowlog_functions.php      # Log parsing, import, and charting logic
+├── js/                            # Chart rendering client-side code
+├── locales/                         # Internationalization files
+├── tests/                             # Test suite
+├── themes/                              # CSS theme overlays
+├── import_log.php                         # CLI slow-query-log importer
+├── keywords.txt                             # SQL reserved-word list used by the parser
+├── slowlog.php                                # Main viewer/administration UI
+├── INFO                                         # Plugin metadata (name, version, compat)
 ├── README.md
-└── setup.php                                   # Plugin install/uninstall/upgrade hooks
+└── setup.php                                     # Plugin install/uninstall/upgrade hooks
 ```
 
 ## Naming Conventions
@@ -98,7 +100,7 @@ arithmetic, strict `===` comparisons).
 
 ### Table Creation
 All schema management lives in `includes/database.php` (the thold model), not in `setup.php`. `setup.php`'s
-install/uninstall/upgrade paths `include_once($config['base_path'] . '/plugins/slowlog/includes/database.php')`
+install/uninstall/upgrade paths `require_once($config['base_path'] . '/plugins/slowlog/includes/database.php')`
 and delegate to the helpers there (`slowlog_setup_table_new()`, `slowlog_upgrade_tables()`,
 `slowlog_drop_tables()`). Use `slowlog_setup_table_new()` to build a Cacti table-definition array
 (`$data['columns']`, `$data['primary']`, `$data['keys']`, `$data['unique_keys']`, `$data['type']`,
@@ -203,6 +205,10 @@ existing code or adding new code, not just in dedicated cleanup passes:
 - **i18n text domain.** Every `__()`/`__esc()` call must include this plugin's text domain as the
   final argument, except when deliberately comparing against a literal, untranslated Cacti-core
   label.
+- **File inclusion uses `require`/`require_once`.** Always use `require`/`require_once` (never
+  `include`/`include_once`) so a missing dependency fails fast and loudly. Keep library/helper files
+  (e.g. `slowlog_functions.php`, `includes/database.php`) under `includes/` and reference them from
+  that path; entry points (`slowlog.php`, `import_log.php`, `setup.php`) stay in the plugin root.
 - **Plugin schema management.** Keep every schema function (table definitions, create, upgrade,
   drop) in `includes/database.php` (the thold model), included from `setup.php`'s install/upgrade
   paths. New installs create tables with `api_plugin_db_table_create()`; upgrades refresh an existing

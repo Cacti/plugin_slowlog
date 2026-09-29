@@ -50,7 +50,7 @@ if (!function_exists('slowlog_test_table_inserts')) {
 }
 
 beforeEach(function () {
-	TestCase::loadPluginSource('slowlog_functions.php');
+	TestCase::loadPluginSource('includes/slowlog_functions.php');
 
 	slowlog_test_mock_db('db_fetch_cell_prepared', 'COUNT(*)', 1);
 	slowlog_test_mock_db('db_fetch_cell_prepared', "WHERE method = 'OTHER TABLES'", 22);
@@ -146,7 +146,7 @@ it('rejects --table-mode=reference with --logfile when --table-names is missing'
 });
 
 it('forwards the reference/list table names to the background worker', function () {
-	$source = file_get_contents(realpath(__DIR__ . '/../../slowlog_functions.php'));
+	$source = file_get_contents(realpath(__DIR__ . '/../../includes/slowlog_functions.php'));
 
 	expect($source)->toContain("\$cmd .= trim(\$table_names) !== '' ? ' --table-names=' . cacti_escapeshellarg(trim(\$table_names)) : '';");
 });
