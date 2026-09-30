@@ -15,7 +15,6 @@
         "keywords.txt",
         "locales/",
         "manifest.json",
-        "phpunit.xml",
         "setup.php",
         "slowlog.php"
     ],
