@@ -23,7 +23,7 @@
 uses(TestCase::class);
 
 beforeEach(function () {
-	TestCase::loadPluginSource('slowlog_functions.php');
+	TestCase::loadPluginSource('includes/slowlog_functions.php');
 });
 
 it('deletes from every per-logid table, including the stats cache', function () {

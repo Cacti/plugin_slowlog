@@ -23,11 +23,11 @@
 */
 
 chdir('../../');
-include('./include/auth.php');
-include_once('./lib/utility.php');
-include_once('./lib/poller.php');
-include_once('./lib/timespan_settings.php');
-include_once('./plugins/slowlog/slowlog_functions.php');
+require('./include/auth.php');
+require_once('./lib/utility.php');
+require_once('./lib/poller.php');
+require_once('./lib/timespan_settings.php');
+require_once('./plugins/slowlog/includes/slowlog_functions.php');
 
 ini_set('max_execution_time', '0');
 ini_set('memory_limit', '-1');

@@ -30,7 +30,7 @@
 uses(TestCase::class);
 
 beforeEach(function () {
-	TestCase::loadPluginSource('slowlog_functions.php');
+	TestCase::loadPluginSource('includes/slowlog_functions.php');
 
 	$this->logfile = tempnam(sys_get_temp_dir(), 'slowlog_test_');
 

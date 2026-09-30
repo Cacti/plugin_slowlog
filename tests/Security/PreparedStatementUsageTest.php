@@ -22,7 +22,7 @@
 describe('prepared statement usage in slowlog', function () {
 	$setup    = file_get_contents(realpath(__DIR__ . '/../../setup.php'));
 	$slowlog  = file_get_contents(realpath(__DIR__ . '/../../slowlog.php'));
-	$helpers  = file_get_contents(realpath(__DIR__ . '/../../slowlog_functions.php'));
+	$helpers  = file_get_contents(realpath(__DIR__ . '/../../includes/slowlog_functions.php'));
 
 	it('reads setup.php, slowlog.php, and slowlog_functions.php', function () use ($setup, $slowlog, $helpers) {
 		expect($setup)->not->toBeFalse();

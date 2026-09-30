@@ -38,6 +38,7 @@ if (!function_exists('slowlog_test_calls_to')) {
 
 beforeEach(function () {
 	TestCase::loadPluginSource('setup.php');
+	TestCase::loadPluginSource('includes/database.php');
 });
 
 it('does not use raw CREATE TABLE statements', function () {
@@ -45,7 +46,7 @@ it('does not use raw CREATE TABLE statements', function () {
 	// ('create table'/'create temporary table') specifically so they don't collide with
 	// this check - matching against them in import_post_process() is case-insensitive
 	// (stripos()) either way.
-	$source = file_get_contents(realpath(__DIR__ . '/../../setup.php'));
+	$source = file_get_contents(realpath(__DIR__ . '/../../includes/database.php'));
 
 	expect($source)->not->toContain('CREATE TABLE');
 });

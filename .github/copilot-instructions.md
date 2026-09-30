@@ -27,17 +27,19 @@ When generating code for this repository:
 ```
 slowlog/                   # Repository root (install to plugins/slowlog/ in Cacti)
 ├── images/                  # UI icons
-├── js/                        # Chart rendering client-side code
-├── locales/                     # Internationalization files
-├── tests/                         # Test suite
-├── themes/                          # CSS theme overlays
-├── import_log.php                     # CLI slow-query-log importer
-├── keywords.txt                         # SQL reserved-word list used by the parser
-├── slowlog.php                            # Main viewer/administration UI
-├── slowlog_functions.php                    # Log parsing, import, and charting logic
-├── INFO                                       # Plugin metadata (name, version, compat)
+├── includes/                  # Library/helper files, require_once'd from the entry points
+│   ├── database.php             # Schema management: table defs + create/upgrade/drop helpers
+│   └── slowlog_functions.php      # Log parsing, import, and charting logic
+├── js/                            # Chart rendering client-side code
+├── locales/                         # Internationalization files
+├── tests/                             # Test suite
+├── themes/                              # CSS theme overlays
+├── import_log.php                         # CLI slow-query-log importer
+├── keywords.txt                             # SQL reserved-word list used by the parser
+├── slowlog.php                                # Main viewer/administration UI
+├── INFO                                         # Plugin metadata (name, version, compat)
 ├── README.md
-└── setup.php                                   # Plugin install/uninstall/upgrade hooks
+└── setup.php                                     # Plugin install/uninstall/upgrade hooks
 ```
 
 ## Naming Conventions
@@ -97,18 +99,26 @@ arithmetic, strict `===` comparisons).
 ## Database Operations
 
 ### Table Creation
-Use `slowlog_setup_table_new()` (`setup.php`) to build a Cacti table-definition array (`$data['columns']`,
-`$data['primary']`, `$data['keys']`, `$data['unique_keys']`, `$data['type']`, `$data['row_format']`,
-`$data['comment']`) and pass it to `api_plugin_db_table_create('slowlog', $table, $data)`. Never write raw
-`CREATE TABLE` SQL - `api_plugin_db_table_create()` is a no-op when the table already exists, so it is safe
-to call on every install/upgrade.
+All schema management lives in `includes/database.php` (the thold model), not in `setup.php`. `setup.php`'s
+install/uninstall/upgrade paths `require_once($config['base_path'] . '/plugins/slowlog/includes/database.php')`
+and delegate to the helpers there (`slowlog_setup_table_new()`, `slowlog_upgrade_tables()`,
+`slowlog_drop_tables()`). Use `slowlog_setup_table_new()` to build a Cacti table-definition array
+(`$data['columns']`, `$data['primary']`, `$data['keys']`, `$data['unique_keys']`, `$data['type']`,
+`$data['row_format']`, `$data['comment']`) and pass it to `api_plugin_db_table_create('slowlog', $table, $data)`.
+Never write raw `CREATE TABLE` SQL - `api_plugin_db_table_create()` is a no-op when the table already exists,
+so it is safe to call on every install/upgrade.
 
 ### Upgrade Handling
-`slowlog_check_upgrade()` (`setup.php`) version-gates against the stored `plugin_config` row, then re-calls
-`slowlog_setup_table_new()` on a version change. New columns added to an existing table must also be applied
-via `api_plugin_db_add_column('slowlog', $table, $column)` inside `slowlog_setup_table_new()` (in addition to
-being listed in the table's `$data['columns']` for fresh installs) - it's a no-op when the column already
-exists, so re-running it on every upgrade is the mechanism that carries existing installs forward.
+`slowlog_check_upgrade()` (`setup.php`) version-gates against the stored `plugin_config` row and, on a version
+change, updates the FULL `plugin_config` row (`version`, `name`, `author`, `webpage`) - not just the version -
+then delegates the schema refresh to `slowlog_upgrade_tables()` (`includes/database.php`). That helper re-calls
+`slowlog_setup_table_new()` (a safe no-op for already-applied changes) and, for a table that already existed,
+refreshes its schema in place via `db_update_table('plugin_slowlog_details', slowlog_details_table_data())` -
+diffing the live schema against the same definition used to create it and issuing one combined `ALTER TABLE`.
+Prefer this create-then-`db_update_table()` refresh for plugin tables over piecemeal
+`api_plugin_db_add_column()`/raw `ALTER`; `db_update_table()`'s existing-primary-key diff path calls
+`array_diff()` on `$data['primary']`, so a primary key must be declared as an array (e.g. `['logentry']`) even
+for a single column.
 
 ## Internationalization
 
@@ -195,10 +205,20 @@ existing code or adding new code, not just in dedicated cleanup passes:
 - **i18n text domain.** Every `__()`/`__esc()` call must include this plugin's text domain as the
   final argument, except when deliberately comparing against a literal, untranslated Cacti-core
   label.
-- **Plugin table-creation API.** Use `api_plugin_db_table_create()`/`api_plugin_db_add_column()`
-  (from Cacti core's `lib/plugins.php`) instead of raw `CREATE TABLE`/`ALTER TABLE ... ADD COLUMN`.
-  Both are idempotent (safe no-ops when already applied), so the same call can run unconditionally
-  from both the install AND upgrade paths.
+- **File inclusion uses `require`/`require_once`.** Always use `require`/`require_once` (never
+  `include`/`include_once`) so a missing dependency fails fast and loudly. Keep library/helper files
+  (e.g. `slowlog_functions.php`, `includes/database.php`) under `includes/` and reference them from
+  that path; entry points (`slowlog.php`, `import_log.php`, `setup.php`) stay in the plugin root.
+- **Plugin schema management.** Keep every schema function (table definitions, create, upgrade,
+  drop) in `includes/database.php` (the thold model), included from `setup.php`'s install/upgrade
+  paths. New installs create tables with `api_plugin_db_table_create()`; upgrades refresh an existing
+  plugin table in place with `db_update_table($table, $data)` from the SAME definition (falling back
+  to `api_plugin_db_table_create()` only when the table doesn't exist yet). Prefer this over
+  `api_plugin_db_add_column()`/`api_plugin_db_drop_*`/raw `ALTER` for plugin-owned tables. Both
+  `api_plugin_db_table_create()` and `db_update_table()` are idempotent, so they can run
+  unconditionally from both the install AND upgrade paths.
+- **Plugin upgrade bookkeeping.** On a version change, update the FULL `plugin_config` row
+  (`version`, `name`, `author`, `webpage`) from the INFO file, not just the version column.
 - **PHPDoc shape.** Every function gets a PHPDoc block: a one-line description, a blank comment
   line, `@param` lines, a blank comment line, then `@return`. Infer parameter/return types from
   actual usage; don't change the function's real type-hints in the same pass (let static analysis

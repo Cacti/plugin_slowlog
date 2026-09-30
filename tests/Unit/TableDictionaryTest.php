@@ -36,7 +36,7 @@ if (!function_exists('slowlog_test_dictionary_calls')) {
 }
 
 beforeEach(function () {
-	TestCase::loadPluginSource('slowlog_functions.php');
+	TestCase::loadPluginSource('includes/slowlog_functions.php');
 
 	slowlog_test_mock_db('db_fetch_assoc_prepared', 'FROM plugin_slowlog_details_tables', array(
 		array('table_name' => 'host'),
@@ -79,7 +79,7 @@ it('does nothing when the log has no associated tables', function () {
 });
 
 it('is invoked as part of the normal post-processing pipeline', function () {
-	$source = file_get_contents(realpath(__DIR__ . '/../../slowlog_functions.php'));
+	$source = file_get_contents(realpath(__DIR__ . '/../../includes/slowlog_functions.php'));
 
 	expect($source)->toContain('slowlog_sync_table_dictionary($logid, $known_tables);');
 });
