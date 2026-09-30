@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cacti \n"
 "Report-Msgid-Bugs-To: developers@cacti.net\n"
-"POT-Creation-Date: 2026-09-29 10:34-0400\n"
+"POT-Creation-Date: 2026-09-29 21:22-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Cacti Developers <developers@cacti.net>>\n"
 "Language-Team: Cacti Developers <developers@cacti.net>\n"
@@ -20,6 +20,107 @@ msgstr ""
 #: import_log.php
 #, php-format
 msgid "ERROR: Invalid --logid value '%s', must be a positive integer"
+msgstr ""
+
+#: includes/slowlog_functions.php
+msgid "Bad File Format - No Slow Query Log Entries Found"
+msgstr ""
+
+#: includes/slowlog_functions.php
+msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
+msgstr ""
+
+#: includes/slowlog_functions.php
+#, php-format
+msgid "max_execution_time is %d seconds (not unlimited) for this request - a large import could be killed mid-run. Some web servers/proxies (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) enforce their own independent cutoff that this setting cannot override."
+msgstr ""
+
+#: includes/slowlog_functions.php
+#, php-format
+msgid "memory_limit is %s (not unlimited) for this request - a very large slow query log can exceed this while it is being read/imported."
+msgstr ""
+
+#: includes/slowlog_functions.php
+#, php-format
+msgid "post_max_size (%s) is smaller than upload_max_filesize (%s) - uploads up to the advertised limit will still be rejected."
+msgstr ""
+
+#: includes/slowlog_functions.php
+#, php-format
+msgid "upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB."
+msgstr ""
+
+#: includes/slowlog_functions.php
+msgid "ERROR: The uploaded Slowlog file exceeds the server's maximum upload filesize."
+msgstr ""
+
+#: includes/slowlog_functions.php
+msgid "ERROR: The Slowlog file upload was interrupted before it finished - please try again."
+msgstr ""
+
+#: includes/slowlog_functions.php
+msgid "ERROR: The server has no temporary folder configured to receive the uploaded Slowlog file."
+msgstr ""
+
+#: includes/slowlog_functions.php
+msgid "ERROR: The server failed to write the uploaded Slowlog file to disk."
+msgstr ""
+
+#: includes/slowlog_functions.php
+msgid "ERROR: A server extension blocked the Slowlog file upload."
+msgstr ""
+
+#: includes/slowlog_functions.php
+#, php-format
+msgid "ERROR: The Slowlog file upload failed (error code %d)."
+msgstr ""
+
+#: includes/slowlog_functions.php
+msgid "Queries"
+msgstr ""
+
+#: includes/slowlog_functions.php
+msgid "Total Queries"
+msgstr ""
+
+#: includes/slowlog_functions.php slowlog.php
+msgid "Rows"
+msgstr ""
+
+#: includes/slowlog_functions.php
+msgid "Rows Returned"
+msgstr ""
+
+#: includes/slowlog_functions.php slowlog.php
+msgid "Rows Examined"
+msgstr ""
+
+#: includes/slowlog_functions.php slowlog.php
+msgid "Seconds"
+msgstr ""
+
+#: includes/slowlog_functions.php
+msgid "Lock Seconds"
+msgstr ""
+
+#: includes/slowlog_functions.php
+msgid "Query Seconds"
+msgstr ""
+
+#: includes/slowlog_functions.php slowlog.php
+msgid "Rows Affected"
+msgstr ""
+
+#: includes/slowlog_functions.php
+msgid "Bytes"
+msgstr ""
+
+#: includes/slowlog_functions.php slowlog.php
+msgid "Bytes Sent"
+msgstr ""
+
+#: includes/slowlog_functions.php
+msgid "Clear this filter"
 msgstr ""
 
 #: slowlog.php
@@ -163,10 +264,6 @@ msgstr ""
 msgid "How long (in seconds) this request is allowed to run for; 0 means unlimited. This plugin already raises it to unlimited for its own requests, but a web server or reverse proxy in front of PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) can still cut the request off independently - that cannot be detected or overridden from here."
 msgstr ""
 
-#: slowlog.php slowlog_functions.php
-msgid "Seconds"
-msgstr ""
-
 #: slowlog.php
 msgid "Unlimited"
 msgstr ""
@@ -247,10 +344,6 @@ msgstr ""
 msgid "Affected"
 msgstr ""
 
-#: slowlog.php slowlog_functions.php
-msgid "Bytes Sent"
-msgstr ""
-
 #: slowlog.php
 msgid "Log Entries"
 msgstr ""
@@ -326,14 +419,6 @@ msgstr ""
 
 #: slowlog.php
 msgid "Rows Sent"
-msgstr ""
-
-#: slowlog.php slowlog_functions.php
-msgid "Rows Examined"
-msgstr ""
-
-#: slowlog.php slowlog_functions.php
-msgid "Rows Affected"
 msgstr ""
 
 #: slowlog.php
@@ -432,10 +517,6 @@ msgstr ""
 msgid "Tables"
 msgstr ""
 
-#: slowlog.php slowlog_functions.php
-msgid "Rows"
-msgstr ""
-
 #: slowlog.php
 msgid "Default"
 msgstr ""
@@ -470,85 +551,4 @@ msgstr ""
 
 #: slowlog.php
 msgid "Custom"
-msgstr ""
-
-#: slowlog_functions.php
-msgid "Bad File Format - No Slow Query Log Entries Found"
-msgstr ""
-
-#: slowlog_functions.php
-msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
-msgstr ""
-
-#: slowlog_functions.php
-#, php-format
-msgid "max_execution_time is %d seconds (not unlimited) for this request - a large import could be killed mid-run. Some web servers/proxies (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) enforce their own independent cutoff that this setting cannot override."
-msgstr ""
-
-#: slowlog_functions.php
-#, php-format
-msgid "memory_limit is %s (not unlimited) for this request - a very large slow query log can exceed this while it is being read/imported."
-msgstr ""
-
-#: slowlog_functions.php
-#, php-format
-msgid "post_max_size (%s) is smaller than upload_max_filesize (%s) - uploads up to the advertised limit will still be rejected."
-msgstr ""
-
-#: slowlog_functions.php
-#, php-format
-msgid "upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB."
-msgstr ""
-
-#: slowlog_functions.php
-msgid "ERROR: The uploaded Slowlog file exceeds the server's maximum upload filesize."
-msgstr ""
-
-#: slowlog_functions.php
-msgid "ERROR: The Slowlog file upload was interrupted before it finished - please try again."
-msgstr ""
-
-#: slowlog_functions.php
-msgid "ERROR: The server has no temporary folder configured to receive the uploaded Slowlog file."
-msgstr ""
-
-#: slowlog_functions.php
-msgid "ERROR: The server failed to write the uploaded Slowlog file to disk."
-msgstr ""
-
-#: slowlog_functions.php
-msgid "ERROR: A server extension blocked the Slowlog file upload."
-msgstr ""
-
-#: slowlog_functions.php
-#, php-format
-msgid "ERROR: The Slowlog file upload failed (error code %d)."
-msgstr ""
-
-#: slowlog_functions.php
-msgid "Queries"
-msgstr ""
-
-#: slowlog_functions.php
-msgid "Total Queries"
-msgstr ""
-
-#: slowlog_functions.php
-msgid "Rows Returned"
-msgstr ""
-
-#: slowlog_functions.php
-msgid "Lock Seconds"
-msgstr ""
-
-#: slowlog_functions.php
-msgid "Query Seconds"
-msgstr ""
-
-#: slowlog_functions.php
-msgid "Bytes"
-msgstr ""
-
-#: slowlog_functions.php
-msgid "Clear this filter"
 msgstr ""
