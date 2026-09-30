@@ -20,6 +20,9 @@
 
 beforeAll(function () {
 	require_once __DIR__ . '/../../setup.php';
+	// Define slowlog_upgrade_tables() from the real checkout so
+	// slowlog_check_upgrade() runs while base_path is sandboxed below.
+	require_once __DIR__ . '/../../includes/database.php';
 
 	$stubLibraryPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'slowlog-test-lib-stub';
 
@@ -36,6 +39,24 @@ beforeAll(function () {
 beforeEach(function () {
 	slowlog_test_reset_db_mocks();
 	unset($_SERVER['PHP_SELF']);
+
+	// Sandbox base_path so the version-drift branch runs
+	// plugin_slowlog_prune_files() against a throwaway tree with no
+	// manifest.json (prune no-ops), never the real checkout. The temp tree
+	// carries a copy of the real INFO (so slowlog_version() still matches)
+	// and an empty includes/database.php the top-level require_once can load.
+	$GLOBALS['__slowlog_base_restore'] = $GLOBALS['config']['base_path'];
+	$base = sys_get_temp_dir() . '/slowlog-test-' . uniqid();
+	mkdir($base . '/plugins/slowlog/includes', 0777, true);
+	copy(__DIR__ . '/../../INFO', $base . '/plugins/slowlog/INFO');
+	file_put_contents($base . '/plugins/slowlog/includes/database.php', "<?php\n");
+	$GLOBALS['config']['base_path'] = $base;
+});
+
+afterEach(function () {
+	if (isset($GLOBALS['__slowlog_base_restore'])) {
+		$GLOBALS['config']['base_path'] = $GLOBALS['__slowlog_base_restore'];
+	}
 });
 
 it('does nothing on a page that does not need the version check', function () {

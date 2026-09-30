@@ -1,0 +1,23 @@
+{
+    "tombstones": [
+        "themes/"
+    ],
+    "expected": [
+        "CHANGELOG.md",
+        "INFO",
+        "LICENSE",
+        "README.md",
+        "css/",
+        "images/",
+        "import_log.php",
+        "includes/",
+        "js/",
+        "keywords.txt",
+        "locales/",
+        "manifest.json",
+        "phpunit.xml",
+        "setup.php",
+        "slowlog.php"
+    ],
+    "whitelist": []
+}
