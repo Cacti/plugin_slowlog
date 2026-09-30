@@ -28,9 +28,8 @@
     <source>
         <include>
             <file>setup.php</file>
-            <file>slowlog.php</file>
-            <file>slowlog_functions.php</file>
-            <file>import_log.php</file>
+            <file>includes/database.php</file>
+            <file>includes/slowlog_functions.php</file>
         </include>
     </source>
 </phpunit>

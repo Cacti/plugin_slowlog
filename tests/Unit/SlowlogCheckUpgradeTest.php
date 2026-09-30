@@ -49,9 +49,14 @@ it('does nothing on a page that does not need the version check', function () {
 it('bails out without touching the database when the INFO file is malformed', function () {
         $stubBasePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'slowlog-test-bad-info';
 
-        if (!is_dir($stubBasePath . '/plugins/slowlog')) {
-                mkdir($stubBasePath . '/plugins/slowlog', 0777, true);
-        }
+if (!is_dir($stubBasePath . '/plugins/slowlog/includes')) {
+		mkdir($stubBasePath . '/plugins/slowlog/includes', 0777, true);
+	}
+
+	// slowlog_check_upgrade() require_once()s the plugin's own includes/database.php
+	// from base_path before it reads INFO, so provide an empty stub that resolves in
+	// this throwaway tree.
+	file_put_contents($stubBasePath . '/plugins/slowlog/includes/database.php', "<?php\n");
 
         // Missing required keys (longname/author/homepage/name) so
         // slowlog_version() returns an incomplete array.
