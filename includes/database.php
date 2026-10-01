@@ -145,8 +145,8 @@ function slowlog_setup_table_new(): void {
 	$data['columns'][]  = ['name' => 'id', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true];
 	$data['columns'][]  = ['name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false];
 	$data['columns'][]  = ['name' => 'logentry', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false];
-	$data['columns'][]  = ['name' => 'methodid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false];
-	$data['primary']    = ['logid', 'logentry', 'methodid'];
+	$data['columns'][]  = ['name' => 'method', 'type' => 'varchar(45)', 'NULL' => false];
+	$data['primary']    = ['logid', 'logentry', 'method'];
 	$data['keys'][]     = ['name' => 'id', 'columns' => ['id']];
 	$engine             = slowlog_get_storage_engine();
 	$data['type']       = $engine;

@@ -45,7 +45,7 @@ if (!function_exists('slowlog_test_method_insert_tuples')) {
 		foreach ($GLOBALS['__test_db_calls'] as $call) {
 			if ($call['fn'] === 'db_execute_prepared' && strpos($call['sql'], 'plugin_slowlog_details_methods') !== false) {
 				foreach (array_chunk($call['params'], 3) as $t) {
-					$tuples[] = array((int) $t[0], (int) $t[1], (int) $t[2]);
+					$tuples[] = array((int) $t[0], (int) $t[1], (string) $t[2]);
 				}
 			}
 		}
@@ -81,37 +81,6 @@ beforeEach(function () {
 	TestCase::loadPluginSource('includes/slowlog_functions.php');
 
 	slowlog_test_mock_db('db_fetch_cell_prepared', 'COUNT(*)', 3);
-
-	slowlog_test_mock_db('db_fetch_assoc_prepared', 'FROM plugin_slowlog_methods', array(
-		array('method' => 'INSERTS',    'query' => 'INSERT INTO,INSERT IGNORE INTO', 'methodid' => 1),
-		array('method' => 'REPLACES',   'query' => 'REPLACE INTO,REPLACE IGNORE INTO', 'methodid' => 2),
-		array('method' => 'DELETES',    'query' => 'DELETE ', 'methodid' => 3),
-		array('method' => 'SELECTS',    'query' => 'SELECT ', 'methodid' => 4),
-		array('method' => 'DISTINCTS',  'query' => 'SELECT DISTINCT', 'methodid' => 5),
-		array('method' => 'UNIONS',     'query' => 'UNION', 'methodid' => 6),
-		array('method' => 'JOINS',      'query' => 'JOIN ', 'methodid' => 7),
-		array('method' => 'OTHERS',     'query' => 'OTHERS', 'methodid' => 8),
-		array('method' => 'UPDATES',    'query' => 'UPDATE ', 'methodid' => 9),
-		array('method' => 'RENAMES',    'query' => 'RENAME TABLE', 'methodid' => 10),
-		array('method' => 'FLUSHES',    'query' => 'FLUSH TABLE', 'methodid' => 11),
-		array('method' => 'TRUNCATES',  'query' => 'TRUNCATE ', 'methodid' => 12),
-		array('method' => 'LOAD DATA',  'query' => 'LOAD DATA INFILE ', 'methodid' => 13),
-		array('method' => 'OUTFILES',   'query' => 'INTO OUTFILE ', 'methodid' => 14),
-		array('method' => 'INFILES',    'query' => 'INFILE ', 'methodid' => 15),
-		array('method' => 'GROUP BY',   'query' => 'GROUP BY ', 'methodid' => 16),
-		array('method' => 'COUNTS',     'query' => 'COUNT(', 'methodid' => 17),
-		array('method' => 'SHOWS',      'query' => 'SHOW ', 'methodid' => 18),
-		array('method' => 'UNION ALLS', 'query' => 'UNION ALL', 'methodid' => 19),
-		array('method' => 'MAX_EXECUTION_TIME', 'query' => 'MAX_EXECUTION_TIME(', 'methodid' => 20),
-		array('method' => 'MAX_STATEMENT_TIME', 'query' => 'MAX_STATEMENT_TIME', 'methodid' => 21),
-		array('method' => 'FORCE INDEX', 'query' => 'FORCE INDEX', 'methodid' => 23),
-		array('method' => 'ALTERS', 'query' => 'ALTER TABLE', 'methodid' => 24),
-		array('method' => 'DROPS', 'query' => 'DROP TABLE,DROP TEMPORARY TABLE', 'methodid' => 25),
-		array('method' => 'ANALYZES', 'query' => 'ANALYZE TABLE,ANALYZE NO_WRITE_TO_BINLOG TABLE,ANALYZE LOCAL TABLE', 'methodid' => 26),
-		array('method' => 'OPTIMIZES', 'query' => 'OPTIMIZE TABLE,OPTIMIZE NO_WRITE_TO_BINLOG TABLE,OPTIMIZE LOCAL TABLE', 'methodid' => 27),
-		array('method' => 'CREATES', 'query' => 'create table', 'methodid' => 28),
-		array('method' => 'CREATE TEMPS', 'query' => 'create temporary table', 'methodid' => 29),
-	));
 });
 
 it('classifies a row that matches a simple method', function () {
@@ -121,7 +90,7 @@ it('classifies a row that matches a simple method', function () {
 
 	import_post_process(1, 'accounts');
 
-	expect(slowlog_test_method_insert_tuples())->toBe(array(array(1, 1, 4)));
+	expect(slowlog_test_method_insert_tuples())->toBe(array(array(1, 1, 'SELECTS')));
 });
 
 it('classifies a row matching either alternative of a comma-separated method', function () {
@@ -132,17 +101,17 @@ it('classifies a row matching either alternative of a comma-separated method', f
 
 	import_post_process(1, 'accounts');
 
-	expect(slowlog_test_method_insert_tuples())->toBe(array(array(1, 1, 1), array(1, 2, 1)));
+	expect(slowlog_test_method_insert_tuples())->toBe(array(array(1, 1, 'INSERTS'), array(1, 2, 'INSERTS')));
 });
 
-it('gives a row multiple methodid rows when it matches more than one method', function () {
+it('gives a row multiple method rows when it matches more than one method', function () {
 	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT logentry, query', array(
 		array('logentry' => 1, 'query' => 'select a.id from a join b on a.id=b.id'),
 	));
 
 	import_post_process(1, 'accounts');
 
-	expect(slowlog_test_method_insert_tuples())->toBe(array(array(1, 1, 4), array(1, 1, 7)));
+	expect(slowlog_test_method_insert_tuples())->toBe(array(array(1, 1, 'SELECTS'), array(1, 1, 'JOINS')));
 });
 
 it('buckets a row matching no other method as OTHERS', function () {
@@ -152,7 +121,7 @@ it('buckets a row matching no other method as OTHERS', function () {
 
 	import_post_process(1, 'accounts');
 
-	expect(slowlog_test_method_insert_tuples())->toBe(array(array(1, 1, 8)));
+	expect(slowlog_test_method_insert_tuples())->toBe(array(array(1, 1, 'OTHERS')));
 });
 
 it('classifies rows matching each of the method rows added by this PR', function () {
@@ -172,13 +141,13 @@ it('classifies rows matching each of the method rows added by this PR', function
 
 	// Every query here also matches other, pre-existing methods (e.g. SELECTS) - the
 	// point is just that the new method dictionary rows are actually reachable.
-	expect($tuples)->toContain(array(1, 1, 15)); // INFILES
-	expect($tuples)->toContain(array(1, 2, 16)); // GROUP BY
-	expect($tuples)->toContain(array(1, 3, 17)); // COUNTS
-	expect($tuples)->toContain(array(1, 4, 18)); // SHOWS
-	expect($tuples)->toContain(array(1, 5, 19)); // UNION ALLS
-	expect($tuples)->toContain(array(1, 6, 20)); // MAX_EXECUTION_TIME
-	expect($tuples)->toContain(array(1, 7, 21)); // MAX_STATEMENT_TIME
+	expect($tuples)->toContain(array(1, 1, 'INFILES')); // INFILES
+	expect($tuples)->toContain(array(1, 2, 'GROUP BY')); // GROUP BY
+	expect($tuples)->toContain(array(1, 3, 'COUNTS')); // COUNTS
+	expect($tuples)->toContain(array(1, 4, 'SHOWS')); // SHOWS
+	expect($tuples)->toContain(array(1, 5, 'UNION ALLS')); // UNION ALLS
+	expect($tuples)->toContain(array(1, 6, 'MAX_EXECUTION_TIME')); // MAX_EXECUTION_TIME
+	expect($tuples)->toContain(array(1, 7, 'MAX_STATEMENT_TIME')); // MAX_STATEMENT_TIME
 });
 
 it('classifies a query using a FORCE INDEX hint under the FORCE INDEX method', function () {
@@ -188,7 +157,7 @@ it('classifies a query using a FORCE INDEX hint under the FORCE INDEX method', f
 
 	import_post_process(1, 'accounts');
 
-	expect(slowlog_test_method_insert_tuples())->toContain(array(1, 1, 23));
+	expect(slowlog_test_method_insert_tuples())->toContain(array(1, 1, 'FORCE INDEX'));
 });
 
 it('classifies rows matching each of the ALTERS/DROPS/ANALYZES/OPTIMIZES methods', function () {
@@ -206,13 +175,13 @@ it('classifies rows matching each of the ALTERS/DROPS/ANALYZES/OPTIMIZES methods
 
 	$tuples = slowlog_test_method_insert_tuples();
 
-	expect($tuples)->toContain(array(1, 1, 24)); // ALTERS
-	expect($tuples)->toContain(array(1, 2, 25)); // DROPS
-	expect($tuples)->toContain(array(1, 3, 25)); // DROPS (DROP TEMPORARY TABLE)
-	expect($tuples)->toContain(array(1, 4, 26)); // ANALYZES
-	expect($tuples)->toContain(array(1, 5, 26)); // ANALYZES (NO_WRITE_TO_BINLOG)
-	expect($tuples)->toContain(array(1, 6, 27)); // OPTIMIZES
-	expect($tuples)->toContain(array(1, 7, 27)); // OPTIMIZES (NO_WRITE_TO_BINLOG)
+	expect($tuples)->toContain(array(1, 1, 'ALTERS')); // ALTERS
+	expect($tuples)->toContain(array(1, 2, 'DROPS')); // DROPS
+	expect($tuples)->toContain(array(1, 3, 'DROPS')); // DROPS (DROP TEMPORARY TABLE)
+	expect($tuples)->toContain(array(1, 4, 'ANALYZES')); // ANALYZES
+	expect($tuples)->toContain(array(1, 5, 'ANALYZES')); // ANALYZES (NO_WRITE_TO_BINLOG)
+	expect($tuples)->toContain(array(1, 6, 'OPTIMIZES')); // OPTIMIZES
+	expect($tuples)->toContain(array(1, 7, 'OPTIMIZES')); // OPTIMIZES (NO_WRITE_TO_BINLOG)
 });
 
 it('classifies a permanent CREATE TABLE under CREATES but not CREATE TEMPS', function () {
@@ -224,8 +193,8 @@ it('classifies a permanent CREATE TABLE under CREATES but not CREATE TEMPS', fun
 
 	$tuples = slowlog_test_method_insert_tuples();
 
-	expect($tuples)->toContain(array(1, 1, 28)); // CREATES
-	expect($tuples)->not->toContain(array(1, 1, 29)); // CREATE TEMPS
+	expect($tuples)->toContain(array(1, 1, 'CREATES')); // CREATES
+	expect($tuples)->not->toContain(array(1, 1, 'CREATE TEMPS')); // CREATE TEMPS
 });
 
 it('classifies a CREATE TEMPORARY TABLE under CREATE TEMPS but not CREATES', function () {
@@ -237,8 +206,8 @@ it('classifies a CREATE TEMPORARY TABLE under CREATE TEMPS but not CREATES', fun
 
 	$tuples = slowlog_test_method_insert_tuples();
 
-	expect($tuples)->toContain(array(1, 1, 29)); // CREATE TEMPS
-	expect($tuples)->not->toContain(array(1, 1, 28)); // CREATES
+	expect($tuples)->toContain(array(1, 1, 'CREATE TEMPS')); // CREATE TEMPS
+	expect($tuples)->not->toContain(array(1, 1, 'CREATES')); // CREATES
 });
 
 it('inserts the method classification with a single batched statement', function () {
@@ -255,7 +224,7 @@ it('inserts the method classification with a single batched statement', function
 	}));
 
 	expect($calls)->toHaveCount(1);
-	expect($calls[0]['sql'])->toContain('ON DUPLICATE KEY UPDATE methodid=VALUES(methodid)');
+	expect($calls[0]['sql'])->toContain('ON DUPLICATE KEY UPDATE method=VALUES(method)');
 });
 
 it('records the table dictionary row and its detail associations', function () {
