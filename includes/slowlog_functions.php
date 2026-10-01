@@ -1117,7 +1117,28 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 				}
 			}
 
+			// fgets() returns false on both EOF and a read error, so a mid-file I/O
+			// failure would otherwise look like a clean end-of-log and get finalized as a
+			// successful (but partial) import. Check feof() before closing: if the loop
+			// stopped on a read error, fail the import instead of ingesting and
+			// post-processing a truncated log.
+			$read_failed = !feof($fh);
+
 			fclose($fh);
+
+			if ($read_failed) {
+				if ($logid !== null) {
+					db_execute_prepared('UPDATE plugin_slowlog
+						SET import_status = 3,
+						import_text_status = ?
+						WHERE logid = ?',
+						[__('Read Error - Import Aborted, Log May Be Truncated', 'slowlog'), $logid]);
+				} else {
+					print "FATAL: Read error while importing '$logfile' - aborting before end of file\n";
+				}
+
+				return;
+			}
 
 			if ($query != '') {
 				if ($length != -1) {
