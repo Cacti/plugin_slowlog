@@ -20,26 +20,26 @@ When generating code for this repository:
 ### Key Dependencies
 - Cacti core framework (`api_plugin_*`, `db_*`)
 - `js/` chart rendering for slow-query analysis views
-- `keywords.txt` reserved-word reference used by the log parser
+- `docs/keywords.txt` reserved-word reference used by the log parser
 
 ## Project Structure
 
 ```
-slowlog/                   # Repository root (install to plugins/slowlog/ in Cacti)
-├── images/                  # UI icons
-├── includes/                  # Library/helper files, require_once'd from the entry points
-│   ├── database.php             # Schema management: table defs + create/upgrade/drop helpers
-│   └── slowlog_functions.php      # Log parsing, import, and charting logic
-├── js/                            # Chart rendering client-side code
-├── locales/                         # Internationalization files
-├── tests/                             # Test suite
-├── themes/                              # CSS theme overlays
-├── import_log.php                         # CLI slow-query-log importer
-├── keywords.txt                             # SQL reserved-word list used by the parser
-├── slowlog.php                                # Main viewer/administration UI
-├── INFO                                         # Plugin metadata (name, version, compat)
+slowlog/                      # Repository root (install to plugins/slowlog/ in Cacti)
+├── images/                   # UI icons
+├── includes/                 # Library/helper files, require_once'd from the entry points
+│   ├── database.php          # Schema management: table defs + create/upgrade/drop helpers
+│   └── slowlog_functions.php # Log parsing, import, and charting logic
+├── js/                       # Chart rendering client-side code
+├── locales/                  # Internationalization files
+├── tests/                    # Test suite
+├── docs/                     # keywords.txt (SQL reserved-word list used by the parser)
+├── css/                      # CSS theme overlays
+├── import_log.php            # CLI slow-query-log importer
+├── slowlog.php               # Main viewer/administration UI
+├── INFO                      # Plugin metadata (name, version, compat)
 ├── README.md
-└── setup.php                                     # Plugin install/uninstall/upgrade hooks
+└── setup.php                 # Plugin install/uninstall/upgrade hooks
 ```
 
 ## Naming Conventions
@@ -83,7 +83,7 @@ db_execute("DELETE FROM plugin_slowlog WHERE logid = $logid");
 ```
 
 ### Log Import Handling
-`import_logfile()`/`slowlog_import()` parse arbitrary uploaded/imported slow-query-log text. Treat log contents as untrusted: never `eval()` or directly execute parsed queries, and use `keywords.txt`-driven tokenizing (`is_reserved_word()`) rather than ad hoc regex that could mis-parse crafted input.
+`import_logfile()`/`slowlog_import()` parse arbitrary uploaded/imported slow-query-log text. Treat log contents as untrusted: never `eval()` or directly execute parsed queries, and use `docs/keywords.txt`-driven tokenizing (`is_reserved_word()`) rather than ad hoc regex that could mis-parse crafted input.
 
 ### Input Validation
 Use `get_filter_request_var()` / `get_nfilter_request_var()` for request input; never read `$_GET`/`$_POST` directly.
