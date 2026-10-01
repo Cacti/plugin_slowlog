@@ -343,8 +343,8 @@ function slowlog_import(): void {
 
 	print get_md5_include_js('plugins/slowlog/js/apexcharts.js');
 
-	if (file_exists($config['base_path'] . "/plugins/slowlog/css//apexcharts.css")) {
-		print get_md5_include_css("plugins/slowlog/css//apexcharts.css");
+	if (file_exists($config['base_path'] . "/plugins/slowlog/css/$selected_theme/apexcharts.css")) {
+		print get_md5_include_css("plugins/slowlog/css/$selected_theme/apexcharts.css");
 	} else {
 		print '<link href="' . html_escape($config['url_path'] . 'plugins/slowlog/js/apexcharts.css') . '" type="text/css" rel="stylesheet">';
 	}
@@ -1036,8 +1036,8 @@ function slowlog_view_charts(string $method): void {
 
 	print get_md5_include_js('plugins/slowlog/js/apexcharts.js');
 
-	if (file_exists($config['base_path'] . "/plugins/slowlog/css//apexcharts.css")) {
-		print get_md5_include_css("plugins/slowlog/css//apexcharts.css");
+	if (file_exists($config['base_path'] . "/plugins/slowlog/css/$selected_theme/apexcharts.css")) {
+		print get_md5_include_css("plugins/slowlog/css/$selected_theme/apexcharts.css");
 	} else {
 		print '<link href="' . html_escape($config['url_path'] . 'plugins/slowlog/js/apexcharts.css') . '" type="text/css" rel="stylesheet">';
 	}
