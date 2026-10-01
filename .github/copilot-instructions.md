@@ -4,7 +4,7 @@
 
 When generating code for this repository:
 
-1. **Version Compatibility**: This is a Cacti plugin (`slowlog`, version 2.1) targeting Cacti 1.2.32+
+1. **Version Compatibility**: This is a Cacti plugin (`slowlog`, version 2.1) targeting Cacti 1.2.29+
 2. **Context Files**: Prioritize patterns and standards defined in this file (`.github/copilot-instructions.md`)
 3. **Codebase Patterns**: When context files don't provide specific guidance, scan the codebase for established patterns
 4. **Architectural Consistency**: Maintain plugin-based architecture extending Cacti core
@@ -20,26 +20,26 @@ When generating code for this repository:
 ### Key Dependencies
 - Cacti core framework (`api_plugin_*`, `db_*`)
 - `js/` chart rendering for slow-query analysis views
-- `keywords.txt` reserved-word reference used by the log parser
+- `docs/keywords.txt` reserved-word reference used by the log parser
 
 ## Project Structure
 
 ```
-slowlog/                   # Repository root (install to plugins/slowlog/ in Cacti)
-├── images/                  # UI icons
-├── includes/                  # Library/helper files, require_once'd from the entry points
-│   ├── database.php             # Schema management: table defs + create/upgrade/drop helpers
-│   └── slowlog_functions.php      # Log parsing, import, and charting logic
-├── js/                            # Chart rendering client-side code
-├── locales/                         # Internationalization files
-├── tests/                             # Test suite
-├── themes/                              # CSS theme overlays
-├── import_log.php                         # CLI slow-query-log importer
-├── keywords.txt                             # SQL reserved-word list used by the parser
-├── slowlog.php                                # Main viewer/administration UI
-├── INFO                                         # Plugin metadata (name, version, compat)
+slowlog/                      # Repository root (install to plugins/slowlog/ in Cacti)
+├── images/                   # UI icons
+├── includes/                 # Library/helper files, require_once'd from the entry points
+│   ├── database.php          # Schema management: table defs + create/upgrade/drop helpers
+│   └── slowlog_functions.php # Log parsing, import, and charting logic
+├── js/                       # Chart rendering client-side code
+├── locales/                  # Internationalization files
+├── tests/                    # Test suite
+├── docs/                     # keywords.txt (SQL reserved-word list used by the parser)
+├── css/                      # CSS theme overlays
+├── import_log.php            # CLI slow-query-log importer
+├── slowlog.php               # Main viewer/administration UI
+├── INFO                      # Plugin metadata (name, version, compat)
 ├── README.md
-└── setup.php                                     # Plugin install/uninstall/upgrade hooks
+└── setup.php                 # Plugin install/uninstall/upgrade hooks
 ```
 
 ## Naming Conventions
@@ -83,7 +83,7 @@ db_execute("DELETE FROM plugin_slowlog WHERE logid = $logid");
 ```
 
 ### Log Import Handling
-`import_logfile()`/`slowlog_import()` parse arbitrary uploaded/imported slow-query-log text. Treat log contents as untrusted: never `eval()` or directly execute parsed queries, and use `keywords.txt`-driven tokenizing (`is_reserved_word()`) rather than ad hoc regex that could mis-parse crafted input.
+`import_logfile()`/`slowlog_import()` parse arbitrary uploaded/imported slow-query-log text. Treat log contents as untrusted: never `eval()` or directly execute parsed queries, and use `docs/keywords.txt`-driven tokenizing (`is_reserved_word()`) rather than ad hoc regex that could mis-parse crafted input.
 
 ### Input Validation
 Use `get_filter_request_var()` / `get_nfilter_request_var()` for request input; never read `$_GET`/`$_POST` directly.
@@ -223,3 +223,7 @@ existing code or adding new code, not just in dedicated cleanup passes:
   line, `@param` lines, a blank comment line, then `@return`. Infer parameter/return types from
   actual usage; don't change the function's real type-hints in the same pass (let static analysis
   flag mismatches separately). Skip vendored third-party library files.
+
+## File manifest & upgrade pruning
+
+The plugin ships a root `manifest.json` with three arrays: `tombstones` (files/directories older versions shipped that have since moved or been removed), `expected` (the top-level files and directories that ship today, directories written with a trailing `/`), and `whitelist` (paths holding user data that must never be touched). Keep `expected` current: CI runs `tests/bin/validate-manifest.php`, which fails on any drift between `expected` and the real top-level tree (it ignores `tests/`, `phpunit.xml`, `.git*`, `.md*`, and whitelisted paths). Custom customer CSS/theme files belong in `expected`, and stylesheets live in `css/` (not `themes/`). On upgrade, `slowlog_prune_files()` deletes the tombstoned paths, the dev-only `tests/` tree, and the `phpunit.xml` test config, leaves `whitelist`, `.git*`, and `.md*` alone, and logs (without removing) any top-level entry the manifest does not account for. As a safety measure it refuses any tombstone that resolves outside the plugin directory (a tampered manifest.json) and logs a warning for any file or directory it cannot remove. When you move or delete a shipped file, add its old path to `tombstones` and update `expected` in the same change.

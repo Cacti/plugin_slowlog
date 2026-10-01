@@ -251,8 +251,8 @@ function slowlog_setup_table_new(): void {
 
 	// The (id, word) primary key doesn't prevent duplicate words on a re-run, since id is
 	// auto-incrementing - only load once, when the table is still empty.
-	if (file_exists(__DIR__ . '/../keywords.txt') && !db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_slowlog_reserved_words')) {
-		$words = file(__DIR__ . '/../keywords.txt') ?: [];
+	if (file_exists(__DIR__ . '/../docs/keywords.txt') && !db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_slowlog_reserved_words')) {
+		$words = file(__DIR__ . '/../docs/keywords.txt') ?: [];
 
 		if (cacti_sizeof($words)) {
 			foreach ($words as $word) {
