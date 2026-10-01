@@ -23,6 +23,10 @@ msgid "ERROR: Invalid --logid value '%s', must be a positive integer"
 msgstr ""
 
 #: includes/slowlog_functions.php
+msgid "Read Error - Import Aborted, Log May Be Truncated"
+msgstr ""
+
+#: includes/slowlog_functions.php
 msgid "Bad File Format - No Slow Query Log Entries Found"
 msgstr ""
 
