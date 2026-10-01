@@ -207,7 +207,7 @@ if (!function_exists('db_index_exists')) {
 
 if (!function_exists('db_column_exists')) {
 	function db_column_exists($table, $column) {
-		return false;
+		return slowlog_test_db_result('db_column_exists', $table, array($table, $column), false);
 	}
 }
 

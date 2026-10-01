@@ -307,6 +307,44 @@ function slowlog_upgrade_tables(): void {
 }
 
 /**
+ * Idempotently migrates an existing plugin_slowlog_details_methods table from the
+ * pre-2.6 (logid, logentry, methodid) layout to the de-normalized (logid, logentry,
+ * method varchar) layout: adds the method column, backfills the names from the
+ * plugin_slowlog_methods dictionary, then swaps the primary key and drops methodid.
+ * A no-op on fresh installs (which already receive the new schema from the create
+ * path) and on installs that have already been migrated, so it is safe to call on
+ * every page. Runs independently of the plugin version check in
+ * slowlog_check_upgrade() because this schema change ships without a version bump,
+ * and api_plugin_db_table_create() never retrofits an existing table. Called from
+ * slowlog_check_upgrade().
+ *
+ * @return void
+ */
+function slowlog_migrate_details_methods_to_method(): void {
+	// Only pre-2.6 installs still carry methodid; once it's gone the migration is complete.
+	if (!db_table_exists('plugin_slowlog_details_methods') || !db_column_exists('plugin_slowlog_details_methods', 'methodid')) {
+		return;
+	}
+
+	if (!db_column_exists('plugin_slowlog_details_methods', 'method')) {
+		db_execute('ALTER TABLE plugin_slowlog_details_methods
+			ADD COLUMN `method` varchar(45) NOT NULL DEFAULT \'\' AFTER `logentry`');
+	}
+
+	// Backfill the human-readable name from the dictionary for any row still missing it.
+	db_execute('UPDATE plugin_slowlog_details_methods AS sldm
+		INNER JOIN plugin_slowlog_methods AS sm ON sm.methodid = sldm.methodid
+		SET sldm.method = sm.method
+		WHERE sldm.method = \'\'');
+
+	// Swap (logid, logentry, methodid) -> (logid, logentry, method) and retire methodid.
+	db_execute('ALTER TABLE plugin_slowlog_details_methods
+		DROP PRIMARY KEY,
+		ADD PRIMARY KEY (`logid`, `logentry`, `method`),
+		DROP COLUMN `methodid`');
+}
+
+/**
  * Drops every table this plugin owns. Called from
  * plugin_slowlog_uninstall() when the plugin is removed.
  *
