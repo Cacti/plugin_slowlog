@@ -1,5 +1,6 @@
 {
     "tombstones": [
+        "keywords.txt",
         "themes/"
     ],
     "expected": [
@@ -8,11 +9,11 @@
         "LICENSE",
         "README.md",
         "css/",
+        "docs/",
         "images/",
         "import_log.php",
         "includes/",
         "js/",
-        "keywords.txt",
         "locales/",
         "manifest.json",
         "setup.php",
