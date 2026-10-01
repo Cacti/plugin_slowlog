@@ -384,7 +384,9 @@ function plugin_slowlog_prune_files(): void {
 		foreach ($whitelist as $entry) {
 			$entry = trim((string) $entry, '/');
 
-			if ($entry !== '' && ($rel === $entry || strncmp($rel, $entry . '/', strlen($entry) + 1) === 0)) {
+			if ($entry !== '' && ($rel === $entry
+				|| strncmp($rel, $entry . '/', strlen($entry) + 1) === 0
+				|| strncmp($entry, $rel . '/', strlen($rel) + 1) === 0)) {
 				return true;
 			}
 		}
@@ -406,6 +408,16 @@ function plugin_slowlog_prune_files(): void {
 		$rel = trim((string) $rel, '/');
 
 		if ($rel === '' || $protected($rel)) {
+			continue;
+		}
+
+		// A tombstone must never contain '.'/'..' segments; a tampered manifest
+		// could use them to escape the plugin directory or target its root.
+		$segments = explode('/', $rel);
+
+		if (in_array('.', $segments, true) || in_array('..', $segments, true)) {
+			cacti_log(sprintf('WARNING: slowlog prune refused to remove %s: path contains a traversal segment (tampered manifest.json?)', $rel), false, 'SLOWLOG');
+
 			continue;
 		}
 
