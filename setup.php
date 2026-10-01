@@ -210,7 +210,7 @@ function slowlog_check_upgrade(): void {
 		// The schema create/refresh lives in includes/database.php (the thold model).
 		slowlog_upgrade_tables();
 
-		plugin_slowlog_prune_files();
+		slowlog_prune_files();
 	}
 }
 
@@ -354,7 +354,7 @@ function slowlog_show_tab(): void {
  * @global array $config Cacti global configuration array; used to resolve
  *                       the plugin directory.
  */
-function plugin_slowlog_prune_files(): void {
+function slowlog_prune_files(): void {
 	global $config;
 
 	$plugin_dir    = $config['base_path'] . '/plugins/slowlog';
@@ -440,7 +440,7 @@ function plugin_slowlog_prune_files(): void {
 		}
 
 		if (is_dir($path) && !is_link($path)) {
-			$removed = plugin_slowlog_rmtree($path);
+			$removed = slowlog_rmtree($path);
 		} else {
 			$removed = @unlink($path);
 		}
@@ -474,14 +474,14 @@ function plugin_slowlog_prune_files(): void {
 
 /**
  * Recursively deletes a directory and its contents. Symlinks are removed
- * without being followed. Helper for plugin_slowlog_prune_files().
+ * without being followed. Helper for slowlog_prune_files().
  *
  * @param string $dir Absolute path to the directory to remove.
  *
  * @return bool True if the directory and everything under it was removed;
  *              false if any entry could not be deleted.
  */
-function plugin_slowlog_rmtree(string $dir): bool {
+function slowlog_rmtree(string $dir): bool {
 	$entries = scandir($dir);
 	$ok      = true;
 
@@ -493,7 +493,7 @@ function plugin_slowlog_rmtree(string $dir): bool {
 		$path = $dir . '/' . $entry;
 
 		if (is_dir($path) && !is_link($path)) {
-			if (!plugin_slowlog_rmtree($path)) {
+			if (!slowlog_rmtree($path)) {
 				$ok = false;
 			}
 		} elseif (!@unlink($path)) {

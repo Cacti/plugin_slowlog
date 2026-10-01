@@ -41,7 +41,7 @@ beforeEach(function () {
 	unset($_SERVER['PHP_SELF']);
 
 	// Sandbox base_path so the version-drift branch runs
-	// plugin_slowlog_prune_files() against a throwaway tree with no
+	// slowlog_prune_files() against a throwaway tree with no
 	// manifest.json (prune no-ops), never the real checkout. The temp tree
 	// carries a copy of the real INFO (so slowlog_version() still matches)
 	// and an empty includes/database.php the top-level require_once can load.
