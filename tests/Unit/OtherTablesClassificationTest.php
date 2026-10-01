@@ -40,7 +40,7 @@ if (!function_exists('slowlog_test_method_calls')) {
 
 		foreach (slowlog_test_method_calls() as $call) {
 			foreach (array_chunk($call['params'], 3) as $t) {
-				$tuples[] = array((int) $t[0], (int) $t[1], (int) $t[2]);
+				$tuples[] = array((int) $t[0], (int) $t[1], (string) $t[2]);
 			}
 		}
 
@@ -50,8 +50,6 @@ if (!function_exists('slowlog_test_method_calls')) {
 
 beforeEach(function () {
 	TestCase::loadPluginSource('includes/slowlog_functions.php');
-
-	slowlog_test_mock_db('db_fetch_cell_prepared', "WHERE method = 'OTHER TABLES'", 22);
 });
 
 it('tags a logentry that touches a non-Cacti table', function () {
@@ -61,18 +59,7 @@ it('tags a logentry that touches a non-Cacti table', function () {
 
 	slowlog_classify_other_tables(1);
 
-	expect(slowlog_test_method_tuples())->toBe(array(array(1, 2, 22)));
-});
-
-it('does nothing when the OTHER TABLES method row does not exist', function () {
-	slowlog_test_mock_db('db_fetch_cell_prepared', "WHERE method = 'OTHER TABLES'", 0);
-	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT DISTINCT dt.logentry', array(
-		array('logentry' => 2),
-	));
-
-	slowlog_classify_other_tables(1);
-
-	expect(slowlog_test_method_calls())->toBe(array());
+	expect(slowlog_test_method_tuples())->toBe(array(array(1, 2, 'OTHER TABLES')));
 });
 
 it('does nothing when every table is a recognized Cacti table', function () {
@@ -85,11 +72,6 @@ it('does nothing when every table is a recognized Cacti table', function () {
 
 it('is only invoked from import_post_process() when usecacti is used', function () {
 	slowlog_test_mock_db('db_fetch_cell_prepared', 'COUNT(*)', 3);
-	slowlog_test_mock_db('db_fetch_assoc_prepared', 'FROM plugin_slowlog_methods', array(
-		array('method' => 'SELECTS', 'query' => 'SELECT ', 'methodid' => 4),
-		array('method' => 'OTHERS', 'query' => 'OTHERS', 'methodid' => 8),
-		array('method' => 'OTHER TABLES', 'query' => 'OTHER TABLES', 'methodid' => 22),
-	));
 	slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT logentry, query', array(
 		array('logentry' => 1, 'query' => 'select * from mystery_tbl'),
 	));
@@ -99,16 +81,14 @@ it('is only invoked from import_post_process() when usecacti is used', function 
 
 	import_post_process(1, 'mystery_tbl', false);
 
-	expect(slowlog_test_method_tuples())->toBe(array(array(1, 1, 4)));
+	expect(slowlog_test_method_tuples())->toBe(array(array(1, 1, 'SELECTS')));
 });
 
-it("does not let the 'OTHER TABLES' fragment leak into ordinary query-text matching", function () {
-	// If 'OTHER TABLES' were treated like a normal fragment-matched method, stripos() against
-	// its own (never-appearing-in-real-SQL) fragment would simply never match - this proves it
-	// is excluded from that loop entirely rather than relying on it coincidentally not matching.
-	$source = file_get_contents(realpath(__DIR__ . '/../../includes/slowlog_functions.php'));
-
-	expect($source)->toContain("\$row['method'] != 'OTHER TABLES'");
+it("does not let the 'OTHER TABLES' / 'OTHERS' buckets leak into ordinary query-text matching", function () {
+	// Both are classified separately (OTHER TABLES by table recognition, OTHERS as the
+	// matched-nothing fallback), so neither may appear as a fragment-matched method.
+	expect(array_key_exists('OTHER TABLES', SLOWLOG_METHOD_FRAGMENTS))->toBeFalse();
+	expect(array_key_exists('OTHERS', SLOWLOG_METHOD_FRAGMENTS))->toBeFalse();
 });
 
 /*
@@ -128,7 +108,7 @@ it('tags a logentry whose table is missing from the supplied reference list', fu
 
 	slowlog_classify_other_tables_against_list(1, array('host'));
 
-	expect(slowlog_test_method_tuples())->toBe(array(array(1, 2, 22)));
+	expect(slowlog_test_method_tuples())->toBe(array(array(1, 2, 'OTHER TABLES')));
 });
 
 it('does nothing when every table is in the supplied reference list', function () {

@@ -186,6 +186,11 @@ function slowlog_check_upgrade(): void {
 		return;
 	}
 
+	// Runs on every load (idempotent, self-gating on the methodid column) because the 2.6
+	// methodid -> method de-normalization ships without a version bump, so the drift branch
+	// below would otherwise never fix an existing plugin_slowlog_details_methods table.
+	slowlog_migrate_details_methods_to_method();
+
 	$current = $info['version'];
 	$old     = db_fetch_cell_prepared('SELECT version
 		FROM plugin_config

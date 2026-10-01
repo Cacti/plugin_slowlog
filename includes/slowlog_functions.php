@@ -38,7 +38,6 @@
 function api_slowlog_remove(int $logid): void {
 	db_execute_prepared('DELETE FROM plugin_slowlog WHERE logid = ?', [$logid]);
 	db_execute_prepared('DELETE FROM plugin_slowlog_details WHERE logid = ?', [$logid]);
-	db_execute_prepared('DELETE FROM plugin_slowlog_tables WHERE logid = ?', [$logid]);
 	db_execute_prepared('DELETE FROM plugin_slowlog_details_tables WHERE logid = ?', [$logid]);
 	db_execute_prepared('DELETE FROM plugin_slowlog_details_methods WHERE logid = ?', [$logid]);
 	db_execute_prepared('DELETE FROM plugin_slowlog_stats WHERE logid = ?', [$logid]);
@@ -107,8 +106,8 @@ function slowlog_bulk_insert_method_rows(array $rows): void {
 		return;
 	}
 
-	$sql_prefix = 'INSERT INTO plugin_slowlog_details_methods (logid, logentry, methodid) VALUES ';
-	$sql_suffix = ' ON DUPLICATE KEY UPDATE methodid=VALUES(methodid)';
+	$sql_prefix = 'INSERT INTO plugin_slowlog_details_methods (logid, logentry, method) VALUES ';
+	$sql_suffix = ' ON DUPLICATE KEY UPDATE method=VALUES(method)';
 
 	foreach (array_chunk($rows, 500) as $chunk) {
 		$placeholders = [];
@@ -118,7 +117,7 @@ function slowlog_bulk_insert_method_rows(array $rows): void {
 			$placeholders[] = '(?, ?, ?)';
 			$params[]       = (int) $row[0];
 			$params[]       = (int) $row[1];
-			$params[]       = (int) $row[2];
+			$params[]       = (string) $row[2];
 		}
 
 		db_execute_prepared($sql_prefix . implode(', ', $placeholders) . $sql_suffix, $params);
@@ -167,6 +166,45 @@ const SLOWLOG_STATS_METRICS = ['query_time', 'rows_sent', 'rows_examined', 'rows
 
 // number of plugin_slowlog_details rows accumulated per bulk INSERT during import
 const SLOWLOG_IMPORT_BATCH_SIZE = 1000;
+
+// The SQL-method classifier dictionary: method name => query-text fragments matched
+// case-insensitively (stripos) when classifying each imported query. Replaces the former
+// plugin_slowlog_methods table lookup now that the method name is stored directly in
+// plugin_slowlog_details_methods.method. OTHERS (matched-nothing fallback) and OTHER TABLES
+// (classified by table recognition, not a text fragment) are handled separately.
+const SLOWLOG_METHOD_FRAGMENTS = [
+	'INSERTS'            => ['INSERT INTO', 'INSERT IGNORE INTO'],
+	'REPLACES'           => ['REPLACE INTO', 'REPLACE IGNORE INTO'],
+	'DELETES'            => ['DELETE '],
+	'SELECTS'            => ['SELECT '],
+	'DISTINCTS'          => ['SELECT DISTINCT'],
+	'UNIONS'             => ['UNION'],
+	'JOINS'              => ['JOIN '],
+	'UPDATES'            => ['UPDATE '],
+	'RENAMES'            => ['RENAME TABLE'],
+	'FLUSHES'            => ['FLUSH TABLE'],
+	'TRUNCATES'          => ['TRUNCATE '],
+	'LOAD DATA'          => ['LOAD DATA INFILE '],
+	'OUTFILES'           => ['INTO OUTFILE '],
+	'INFILES'            => ['INFILE '],
+	'GROUP BY'           => ['GROUP BY '],
+	'COUNTS'             => ['COUNT('],
+	'SHOWS'              => ['SHOW '],
+	'UNION ALLS'         => ['UNION ALL'],
+	'MAX_EXECUTION_TIME' => ['MAX_EXECUTION_TIME('],
+	'MAX_STATEMENT_TIME' => ['MAX_STATEMENT_TIME'],
+	'FORCE INDEX'        => ['FORCE INDEX'],
+	'ALTERS'             => ['ALTER TABLE'],
+	'DROPS'              => ['DROP TABLE', 'DROP TEMPORARY TABLE'],
+	'ANALYZES'           => ['ANALYZE TABLE', 'ANALYZE NO_WRITE_TO_BINLOG TABLE', 'ANALYZE LOCAL TABLE'],
+	'OPTIMIZES'          => ['OPTIMIZE TABLE', 'OPTIMIZE NO_WRITE_TO_BINLOG TABLE', 'OPTIMIZE LOCAL TABLE'],
+	'CREATES'            => ['create table'],
+	'CREATE TEMPS'       => ['create temporary table'],
+];
+
+// Bucket method names stored directly in plugin_slowlog_details_methods.method.
+const SLOWLOG_METHOD_OTHERS = 'OTHERS';
+const SLOWLOG_METHOD_OTHER_TABLES = 'OTHER TABLES';
 
 // the By Method/By Table charts' 'Top N' selectmenu options
 const SLOWLOG_CHART_TOP_OPTIONS = ['2', '10', '15', '20', '25', '30'];
@@ -436,10 +474,9 @@ function slowlog_collect_stats_by_method(int $logid, array &$values, int $chunk_
 	$last_id = 0;
 
 	do {
-		$rows = db_fetch_assoc_prepared('SELECT sldm.id, sm.method AS scope_key,
+		$rows = db_fetch_assoc_prepared('SELECT sldm.id, sldm.method AS scope_key,
 			d.query_time, d.rows_sent, d.rows_examined, d.rows_affected, d.bytes_sent
 			FROM plugin_slowlog_details_methods AS sldm
-			INNER JOIN plugin_slowlog_methods AS sm ON sm.methodid = sldm.methodid
 			INNER JOIN plugin_slowlog_details AS d ON d.logid = sldm.logid AND d.logentry = sldm.logentry
 			WHERE sldm.logid = ?
 			AND sldm.id > ?
@@ -744,15 +781,6 @@ function slowlog_sync_table_dictionary(int $logid, ?array $known_tables = null):
  * @return void
  */
 function slowlog_classify_other_tables(int $logid): void {
-	$methodid = db_fetch_cell_prepared("SELECT methodid
-		FROM plugin_slowlog_methods
-		WHERE method = 'OTHER TABLES'",
-		[]);
-
-	if (!$methodid) {
-		return;
-	}
-
 	$rows = db_fetch_assoc_prepared('SELECT DISTINCT dt.logentry
 		FROM plugin_slowlog_details_tables AS dt
 		INNER JOIN plugin_slowlog_table_names AS tn
@@ -768,7 +796,7 @@ function slowlog_classify_other_tables(int $logid): void {
 	$method_rows = [];
 
 	foreach ($rows as $row) {
-		$method_rows[] = [$logid, $row['logentry'], $methodid];
+		$method_rows[] = [$logid, $row['logentry'], SLOWLOG_METHOD_OTHER_TABLES];
 	}
 
 	slowlog_bulk_insert_method_rows($method_rows);
@@ -791,15 +819,6 @@ function slowlog_classify_other_tables(int $logid): void {
  * @return void
  */
 function slowlog_classify_other_tables_against_list(int $logid, array $reference_tables): void {
-	$methodid = db_fetch_cell_prepared("SELECT methodid
-		FROM plugin_slowlog_methods
-		WHERE method = 'OTHER TABLES'",
-		[]);
-
-	if (!$methodid) {
-		return;
-	}
-
 	$tables = db_fetch_assoc_prepared('SELECT DISTINCT table_name
 		FROM plugin_slowlog_details_tables
 		WHERE logid = ?',
@@ -837,7 +856,7 @@ function slowlog_classify_other_tables_against_list(int $logid, array $reference
 	$method_rows = [];
 
 	foreach ($rows as $row) {
-		$method_rows[] = [$logid, $row['logentry'], $methodid];
+		$method_rows[] = [$logid, $row['logentry'], SLOWLOG_METHOD_OTHER_TABLES];
 	}
 
 	slowlog_bulk_insert_method_rows($method_rows);
@@ -1358,23 +1377,7 @@ function import_post_process(int $logid, string $table_names = '', bool $usecact
 		 * default too), instead of one LIKE/NOT LIKE table scan per method (~20 round trips
 		 * previously for the default method dictionary).
 		 */
-		$methods = db_fetch_assoc_prepared('SELECT *
-			FROM plugin_slowlog_methods
-			ORDER BY method',
-			[]);
-
-		$method_fragments  = [];
-		$others_methodid   = null;
-
-		foreach ($methods as $row) {
-			// OTHERS is the "matched nothing else" bucket; OTHER TABLES is classified
-			// separately below (by table recognition, not a query text fragment).
-			if ($row['method'] == 'OTHERS') {
-				$others_methodid = $row['methodid'];
-			} elseif ($row['method'] != 'OTHER TABLES') {
-				$method_fragments[$row['methodid']] = explode(',', $row['query']);
-			}
-		}
+		$method_fragments = SLOWLOG_METHOD_FRAGMENTS;
 
 		$method_chunk_size = 2000;
 		$last_logentry     = 0;
@@ -1395,10 +1398,10 @@ function import_post_process(int $logid, string $table_names = '', bool $usecact
 				$last_logentry = $row['logentry'];
 				$matched       = false;
 
-				foreach ($method_fragments as $methodid => $fragments) {
+				foreach ($method_fragments as $method => $fragments) {
 					foreach ($fragments as $fragment) {
 						if (stripos($row['query'], $fragment) !== false) {
-							$method_rows[] = [$logid, $row['logentry'], $methodid];
+							$method_rows[] = [$logid, $row['logentry'], $method];
 							$matched       = true;
 
 							break;
@@ -1406,8 +1409,8 @@ function import_post_process(int $logid, string $table_names = '', bool $usecact
 					}
 				}
 
-				if (!$matched && $others_methodid !== null) {
-					$method_rows[] = [$logid, $row['logentry'], $others_methodid];
+				if (!$matched) {
+					$method_rows[] = [$logid, $row['logentry'], SLOWLOG_METHOD_OTHERS];
 				}
 			}
 
@@ -1447,11 +1450,6 @@ function import_post_process(int $logid, string $table_names = '', bool $usecact
 
 		if ($total_tables > 0) {
 			foreach ($tables as $t) {
-				db_execute_prepared('INSERT INTO plugin_slowlog_tables
-					(logid, table_name)
-					VALUES (?, ?)',
-					[$logid, $t]);
-
 				db_execute_prepared('INSERT INTO plugin_slowlog_details_tables (logid, logentry, table_name)
 					SELECT ? AS logid, logentry, ? AS table_name
 					FROM plugin_slowlog_details
@@ -1532,7 +1530,6 @@ function import_post_process(int $logid, string $table_names = '', bool $usecact
 function slowlog_reprocess(int $logid, string $table_names = '', bool $usecacti = false, ?string $table_mode = null): void {
 	db_execute_prepared('DELETE FROM plugin_slowlog_details_methods WHERE logid = ?', [$logid]);
 	db_execute_prepared('DELETE FROM plugin_slowlog_details_tables WHERE logid = ?', [$logid]);
-	db_execute_prepared('DELETE FROM plugin_slowlog_tables WHERE logid = ?', [$logid]);
 	db_execute_prepared('DELETE FROM plugin_slowlog_stats WHERE logid = ?', [$logid]);
 	db_execute_prepared('UPDATE plugin_slowlog_details SET timeout = 0 WHERE logid = ?', [$logid]);
 
@@ -2894,16 +2891,14 @@ function slowlog_get_chart_object_live(int $logid, string $scope, string $measur
 	$agg = ($measure == 'count') ? 'COUNT(*)' : "SUM($measure)";
 
 	if ($scope == 'method') {
-		return db_fetch_assoc_prepared("SELECT sm.method AS scope_key,
+		return db_fetch_assoc_prepared("SELECT dm.method AS scope_key,
 			$agg AS value
 			FROM plugin_slowlog_details_methods AS dm
 			INNER JOIN plugin_slowlog_details AS d
 			ON dm.logid = d.logid
 			AND dm.logentry = d.logentry
-			INNER JOIN plugin_slowlog_methods AS sm
-			ON dm.methodid = sm.methodid
 			WHERE d.logid = ?
-			GROUP BY sm.methodid
+			GROUP BY dm.method
 			ORDER BY value DESC" . $limit,
 			[$logid]);
 	} else {
@@ -3092,11 +3087,10 @@ function slowlog_get_chart_scope_items(string $chart_type, int $id): array {
 
 		$scope_items[] = slowlog_others_bucket_key($id);
 	} else {
-		$scope_items = array_column(db_fetch_assoc_prepared('SELECT DISTINCT sm.method AS value
+		$scope_items = array_column(db_fetch_assoc_prepared('SELECT DISTINCT dm.method AS value
 			FROM plugin_slowlog_details_methods AS dm
-			INNER JOIN plugin_slowlog_methods AS sm ON sm.methodid = dm.methodid
 			WHERE dm.logid = ?
-			ORDER BY sm.method',
+			ORDER BY dm.method',
 			[$id]), 'value');
 	}
 

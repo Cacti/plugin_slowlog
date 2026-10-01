@@ -62,7 +62,6 @@ it('creates every plugin table through the plugin API', function () {
 		'plugin_slowlog_details_methods',
 		'plugin_slowlog_details_tables',
 		'plugin_slowlog_methods',
-		'plugin_slowlog_tables',
 		'plugin_slowlog_table_names',
 		'plugin_slowlog_reserved_words',
 		'plugin_slowlog_stats',
@@ -170,7 +169,7 @@ it('re-running setup is safe to call again from slowlog_check_upgrade()', functi
 
 	$tables = slowlog_test_calls_to($GLOBALS['__test_db_calls'], 'api_plugin_db_table_create');
 
-	expect($tables)->toHaveCount(18);
+	expect($tables)->toHaveCount(16);
 });
 
 it('drops every plugin table on uninstall, including the stats cache', function () {

@@ -145,8 +145,8 @@ function slowlog_setup_table_new(): void {
 	$data['columns'][]  = ['name' => 'id', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true];
 	$data['columns'][]  = ['name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false];
 	$data['columns'][]  = ['name' => 'logentry', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false];
-	$data['columns'][]  = ['name' => 'methodid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false];
-	$data['primary']    = ['logid', 'logentry', 'methodid'];
+	$data['columns'][]  = ['name' => 'method', 'type' => 'varchar(45)', 'NULL' => false];
+	$data['primary']    = ['logid', 'logentry', 'method'];
 	$data['keys'][]     = ['name' => 'id', 'columns' => ['id']];
 	$engine             = slowlog_get_storage_engine();
 	$data['type']       = $engine;
@@ -183,20 +183,11 @@ function slowlog_setup_table_new(): void {
 	// inserting the longer ANALYZES/OPTIMIZES/CREATES seed fragments.
 	db_execute('ALTER TABLE plugin_slowlog_methods MODIFY COLUMN `query` varchar(96) NOT NULL');
 
-	$data               = [];
-	$data['columns'][]  = ['name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false];
-	$data['columns'][]  = ['name' => 'table_name', 'type' => 'varchar(45)', 'NULL' => false];
-	$data['primary']    = ['logid', 'table_name'];
-	$data['type']       = 'InnoDB';
-	$data['row_format'] = 'Dynamic';
-
-	api_plugin_db_table_create('slowlog', 'plugin_slowlog_tables', $data);
-
 	// Schema groundwork: dictionary of every distinct table name seen across imports, plus
-	// whether it's a known Cacti table. Per-logentry table associations are still written
-	// directly to plugin_slowlog_tables/plugin_slowlog_details_tables by import_post_process();
-	// this table only caches the is_cacti_table lookup so OTHER TABLES classification doesn't
-	// re-derive it per logentry (see slowlog_sync_table_dictionary()/slowlog_classify_other_tables()).
+	// whether it's a known Cacti table. Per-logentry table associations are written directly
+	// to plugin_slowlog_details_tables by import_post_process(); this table only caches the
+	// is_cacti_table lookup so OTHER TABLES classification doesn't re-derive it per logentry
+	// (see slowlog_sync_table_dictionary()/slowlog_classify_other_tables()).
 	$data                  = [];
 	$data['columns'][]     = ['name' => 'tableid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true];
 	$data['columns'][]     = ['name' => 'table_name', 'type' => 'varchar(45)', 'NULL' => false, 'default' => ''];
@@ -313,6 +304,44 @@ function slowlog_upgrade_tables(): void {
 	if ($details_table_existed) {
 		db_update_table('plugin_slowlog_details', slowlog_details_table_data());
 	}
+}
+
+/**
+ * Idempotently migrates an existing plugin_slowlog_details_methods table from the
+ * pre-2.6 (logid, logentry, methodid) layout to the de-normalized (logid, logentry,
+ * method varchar) layout: adds the method column, backfills the names from the
+ * plugin_slowlog_methods dictionary, then swaps the primary key and drops methodid.
+ * A no-op on fresh installs (which already receive the new schema from the create
+ * path) and on installs that have already been migrated, so it is safe to call on
+ * every page. Runs independently of the plugin version check in
+ * slowlog_check_upgrade() because this schema change ships without a version bump,
+ * and api_plugin_db_table_create() never retrofits an existing table. Called from
+ * slowlog_check_upgrade().
+ *
+ * @return void
+ */
+function slowlog_migrate_details_methods_to_method(): void {
+	// Only pre-2.6 installs still carry methodid; once it's gone the migration is complete.
+	if (!db_table_exists('plugin_slowlog_details_methods') || !db_column_exists('plugin_slowlog_details_methods', 'methodid')) {
+		return;
+	}
+
+	if (!db_column_exists('plugin_slowlog_details_methods', 'method')) {
+		db_execute('ALTER TABLE plugin_slowlog_details_methods
+			ADD COLUMN `method` varchar(45) NOT NULL DEFAULT \'\' AFTER `logentry`');
+	}
+
+	// Backfill the human-readable name from the dictionary for any row still missing it.
+	db_execute('UPDATE plugin_slowlog_details_methods AS sldm
+		INNER JOIN plugin_slowlog_methods AS sm ON sm.methodid = sldm.methodid
+		SET sldm.method = sm.method
+		WHERE sldm.method = \'\'');
+
+	// Swap (logid, logentry, methodid) -> (logid, logentry, method) and retire methodid.
+	db_execute('ALTER TABLE plugin_slowlog_details_methods
+		DROP PRIMARY KEY,
+		ADD PRIMARY KEY (`logid`, `logentry`, `method`),
+		DROP COLUMN `methodid`');
 }
 
 /**

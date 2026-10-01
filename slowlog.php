@@ -803,7 +803,7 @@ function slowlog_view_details(): void {
 	$agg_by_table  = false;
 	$agg_by_method = false;
 	$sql_join      = '';
-	$method        = 'slm.method';
+	$method        = 'sldm.method';
 	$table         = 'sldt.table_name';
 
 	if (get_request_var('table') == '-3') { // Aggregate by table
@@ -816,20 +816,20 @@ function slowlog_view_details(): void {
 		$sql_params[] = get_request_var('table');
 	}
 
-	// method_name (set by clicking a bar on the By Method chart, which only knows the
-	// method's name, not its id) takes priority over the mmethod dropdown, including its
-	// '-2' (aggregate/N/A) option - it always needs the slm join below, since it filters
-	// on slm.method directly.
+	// method_name (set by clicking a bar on the By Method chart) and the mmethod dropdown
+	// both filter on the method name now stored directly in
+	// plugin_slowlog_details_methods.method (sldm join below), so neither needs the old
+	// plugin_slowlog_methods dictionary join.
 	$has_method_name = (get_request_var('method_name') != '');
 
 	if ($has_method_name) {
-		$sql_where .= ($sql_where != '' ? ' AND' : 'WHERE') . ' slm.method = ?';
+		$sql_where .= ($sql_where != '' ? ' AND' : 'WHERE') . ' sldm.method = ?';
 
 		$sql_params[] = get_request_var('method_name');
 	} elseif (get_request_var('mmethod') == '-2') { // Aggregate by method
 		$agg_by_method = true;
 	} elseif (get_request_var('mmethod') != '-1') {
-		$sql_where .= ($sql_where != '' ? ' AND' : 'WHERE') . ' slm.methodid = ?';
+		$sql_where .= ($sql_where != '' ? ' AND' : 'WHERE') . ' sldm.method = ?';
 
 		$sql_params[] = get_request_var('mmethod');
 	}
@@ -845,14 +845,14 @@ function slowlog_view_details(): void {
 	if (!$agg_by_method) {
 		$sql_join .= ' LEFT JOIN plugin_slowlog_details_methods AS sldm
 			ON sld.logid = sldm.logid
-			AND sld.logentry = sldm.logentry
-			LEFT JOIN plugin_slowlog_methods AS slm
-			ON sldm.methodid = slm.methodid';
+			AND sld.logentry = sldm.logentry';
 	} else {
 		$method = '"N/A" AS method';
 	}
 
-	$results = db_fetch_assoc_prepared("SELECT DISTINCT sld.*, $method, $table
+	// No DISTINCT: each detail/method/table join row is already unique (the association
+	// tables' composite PKs), so it only forced a filesort/hash over the mediumtext query columns.
+	$results = db_fetch_assoc_prepared("SELECT sld.*, $method, $table
 		FROM plugin_slowlog_details AS sld
 		$sql_join
 		$sql_where
@@ -860,7 +860,7 @@ function slowlog_view_details(): void {
 		$sql_limit",
 		$sql_params);
 
-	// cacti_log(vsprintf(str_replace('?', "'%s'", "SELECT DISTINCT sld.*, $method, $table
+	// cacti_log(vsprintf(str_replace('?', "'%s'", "SELECT sld.*, $method, $table
 	//	FROM plugin_slowlog_details AS sld
 	//	$sql_join
 	//	$sql_where
@@ -2101,15 +2101,11 @@ function slowlog_details_filter(): void {
 								<option value='-1'<?php if (get_request_var('mmethod') == '-1') {?> selected<?php }?>><?php print __('Any', 'slowlog'); ?></option>
 								<option value='-2'<?php if (get_request_var('mmethod') == '-2') {?> selected<?php }?>><?php print __('N/A', 'slowlog'); ?></option>
 								<?php
-	$methods = db_fetch_assoc_prepared('SELECT *
-									FROM plugin_slowlog_methods
-									ORDER BY method',
-		[]);
+	$methods = array_merge(array_keys(SLOWLOG_METHOD_FRAGMENTS), [SLOWLOG_METHOD_OTHERS, SLOWLOG_METHOD_OTHER_TABLES]);
+	sort($methods);
 
-	if (cacti_sizeof($methods)) {
-		foreach ($methods as $m) {
-			print '<option value="' . $m['methodid'] . '"' . (get_request_var('mmethod') == $m['methodid'] ? ' selected' : '') . '>' . html_escape($m['method']) . '</option>';
-		}
+	foreach ($methods as $m) {
+		print '<option value="' . html_escape($m) . '"' . (get_request_var('mmethod') == $m ? ' selected' : '') . '>' . html_escape($m) . '</option>';
 	}
 	?>
 							</select>

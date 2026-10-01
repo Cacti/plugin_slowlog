@@ -62,10 +62,6 @@ describe('prepared statement usage in slowlog', function () {
 		expect($helpers)->not->toContain("SELECT '\$logid' AS logid, logentry");
 	});
 
-	it('uses a prepared insert for plugin_slowlog_tables', function () use ($helpers) {
-		expect(preg_match('/db_execute_prepared\s*\(\s*\'INSERT INTO plugin_slowlog_tables/s', $helpers))->toBe(1);
-	});
-
 	it('uses a prepared insert for plugin_slowlog_details_tables', function () use ($helpers) {
 		expect(preg_match('/db_execute_prepared\s*\(\s*\'INSERT INTO plugin_slowlog_details_tables/s', $helpers))->toBe(1);
 	});
