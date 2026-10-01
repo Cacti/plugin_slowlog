@@ -850,7 +850,9 @@ function slowlog_view_details(): void {
 		$method = '"N/A" AS method';
 	}
 
-	$results = db_fetch_assoc_prepared("SELECT DISTINCT sld.*, $method, $table
+	// No DISTINCT: each detail/method/table join row is already unique (the association
+	// tables' composite PKs), so it only forced a filesort/hash over the mediumtext query columns.
+	$results = db_fetch_assoc_prepared("SELECT sld.*, $method, $table
 		FROM plugin_slowlog_details AS sld
 		$sql_join
 		$sql_where
@@ -858,7 +860,7 @@ function slowlog_view_details(): void {
 		$sql_limit",
 		$sql_params);
 
-	// cacti_log(vsprintf(str_replace('?', "'%s'", "SELECT DISTINCT sld.*, $method, $table
+	// cacti_log(vsprintf(str_replace('?', "'%s'", "SELECT sld.*, $method, $table
 	//	FROM plugin_slowlog_details AS sld
 	//	$sql_join
 	//	$sql_where

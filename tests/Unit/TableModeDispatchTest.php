@@ -31,8 +31,12 @@ uses(TestCase::class);
 
 if (!function_exists('slowlog_test_table_inserts')) {
 	function slowlog_test_table_inserts(): array {
+		// List mode writes table associations via the LIKE-scan INSERT ... SELECT; the
+		// tokenizer modes use the VALUES form, so match on the LIKE scan to detect list mode.
 		return array_values(array_filter($GLOBALS['__test_db_calls'], function ($call) {
-			return $call['fn'] === 'db_execute_prepared' && strpos($call['sql'], 'INSERT INTO plugin_slowlog_tables') !== false;
+			return $call['fn'] === 'db_execute_prepared'
+				&& strpos($call['sql'], 'INSERT INTO plugin_slowlog_details_tables') !== false
+				&& strpos($call['sql'], 'query LIKE') !== false;
 		}));
 	}
 
@@ -88,10 +92,7 @@ it('defaults to detecting every table with no reference comparison', function ()
 it('uses the explicit table list when table_names is given (legacy behavior)', function () {
 	import_post_process(1, 'accounts users', false);
 
-	expect(array_column(slowlog_test_table_inserts(), 'params'))->toBe(array(
-		array(1, 'accounts'),
-		array(1, 'users'),
-	));
+	expect(array_map(function ($call) { return $call['params'][1]; }, slowlog_test_table_inserts()))->toBe(array('accounts', 'users'));
 	expect(slowlog_test_other_tables_call_count())->toBe(0);
 });
 

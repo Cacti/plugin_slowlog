@@ -62,7 +62,6 @@ it('creates every plugin table through the plugin API', function () {
 		'plugin_slowlog_details_methods',
 		'plugin_slowlog_details_tables',
 		'plugin_slowlog_methods',
-		'plugin_slowlog_tables',
 		'plugin_slowlog_table_names',
 		'plugin_slowlog_reserved_words',
 		'plugin_slowlog_stats',

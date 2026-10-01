@@ -38,7 +38,6 @@
 function api_slowlog_remove(int $logid): void {
 	db_execute_prepared('DELETE FROM plugin_slowlog WHERE logid = ?', [$logid]);
 	db_execute_prepared('DELETE FROM plugin_slowlog_details WHERE logid = ?', [$logid]);
-	db_execute_prepared('DELETE FROM plugin_slowlog_tables WHERE logid = ?', [$logid]);
 	db_execute_prepared('DELETE FROM plugin_slowlog_details_tables WHERE logid = ?', [$logid]);
 	db_execute_prepared('DELETE FROM plugin_slowlog_details_methods WHERE logid = ?', [$logid]);
 	db_execute_prepared('DELETE FROM plugin_slowlog_stats WHERE logid = ?', [$logid]);
@@ -1451,11 +1450,6 @@ function import_post_process(int $logid, string $table_names = '', bool $usecact
 
 		if ($total_tables > 0) {
 			foreach ($tables as $t) {
-				db_execute_prepared('INSERT INTO plugin_slowlog_tables
-					(logid, table_name)
-					VALUES (?, ?)',
-					[$logid, $t]);
-
 				db_execute_prepared('INSERT INTO plugin_slowlog_details_tables (logid, logentry, table_name)
 					SELECT ? AS logid, logentry, ? AS table_name
 					FROM plugin_slowlog_details
@@ -1536,7 +1530,6 @@ function import_post_process(int $logid, string $table_names = '', bool $usecact
 function slowlog_reprocess(int $logid, string $table_names = '', bool $usecacti = false, ?string $table_mode = null): void {
 	db_execute_prepared('DELETE FROM plugin_slowlog_details_methods WHERE logid = ?', [$logid]);
 	db_execute_prepared('DELETE FROM plugin_slowlog_details_tables WHERE logid = ?', [$logid]);
-	db_execute_prepared('DELETE FROM plugin_slowlog_tables WHERE logid = ?', [$logid]);
 	db_execute_prepared('DELETE FROM plugin_slowlog_stats WHERE logid = ?', [$logid]);
 	db_execute_prepared('UPDATE plugin_slowlog_details SET timeout = 0 WHERE logid = ?', [$logid]);
 

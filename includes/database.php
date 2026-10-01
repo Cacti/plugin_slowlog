@@ -183,20 +183,11 @@ function slowlog_setup_table_new(): void {
 	// inserting the longer ANALYZES/OPTIMIZES/CREATES seed fragments.
 	db_execute('ALTER TABLE plugin_slowlog_methods MODIFY COLUMN `query` varchar(96) NOT NULL');
 
-	$data               = [];
-	$data['columns'][]  = ['name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false];
-	$data['columns'][]  = ['name' => 'table_name', 'type' => 'varchar(45)', 'NULL' => false];
-	$data['primary']    = ['logid', 'table_name'];
-	$data['type']       = 'InnoDB';
-	$data['row_format'] = 'Dynamic';
-
-	api_plugin_db_table_create('slowlog', 'plugin_slowlog_tables', $data);
-
 	// Schema groundwork: dictionary of every distinct table name seen across imports, plus
-	// whether it's a known Cacti table. Per-logentry table associations are still written
-	// directly to plugin_slowlog_tables/plugin_slowlog_details_tables by import_post_process();
-	// this table only caches the is_cacti_table lookup so OTHER TABLES classification doesn't
-	// re-derive it per logentry (see slowlog_sync_table_dictionary()/slowlog_classify_other_tables()).
+	// whether it's a known Cacti table. Per-logentry table associations are written directly
+	// to plugin_slowlog_details_tables by import_post_process(); this table only caches the
+	// is_cacti_table lookup so OTHER TABLES classification doesn't re-derive it per logentry
+	// (see slowlog_sync_table_dictionary()/slowlog_classify_other_tables()).
 	$data                  = [];
 	$data['columns'][]     = ['name' => 'tableid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true];
 	$data['columns'][]     = ['name' => 'table_name', 'type' => 'varchar(45)', 'NULL' => false, 'default' => ''];

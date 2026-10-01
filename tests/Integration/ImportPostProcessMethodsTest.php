@@ -227,14 +227,8 @@ it('inserts the method classification with a single batched statement', function
 	expect($calls[0]['sql'])->toContain('ON DUPLICATE KEY UPDATE method=VALUES(method)');
 });
 
-it('records the table dictionary row and its detail associations', function () {
+it('records the detail table associations', function () {
 	import_post_process(1, 'accounts users');
-
-	$dictionary = slowlog_test_prepared_calls_matching($GLOBALS['__test_db_calls'], 'INSERT INTO plugin_slowlog_tables');
-	expect(array_column($dictionary, 'params'))->toBe(array(
-		array(1, 'accounts'),
-		array(1, 'users'),
-	));
 
 	$details = slowlog_test_prepared_calls_matching($GLOBALS['__test_db_calls'], 'INSERT INTO plugin_slowlog_details_tables');
 	expect($details)->toHaveCount(2);

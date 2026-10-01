@@ -41,7 +41,6 @@ it('deletes from every per-logid table, including the stats cache', function () 
 	expect($tables)->toBe(array(
 		'plugin_slowlog',
 		'plugin_slowlog_details',
-		'plugin_slowlog_tables',
 		'plugin_slowlog_details_tables',
 		'plugin_slowlog_details_methods',
 		'plugin_slowlog_stats',
