@@ -910,8 +910,11 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 	$logfile = trim($logfile);
 
 	if (file_exists($logfile)) {
-		// suck the log through a straw
-		$entries    = file($logfile) ?: [];
+		// Stream the log a line at a time rather than slurping the whole file into
+		// memory with file() - a multi-gigabyte slow query log would otherwise cost
+		// many times its own size in PHP array overhead (the detail rows are already
+		// flushed to the database in SLOWLOG_IMPORT_BATCH_SIZE batches as we go).
+		$fh = fopen($logfile, 'r');
 
 		// denotes that the log beginning has been found
 		$start      = false;
@@ -920,7 +923,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 		$records    = [];
 		$sql_prefix = 'INSERT INTO plugin_slowlog_details (logid, date, user, host, ip_address, query_time, lock_time, thread_id, `schema`, qc_hit, rows_sent, rows_examined, rows_affected, bytes_sent, oquery, query) VALUES ';
 
-		if (cacti_sizeof($entries)) {
+		if ($fh !== false) {
 			// variables related to each slowlog entry
 			$date          = 0;
 			$user          = '';
@@ -942,7 +945,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 			$lines         = 0;
 			$query_start   = false;
 
-			foreach ($entries as $l) {
+			while (($l = fgets($fh)) !== false) {
 				if ($start && substr($l, 0, 1) != '#') {
 					$query_start = true;
 				}
@@ -1112,6 +1115,29 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 					// reinitialize the records array
 					$records = [];
 				}
+			}
+
+			// fgets() returns false on both EOF and a read error, so a mid-file I/O
+			// failure would otherwise look like a clean end-of-log and get finalized as a
+			// successful (but partial) import. Check feof() before closing: if the loop
+			// stopped on a read error, fail the import instead of ingesting and
+			// post-processing a truncated log.
+			$read_failed = !feof($fh);
+
+			fclose($fh);
+
+			if ($read_failed) {
+				if ($logid !== null) {
+					db_execute_prepared('UPDATE plugin_slowlog
+						SET import_status = 3,
+						import_text_status = ?
+						WHERE logid = ?',
+						[__('Read Error - Import Aborted, Log May Be Truncated', 'slowlog'), $logid]);
+				} else {
+					print "FATAL: Read error while importing '$logfile' - aborting before end of file\n";
+				}
+
+				return;
 			}
 
 			if ($query != '') {

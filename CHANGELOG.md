@@ -2,6 +2,8 @@
 
 --- 2.6 ---
 
+* perf: Stream the slow query log a line at a time during import (`fgets()`) instead of slurping the whole file into memory with `file()`, so importing a multi-gigabyte slow query log no longer costs many times its own size in PHP array overhead - the detail rows were already flushed to the database in `SLOWLOG_IMPORT_BATCH_SIZE` batches as parsing proceeds
+* bug: Distinguish a read error from end-of-file when streaming the import - `fgets()` returns `false` for both, so a mid-file I/O error was being treated as a clean EOF and the partial import was finalized (and post-processed) as successful. `import_logfile()` now checks `feof()` before closing the handle and fails the import (status 3, "Read Error - Import Aborted, Log May Be Truncated") instead of ingesting a truncated log
 * refactor: Move the slowlog_functions.php library file into includes/ and switch every file inclusion from include/include_once to require/require_once for fail-fast consistency (references updated across setup.php, slowlog.php, import_log.php, and the test suite)
 * refactor: Move all schema management (table definitions, create, upgrade, and drop helpers) into includes/database.php (the thold model) with the Cacti copyright header; setup.php's install/uninstall/upgrade paths now require that file and delegate to it, keeping the api_plugin_db_table_create() create path and the db_update_table() upgrade refresh unchanged
 * dev: Enforce patch coverage of changed lines in CI and remove the inert COMPOSER_ROOT_VERSION env from the Pest step
