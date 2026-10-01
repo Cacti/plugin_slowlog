@@ -102,3 +102,17 @@ it('does not finalize the import as successful (status 1) when the log read erro
 		expect($call['sql'])->not->toContain('import_status = 1');
 	}
 });
+
+it('prints a FATAL read error for a CLI import with no pre-created parent record', function () {
+	ob_start();
+	import_logfile('slowlogfail://log', 'test', -1, '', false, false, null, null);
+	$output = ob_get_clean();
+
+	expect($output)->toContain('FATAL: Read error');
+
+	// With no parent logid there is nothing to mark as failed - it must not
+	// have recorded a status-3 update either.
+	foreach ($GLOBALS['__test_db_calls'] as $call) {
+		expect($call['sql'])->not->toContain('import_status = 3');
+	}
+});
