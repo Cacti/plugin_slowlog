@@ -26,7 +26,7 @@
 uses(TestCase::class);
 
 beforeEach(function () {
-	TestCase::loadPluginSource('includes/slowlog_functions.php');
+	TestCase::loadPluginSource('includes/functions.php');
 
 	$this->orig_base = $GLOBALS['config']['base_path'];
 	$this->sandbox   = sys_get_temp_dir() . '/slowlog_theme_' . bin2hex(random_bytes(4));

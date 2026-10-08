@@ -31,7 +31,7 @@
 uses(TestCase::class);
 
 beforeEach(function () {
-	TestCase::loadPluginSource('includes/slowlog_functions.php');
+	TestCase::loadPluginSource('includes/functions.php');
 
 	slowlog_test_mock_db('db_fetch_cell_prepared', 'COUNT(*)', 1);
 

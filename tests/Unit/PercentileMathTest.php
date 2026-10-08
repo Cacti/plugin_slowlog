@@ -24,7 +24,7 @@
 uses(TestCase::class);
 
 beforeEach(function () {
-	TestCase::loadPluginSource('includes/slowlog_functions.php');
+	TestCase::loadPluginSource('includes/functions.php');
 });
 
 it('computes the median of an even-length array as the average of the two middle values', function () {

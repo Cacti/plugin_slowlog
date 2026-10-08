@@ -163,7 +163,7 @@ $unmeasured_allowlist = [
 	// Web UI / CLI entry points: slowlog.php chdir + require include/auth.php and
 	// import_log.php require include/cli_check.php, then dispatch on request/CLI
 	// args, so neither can be loaded into the isolated unit process. Their logic
-	// lives in the measured includes/slowlog_functions.php.
+	// lives in the measured includes/functions.php.
 	'slowlog.php',
 	'import_log.php',
 ];

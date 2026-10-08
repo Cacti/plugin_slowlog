@@ -49,7 +49,7 @@ if (!function_exists('slowlog_test_method_calls')) {
 }
 
 beforeEach(function () {
-	TestCase::loadPluginSource('includes/slowlog_functions.php');
+	TestCase::loadPluginSource('includes/functions.php');
 });
 
 it('tags a logentry that touches a non-Cacti table', function () {

@@ -23,7 +23,7 @@ describe('output escaping in slowlog', function () {
 	it('does not interpolate raw variables into HTML attributes', function () {
 		$uiFiles = array(
 			'slowlog.php',
-			'includes/slowlog_functions.php',
+			'includes/functions.php',
 		);
 
 		foreach ($uiFiles as $relativeFile) {
@@ -78,7 +78,7 @@ describe('output escaping in slowlog', function () {
 	it('uses html_escape or __esc for user-controlled output', function () {
 		$uiFiles = array(
 			'slowlog.php',
-			'includes/slowlog_functions.php',
+			'includes/functions.php',
 		);
 
 		$totalEscapeCalls = 0;

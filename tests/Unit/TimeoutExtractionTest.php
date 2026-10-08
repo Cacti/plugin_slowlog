@@ -28,7 +28,7 @@
 uses(TestCase::class);
 
 beforeEach(function () {
-	TestCase::loadPluginSource('includes/slowlog_functions.php');
+	TestCase::loadPluginSource('includes/functions.php');
 });
 
 it('converts a MAX_EXECUTION_TIME hint from milliseconds to seconds', function () {

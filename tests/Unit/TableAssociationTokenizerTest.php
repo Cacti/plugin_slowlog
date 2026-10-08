@@ -65,7 +65,7 @@ if (!function_exists('slowlog_test_run_tokenizer')) {
 }
 
 beforeEach(function () {
-	TestCase::loadPluginSource('includes/slowlog_functions.php');
+	TestCase::loadPluginSource('includes/functions.php');
 });
 
 it('finds the table in a simple SELECT ... FROM', function () {

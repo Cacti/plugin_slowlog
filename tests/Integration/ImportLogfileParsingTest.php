@@ -43,7 +43,7 @@ if (!function_exists('slowlog_test_details_insert_sql')) {
 }
 
 beforeEach(function () {
-	TestCase::loadPluginSource('includes/slowlog_functions.php');
+	TestCase::loadPluginSource('includes/functions.php');
 
 	// Avoids the log-with-zero-rows $start warning path; not what this test covers.
 	slowlog_test_mock_db('db_fetch_cell_prepared', 'COUNT(*)', 2);

@@ -1,5 +1,6 @@
 {
     "tombstones": [
+        "includes/slowlog_functions.php",
         "keywords.txt",
         "themes/"
     ],
