@@ -3103,7 +3103,7 @@ function slowlog_get_chart_scope_items(string $chart_type, int $id): array {
  * selected, instead of a single hard-coded palette.
  *
  * Mirrors Cacti core's own rrdtheme loading (lib/rrd.php): the selected theme is
- * validated against the themes allowlist, its rrdtheme.php is included for the
+ * validated against the themes allowlist, its rrdtheme.php is required for the
  * canonical font/grid colors, and the CactiColorMode cookie's dark/light
  * variants are honored when a theme defines them. The light/dark ApexCharts mode
  * is derived from the luminance of the theme's own font color, so every current
@@ -3124,11 +3124,18 @@ function slowlog_apex_theme(): array {
 	$theme = get_selected_theme();
 	$theme = function_exists('cacti_validate_theme') ? cacti_validate_theme($theme) : basename($theme);
 
-	$rrdcolors = [];
-	$themefile = $config['base_path'] . '/include/themes/' . $theme . '/rrdtheme.php';
+	$rrdcolors   = [];
+	$themes_base = $config['base_path'] . '/include/themes';
+	$themefile   = $themes_base . '/' . $theme . '/rrdtheme.php';
 
-	if (is_readable($themefile)) {
-		include($themefile);
+	// cacti_validate_theme() already allowlists the name, but confine the resolved
+	// path to the themes directory as defense-in-depth so a poisoned theme can
+	// never steer this require() outside the tree (CVE-class path traversal). Fail
+	// fast with require() once the file is confirmed readable and contained.
+	if (strpos($themefile, "\0") === false
+		&& is_readable($themefile)
+		&& (!function_exists('cacti_path_is_within') || cacti_path_is_within($themefile, $themes_base))) {
+		require($themefile);
 
 		// Themes such as midwinter ship dark/light variants selected by the same
 		// CactiColorMode cookie core keys off of; prefer the matching variant.
