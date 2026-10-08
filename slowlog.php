@@ -340,6 +340,7 @@ function slowlog_import(): void {
 	global $config;
 
 	$selected_theme = get_selected_theme();
+	$apex           = slowlog_apex_theme();
 
 	print get_md5_include_js('plugins/slowlog/js/apexcharts.js');
 
@@ -477,6 +478,7 @@ function slowlog_import(): void {
 	</div>
 	<script type="text/javascript" <?php print plugin_slowlog_csp_nonce(); ?>>
 	(function() {
+		var slowlogThemeColors = <?php print json_encode($apex, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
 		var xhrInFlight = null;
 		var donutChart  = null;
 
@@ -516,10 +518,11 @@ function slowlog_import(): void {
 				plotOptions: {
 					radialBar: {
 						hollow: { size: '65%' },
-						track: { background: '#e0e0e0' },
+						track: { background: slowlogThemeColors.gridColor },
 						dataLabels: {
 							name: { show: false },
 							value: {
+								color: slowlogThemeColors.foreColor,
 								fontSize: '22px',
 								formatter: function(val) {
 									return Math.round(val) + '%';
@@ -1015,24 +1018,8 @@ function slowlog_view_charts(string $method): void {
 	global $config;
 
 	$selected_theme = get_selected_theme();
-
-	switch($selected_theme) {
-		case 'classic':
-		case 'modern':
-		case 'paw':
-		case 'paper-plane':
-			$mode = 'light';
-
-			break;
-		case 'dark':
-		case 'sunrise':
-		case 'midwinter':
-			$mode = 'dark';
-
-			break;
-		default:
-			$mode = 'light';
-	}
+	$apex           = slowlog_apex_theme();
+	$mode           = $apex['mode'];
 
 	print get_md5_include_js('plugins/slowlog/js/apexcharts.js');
 
@@ -1153,6 +1140,8 @@ function slowlog_view_charts(string $method): void {
 	?>
 	<script type="text/javascript" <?php print plugin_slowlog_csp_nonce(); ?>>
 
+	var slowlogThemeColors = <?php print json_encode($apex, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
+
 	function convertLabel(value) {
 		var suffix = '';
 
@@ -1200,6 +1189,7 @@ function slowlog_view_charts(string $method): void {
 				type:    'bar',
 				height:  height,
 				width:   width,
+				foreColor: slowlogThemeColors.foreColor,
 				redrawOnParentResize: true,
 				redrawOnWindowResize: true,
 				events: {
@@ -1274,6 +1264,7 @@ function slowlog_view_charts(string $method): void {
 				}
 			},
 			grid: {
+				borderColor: slowlogThemeColors.gridColor,
 				padding: {
 					left: 5,
 					right: 5
@@ -1310,6 +1301,7 @@ function slowlog_view_charts(string $method): void {
 				type:    'boxPlot',
 				height:  height,
 				width:   width,
+				foreColor: slowlogThemeColors.foreColor,
 				redrawOnParentResize: true,
 				redrawOnWindowResize: true
 			},
@@ -1361,6 +1353,7 @@ function slowlog_view_charts(string $method): void {
 				}
 			},
 			grid: {
+				borderColor: slowlogThemeColors.gridColor,
 				padding: {
 					left: 5,
 					right: 5

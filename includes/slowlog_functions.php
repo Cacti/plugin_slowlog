@@ -3096,3 +3096,89 @@ function slowlog_get_chart_scope_items(string $chart_type, int $id): array {
 
 	return $scope_items;
 }
+
+/**
+ * Resolves the active Cacti theme's chart surface colors so the plugin's
+ * ApexCharts match whatever core theme (and dark/light color mode) the user has
+ * selected, instead of a single hard-coded palette.
+ *
+ * Mirrors Cacti core's own rrdtheme loading (lib/rrd.php): the selected theme is
+ * validated against the themes allowlist, its rrdtheme.php is included for the
+ * canonical font/grid colors, and the CactiColorMode cookie's dark/light
+ * variants are honored when a theme defines them. The light/dark ApexCharts mode
+ * is derived from the luminance of the theme's own font color, so every current
+ * and future theme is covered without a hand-maintained theme-name list.
+ *
+ * Called from slowlog_import() and slowlog_view_charts() to skin the upload
+ * donut and the By Method/By Table charts.
+ *
+ * @return array{mode:string,foreColor:string,gridColor:string} ApexCharts theme
+ *               mode ('light'|'dark') plus '#rrggbb' text and gridline colors.
+ *
+ * @global array $config Cacti global configuration array; used to locate the
+ *                       active theme's rrdtheme.php.
+ */
+function slowlog_apex_theme(): array {
+	global $config;
+
+	$theme = get_selected_theme();
+	$theme = function_exists('cacti_validate_theme') ? cacti_validate_theme($theme) : basename($theme);
+
+	$rrdcolors = [];
+	$themefile = $config['base_path'] . '/include/themes/' . $theme . '/rrdtheme.php';
+
+	if (is_readable($themefile)) {
+		include($themefile);
+
+		// Themes such as midwinter ship dark/light variants selected by the same
+		// CactiColorMode cookie core keys off of; prefer the matching variant.
+		if (isset($_COOKIE['CactiColorMode']) && in_array($_COOKIE['CactiColorMode'], ['dark', 'light'], true)) {
+			$variant = 'rrdcolors_' . $_COOKIE['CactiColorMode'];
+
+			if (isset($$variant) && is_array($$variant)) {
+				$rrdcolors = array_merge($rrdcolors, $$variant);
+			}
+		}
+	}
+
+	$font = slowlog_normalize_hex_color($rrdcolors['font'] ?? '', '000000');
+	$grid = slowlog_normalize_hex_color($rrdcolors['grid'] ?? '', 'cccccc');
+
+	// A light font implies a dark theme; ApexCharts' mode drives the tooltip surface.
+	$r = hexdec(substr($font, 0, 2));
+	$g = hexdec(substr($font, 2, 2));
+	$b = hexdec(substr($font, 4, 2));
+
+	$luminance = (0.299 * $r) + (0.587 * $g) + (0.114 * $b);
+
+	return [
+		'mode'      => ($luminance >= 128) ? 'dark' : 'light',
+		'foreColor' => '#' . $font,
+		'gridColor' => '#' . $grid
+	];
+}
+
+/**
+ * Normalizes a Cacti rrdtheme color (which may carry an RRDtool alpha suffix or
+ * be shorthand) into a plain 6-digit lowercase hex string usable by CSS/SVG.
+ *
+ * Called from slowlog_apex_theme() to sanitize the theme's font/grid colors.
+ *
+ * @param string $value    Raw rrdtheme color, e.g. 'FFFFffaa' or '21212400'.
+ * @param string $fallback 6-digit hex to return when $value has no usable hex.
+ *
+ * @return string A 6-character lowercase hex string (no leading '#').
+ */
+function slowlog_normalize_hex_color(string $value, string $fallback): string {
+	$hex = preg_replace('/[^0-9A-Fa-f]/', '', $value);
+
+	if (strlen($hex) >= 6) {
+		return strtolower(substr($hex, 0, 6));
+	}
+
+	if (strlen($hex) === 3) {
+		return strtolower($hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2]);
+	}
+
+	return strtolower($fallback);
+}
