@@ -1569,11 +1569,6 @@ function slowlog_charts_filter(string $method, int $id): void {
 			}
 
 			$(function() {
-				$('#chartsfilter').submit(function(event) {
-					event.preventDefault();
-					applyChartsFilter();
-				});
-
 				$('#chartsfilter .button_clear').click(function() {
 					clearChartsFilter();
 				});
