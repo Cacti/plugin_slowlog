@@ -1544,8 +1544,8 @@ function slowlog_charts_filter(string $method, int $id): void {
 						</td>
 						<td>
 							<span>
-								<input class='button_go' type='submit' onClick='applyChartsFilter()' name='go' value='<?php print __('Go', 'slowlog'); ?>'>
-								<input class='button_clear' type='button' onClick='clearChartsFilter()' name='clear' value='<?php print __('Clear', 'slowlog'); ?>'>
+								<input class='button_go' type='submit' name='go' value='<?php print __('Go', 'slowlog'); ?>'>
+								<input class='button_clear' type='button' name='clear' value='<?php print __('Clear', 'slowlog'); ?>'>
 							</span>
 						</td>
 					</tr>
@@ -1569,6 +1569,10 @@ function slowlog_charts_filter(string $method, int $id): void {
 			}
 
 			$(function() {
+				$('#chartsfilter .button_clear').click(function() {
+					clearChartsFilter();
+				});
+
 				var $scope = $('#chart_scope');
 
 				// Cacti core turns this select into a select2 (via the select2-multi-count
@@ -1977,7 +1981,7 @@ function slowlog_save_button(string $cancel_action = '', string $action = 'save'
 		<tr>
 			<td class='saveRow'>
 				<input type='hidden' name='action' value='<?php print $action; ?>'>
-				<input type='button' value='<?php print $calt; ?>' onClick='window.location.assign('<?php print htmlspecialchars($caction); ?>')' name='cancel'>
+				<input type='button' class='cactiReturnTo' data-url='<?php print htmlspecialchars($caction); ?>' value='<?php print $calt; ?>' name='cancel'>
 				<input type='submit' value='<?php print $salt; ?>' name='<?php print $sname; ?>'>
 			</td>
 		</tr>
@@ -2013,8 +2017,8 @@ function filter(): void {
 						</td>
 						<td>
 							<span>
-								<input class='button_go' type='submit' onClick='applyFilter()' name='go' value='Go'>
-								<input class='button_clear' type='button' onClick='clearFilter()' name='clear' value='Clear'>
+								<input class='button_go' type='submit' name='go' value='Go'>
+								<input class='button_clear' type='button' name='clear' value='Clear'>
 							</span>
 						</td>
 					</tr>
@@ -2036,6 +2040,10 @@ function filter(): void {
 					$('#summary').submit(function(event) {
 						event.preventDefault();
 						applyFilter();
+					});
+
+					$('#summary .button_clear').click(function() {
+						clearFilter();
 					});
 				});
 				</script>
@@ -2077,7 +2085,7 @@ function slowlog_details_filter(): void {
 							<?php print __('LogFile', 'slowlog'); ?>
 						</td>
 						<td>
-							<select id='logid' onChange='applyFilter()'>
+							<select id='logid'>
 								<option value='-1'<?php if (get_request_var('logid') == '-1') {?> selected<?php }?>><?php print __('Any', 'slowlog'); ?></option>
 								<?php
 								$logids = db_fetch_assoc_prepared('SELECT logid, CONCAT(description) AS name
@@ -2097,7 +2105,7 @@ function slowlog_details_filter(): void {
 							<?php print __('Method', 'slowlog'); ?><?php print slowlog_details_filter_clear_glyph('mmethod'); ?>
 						</td>
 						<td>
-							<select id='mmethod' onChange='applyFilter()'>
+							<select id='mmethod'>
 								<option value='-1'<?php if (get_request_var('mmethod') == '-1') {?> selected<?php }?>><?php print __('Any', 'slowlog'); ?></option>
 								<option value='-2'<?php if (get_request_var('mmethod') == '-2') {?> selected<?php }?>><?php print __('N/A', 'slowlog'); ?></option>
 								<?php
@@ -2114,7 +2122,7 @@ function slowlog_details_filter(): void {
 							<?php print __('Tables', 'slowlog'); ?><?php print slowlog_details_filter_clear_glyph('table'); ?>
 						</td>
 						<td>
-							<select id='table' onChange='applyFilter()'>
+							<select id='table'>
 								<option value='-1'<?php if (get_request_var('table') == '-1') {?> selected<?php }?>><?php print __('Any', 'slowlog'); ?></option>
 								<option value='-2'<?php if (get_request_var('table') == '-2') {?> selected<?php }?>><?php print __('Others', 'slowlog'); ?></option>
 								<option value='-3'<?php if (get_request_var('table') == '-3') {?> selected<?php }?>><?php print __('N/A', 'slowlog'); ?></option>
@@ -2144,7 +2152,7 @@ function slowlog_details_filter(): void {
 							<?php print __('Rows', 'slowlog'); ?>
 						</td>
 						<td>
-							<select id='rows' onChange='applyFilter()'>
+							<select id='rows'>
 								<option value='-1'<?php if (get_request_var_request('rows') == '-1') {?> selected<?php }?>><?php print __('Default', 'slowlog'); ?></option>
 								<?php
 	if (cacti_sizeof($item_rows)) {
@@ -2157,8 +2165,8 @@ function slowlog_details_filter(): void {
 						</td>
 						<td>
 							<span>
-								<input class='button_go' type='submit' onClick='applyFilter()' name='go' value='<?php print __('Go', 'slowlog'); ?>'>
-								<input class='button_clear' type='button' onClick='clearFilter()' name='clear' value='<?php print __('Clear', 'slowlog'); ?>'>
+								<input class='button_go' type='submit' name='go' value='<?php print __('Go', 'slowlog'); ?>'>
+								<input class='button_clear' type='button' name='clear' value='<?php print __('Clear', 'slowlog'); ?>'>
 							</span>
 						</td>
 					</tr>
@@ -2175,7 +2183,7 @@ function slowlog_details_filter(): void {
 							<?php print __('User', 'slowlog'); ?><?php print slowlog_details_filter_clear_glyph('user'); ?>
 						</td>
 						<td>
-							<select id='myuser' onChange='applyFilter()'>
+							<select id='myuser'>
 								<option value='-1'<?php if (get_request_var('user') == '-1') {?> selected<?php }?>><?php print __('Any', 'slowlog'); ?></option>
 								<?php
 	if (get_request_var('logid') > 0) {
@@ -2203,7 +2211,7 @@ function slowlog_details_filter(): void {
 							<?php print __('Host', 'slowlog'); ?><?php print slowlog_details_filter_clear_glyph('host'); ?>
 						</td>
 						<td>
-							<select id='host' onChange='applyFilter()'>
+							<select id='host'>
 								<option value='-1'<?php if (get_request_var('host') == '-1') {?> selected<?php }?>><?php print __('Any', 'slowlog'); ?></option>
 								<?php
 	if (get_request_var('logid') > 0) {
@@ -2251,7 +2259,7 @@ function slowlog_details_filter(): void {
 						</td>
 						<td>
 							<span>
-								<i class='shiftArrow fa fa-backward' onClick='timeshiftGraphFilterLeft()' title='<?php print __esc('Shift Time Backward', 'slowlog'); ?>'></i>
+								<i class='shiftArrow fa fa-backward' title='<?php print __esc('Shift Time Backward', 'slowlog'); ?>'></i>
 								<select id='predefined_timeshift' title='<?php print __esc('Define Shifting Interval', 'slowlog'); ?>'>
 									<?php
 		$start_val = 1;
@@ -2268,11 +2276,11 @@ function slowlog_details_filter(): void {
 	}
 	?>
 								</select>
-								<i class='shiftArrow fa fa-forward' onClick='timeshiftGraphFilterRight()' title='<?php print __esc('Shift Time Forward', 'slowlog'); ?>'></i>
+								<i class='shiftArrow fa fa-forward' title='<?php print __esc('Shift Time Forward', 'slowlog'); ?>'></i>
 							</span>
 						</td>
 						<td style='display:none;'>
-							<select id='predefined_timespan' onChange='applyGraphTimespan()'>
+							<select id='predefined_timespan'>
 								<?php
 								$graph_timespans = array_merge([GT_CUSTOM => __('Custom', 'slowlog')], $graph_timespans);
 
@@ -2348,6 +2356,32 @@ var pageTab   = <?php print json_encode(get_request_var('tab'));?>;
 				$('#details').submit(function(event) {
 					event.preventDefault();
 					applyFilter();
+				});
+
+				$('#logid, #mmethod, #table, #rows, #myuser, #host').change(function() {
+					applyFilter();
+				});
+
+				$('#predefined_timespan').change(function() {
+					applyGraphTimespan();
+				});
+
+				$('#details .button_clear').click(function() {
+					clearFilter();
+				});
+
+				$(document).off('click.slowlogClear', '.slowlogClearFilter')
+					.on('click.slowlogClear', '.slowlogClearFilter', function(event) {
+						event.preventDefault();
+						loadPageNoHeader($(this).data('url'));
+					});
+
+				$('.shiftArrow.fa-backward').click(function() {
+					timeshiftGraphFilterLeft();
+				});
+
+				$('.shiftArrow.fa-forward').click(function() {
+					timeshiftGraphFilterRight();
 				});
 
 				$('#startDate').click(function() {

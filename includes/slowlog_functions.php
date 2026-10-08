@@ -3038,7 +3038,7 @@ function slowlog_details_filter_clear_glyph(string $field): string {
 	$defaults = slowlog_details_filter_defaults();
 	$url      = slowlog_details_filter_url($field, $defaults[$field]) . '&header=false';
 
-	return " <a class='pic' href='#' onclick=\"loadPageNoHeader('" . $url . "');return false;\"><i class='fa fa-trash-alt pic' title='" . __esc('Clear this filter', 'slowlog') . "'></i></a>";
+	return " <a class='pic slowlogClearFilter' href='#' data-url='" . $url . "'><i class='fa fa-trash-alt pic' title='" . __esc('Clear this filter', 'slowlog') . "'></i></a>";
 }
 
 /**

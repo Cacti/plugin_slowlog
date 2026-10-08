@@ -2,6 +2,7 @@
 
 --- 2.6 ---
 
+* security: Move the slow-query views' inline event handlers to CSP-safe bindings so the pages no longer trip Cacti's Content-Security-Policy script-src-attr directive: the charts/summary/details filter selects, Go/Clear buttons, time-shift icons and per-field clear glyph are bound in each view's ready block, and the confirmation Cancel button uses the `cactiReturnTo` class
 * perf: Stream the slow query log a line at a time during import (`fgets()`) instead of slurping the whole file into memory with `file()`, so importing a multi-gigabyte slow query log no longer costs many times its own size in PHP array overhead - the detail rows were already flushed to the database in `SLOWLOG_IMPORT_BATCH_SIZE` batches as parsing proceeds
 * bug: Distinguish a read error from end-of-file when streaming the import - `fgets()` returns `false` for both, so a mid-file I/O error was being treated as a clean EOF and the partial import was finalized (and post-processed) as successful. `import_logfile()` now checks `feof()` before closing the handle and fails the import (status 3, "Read Error - Import Aborted, Log May Be Truncated") instead of ingesting a truncated log
 * perf: Drop the `SELECT DISTINCT sld.*` from the details list query - the association tables' composite primary keys already make every `plugin_slowlog_details` x method x table join row unique, so the DISTINCT never removed a row and only forced a filesort/hash over the `mediumtext` query columns on every page of the Details view
