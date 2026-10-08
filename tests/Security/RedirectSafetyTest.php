@@ -24,7 +24,7 @@ describe('redirect safety in slowlog', function () {
 		$files = array(
 			'setup.php',
 			'slowlog.php',
-			'includes/slowlog_functions.php',
+			'includes/functions.php',
 		);
 
 		foreach ($files as $relativeFile) {

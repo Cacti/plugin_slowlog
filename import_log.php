@@ -23,7 +23,7 @@
 */
 
 require(__DIR__ . '/../../include/cli_check.php');
-require(__DIR__ . '/includes/slowlog_functions.php');
+require(__DIR__ . '/includes/functions.php');
 
 // process calling arguments
 $parms = $_SERVER['argv'];

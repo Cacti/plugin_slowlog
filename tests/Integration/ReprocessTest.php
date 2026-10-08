@@ -38,7 +38,7 @@ if (!function_exists('slowlog_test_calls_matching')) {
 }
 
 beforeEach(function () {
-	TestCase::loadPluginSource('includes/slowlog_functions.php');
+	TestCase::loadPluginSource('includes/functions.php');
 
 	// No plugin_slowlog_details rows fixture needed - this just verifies the cleanup/dispatch.
 	slowlog_test_mock_db('db_fetch_cell_prepared', 'COUNT(*)', 0);

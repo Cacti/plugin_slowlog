@@ -28,7 +28,7 @@
 uses(TestCase::class);
 
 beforeEach(function () {
-	TestCase::loadPluginSource('includes/slowlog_functions.php');
+	TestCase::loadPluginSource('includes/functions.php');
 
 	$GLOBALS['reserved_words'] = array(
 		'SELECT' => 'SELECT',

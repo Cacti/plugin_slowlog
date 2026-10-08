@@ -351,6 +351,12 @@ if (!function_exists('is_realm_allowed')) {
 	}
 }
 
+if (!function_exists('get_selected_theme')) {
+	function get_selected_theme() {
+		return isset($GLOBALS['__test_selected_theme']) ? $GLOBALS['__test_selected_theme'] : 'modern';
+	}
+}
+
 if (!function_exists('raise_message')) {
 	function raise_message($id, $text = '', $level = 0) {
 	}

@@ -16,7 +16,7 @@
 
 /*
  * slowlog_chart_measures()/slowlog_get_chart_object()/slowlog_get_stats_chart_object() back
- * the By Method/By Table chart pages. They live in slowlog_functions.php (not slowlog.php)
+ * the By Method/By Table chart pages. They live in functions.php (not slowlog.php)
  * specifically so they're safe to require_once in isolation for testing - slowlog.php itself
  * has top-level dispatch code (chdir(), include('./include/auth.php'), a switch on
  * get_request_var('action')) that only runs inside a real Cacti request.
@@ -25,7 +25,7 @@
 uses(TestCase::class);
 
 beforeEach(function () {
-	TestCase::loadPluginSource('includes/slowlog_functions.php');
+	TestCase::loadPluginSource('includes/functions.php');
 
 	slowlog_test_mock_db('db_fetch_cell_prepared', 'SELECT description', 'My Log');
 });

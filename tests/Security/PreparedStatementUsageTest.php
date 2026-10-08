@@ -22,9 +22,9 @@
 describe('prepared statement usage in slowlog', function () {
 	$setup    = file_get_contents(realpath(__DIR__ . '/../../setup.php'));
 	$slowlog  = file_get_contents(realpath(__DIR__ . '/../../slowlog.php'));
-	$helpers  = file_get_contents(realpath(__DIR__ . '/../../includes/slowlog_functions.php'));
+	$helpers  = file_get_contents(realpath(__DIR__ . '/../../includes/functions.php'));
 
-	it('reads setup.php, slowlog.php, and slowlog_functions.php', function () use ($setup, $slowlog, $helpers) {
+	it('reads setup.php, slowlog.php, and functions.php', function () use ($setup, $slowlog, $helpers) {
 		expect($setup)->not->toBeFalse();
 		expect($slowlog)->not->toBeFalse();
 		expect($helpers)->not->toBeFalse();
@@ -50,15 +50,15 @@ describe('prepared statement usage in slowlog', function () {
 		expect(preg_match_all('/\bdb_fetch_assoc_prepared\s*\(/', $slowlog))->toBeGreaterThanOrEqual(5);
 	});
 
-	it('removed raw table insert interpolation in slowlog_functions.php', function () use ($helpers) {
+	it('removed raw table insert interpolation in functions.php', function () use ($helpers) {
 		expect($helpers)->not->toContain("VALUES (\$logid, '\$t')");
 	});
 
-	it('removed raw details table interpolation in slowlog_functions.php', function () use ($helpers) {
+	it('removed raw details table interpolation in functions.php', function () use ($helpers) {
 		expect($helpers)->not->toContain('WHERE logid=$logid');
 	});
 
-	it('parameterizes methodid insert values in slowlog_functions.php', function () use ($helpers) {
+	it('parameterizes methodid insert values in functions.php', function () use ($helpers) {
 		expect($helpers)->not->toContain("SELECT '\$logid' AS logid, logentry");
 	});
 

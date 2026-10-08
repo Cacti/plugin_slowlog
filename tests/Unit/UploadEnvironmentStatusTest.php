@@ -31,7 +31,7 @@ if (!function_exists('slowlog_test_warnings_matching')) {
 }
 
 beforeEach(function () {
-	TestCase::loadPluginSource('includes/slowlog_functions.php');
+	TestCase::loadPluginSource('includes/functions.php');
 });
 
 afterEach(function () {

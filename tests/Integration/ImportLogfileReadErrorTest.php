@@ -64,7 +64,7 @@ if (!class_exists('SlowlogReadErrorStream')) {
 }
 
 beforeEach(function () {
-	TestCase::loadPluginSource('includes/slowlog_functions.php');
+	TestCase::loadPluginSource('includes/functions.php');
 
 	if (in_array('slowlogfail', stream_get_wrappers(), true)) {
 		stream_wrapper_unregister('slowlogfail');

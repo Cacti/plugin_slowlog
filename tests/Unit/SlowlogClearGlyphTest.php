@@ -7,7 +7,7 @@
 
 /*
  * Unit coverage for slowlog_details_filter_clear_glyph() in
- * includes/slowlog_functions.php. The clear-filter glyph uses a CSP-safe
+ * includes/functions.php. The clear-filter glyph uses a CSP-safe
  * slowlogClearFilter class and data-url attribute (bound via a delegated
  * handler) instead of an inline onclick.
  */
@@ -15,7 +15,7 @@
 uses(TestCase::class);
 
 beforeEach(function () {
-	TestCase::loadPluginSource('includes/slowlog_functions.php');
+	TestCase::loadPluginSource('includes/functions.php');
 });
 
 it('renders the clear-filter glyph with CSP-safe markup and no inline handler', function () {

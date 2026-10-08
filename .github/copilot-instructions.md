@@ -29,7 +29,7 @@ slowlog/                      # Repository root (install to plugins/slowlog/ in 
 ├── images/                   # UI icons
 ├── includes/                 # Library/helper files, require_once'd from the entry points
 │   ├── database.php          # Schema management: table defs + create/upgrade/drop helpers
-│   └── slowlog_functions.php # Log parsing, import, and charting logic
+│   └── functions.php         # Log parsing, import, and charting logic
 ├── js/                       # Chart rendering client-side code
 ├── locales/                  # Internationalization files
 ├── tests/                    # Test suite
@@ -207,7 +207,7 @@ existing code or adding new code, not just in dedicated cleanup passes:
   label.
 - **File inclusion uses `require`/`require_once`.** Always use `require`/`require_once` (never
   `include`/`include_once`) so a missing dependency fails fast and loudly. Keep library/helper files
-  (e.g. `slowlog_functions.php`, `includes/database.php`) under `includes/` and reference them from
+  (e.g. `functions.php`, `includes/database.php`) under `includes/` and reference them from
   that path; entry points (`slowlog.php`, `import_log.php`, `setup.php`) stay in the plugin root.
 - **Plugin schema management.** Keep every schema function (table definitions, create, upgrade,
   drop) in `includes/database.php` (the thold model), included from `setup.php`'s install/upgrade
