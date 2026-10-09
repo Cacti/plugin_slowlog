@@ -510,6 +510,7 @@ function slowlog_import(): void {
 					type: 'radialBar',
 					height: 160,
 					width: 160,
+					background: slowlogThemeColors.background,
 					sparkline: { enabled: true }
 				},
 				series: [0],
@@ -1189,6 +1190,7 @@ function slowlog_view_charts(string $method): void {
 				type:    'bar',
 				height:  height,
 				width:   width,
+				background: slowlogThemeColors.background,
 				foreColor: slowlogThemeColors.foreColor,
 				redrawOnParentResize: true,
 				redrawOnWindowResize: true,
@@ -1301,6 +1303,7 @@ function slowlog_view_charts(string $method): void {
 				type:    'boxPlot',
 				height:  height,
 				width:   width,
+				background: slowlogThemeColors.background,
 				foreColor: slowlogThemeColors.foreColor,
 				redrawOnParentResize: true,
 				redrawOnWindowResize: true
