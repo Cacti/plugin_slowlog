@@ -33,14 +33,15 @@ beforeEach(function () {
 
 	$themes = $this->sandbox . '/include/themes';
 
-	foreach (array('lightx', 'darkx', 'alphax', 'variantx') as $theme) {
+	foreach (array('lightx', 'darkx', 'alphax', 'variantx', 'canvasx') as $theme) {
 		mkdir($themes . '/' . $theme, 0777, true);
 	}
 
 	file_put_contents($themes . '/lightx/rrdtheme.php', "<?php\n\$rrdcolors['font'] = '000000';\n\$rrdcolors['grid'] = 'cccccc';\n");
-	file_put_contents($themes . '/darkx/rrdtheme.php', "<?php\n\$rrdcolors['font'] = 'FFFFFF';\n\$rrdcolors['grid'] = '545454';\n");
+	file_put_contents($themes . '/darkx/rrdtheme.php', "<?php\n\$rrdcolors['font'] = 'FFFFFF';\n\$rrdcolors['grid'] = '545454';\n\$rrdcolors['back'] = '11161D';\n");
 	file_put_contents($themes . '/alphax/rrdtheme.php', "<?php\n\$rrdcolors['font'] = 'FFFFffaa';\n\$rrdcolors['grid'] = '21212400';\n");
 	file_put_contents($themes . '/variantx/rrdtheme.php', "<?php\n\$rrdcolors['font'] = '000000';\n\$rrdcolors_dark['font'] = 'FFFFFF';\n\$rrdcolors_light['font'] = '000000';\n");
+	file_put_contents($themes . '/canvasx/rrdtheme.php', "<?php\n\$rrdcolors['font'] = 'FFFFFF';\n\$rrdcolors['canvas'] = '0B0E13';\n");
 
 	$GLOBALS['config']['base_path'] = $this->sandbox;
 });
@@ -53,7 +54,7 @@ afterEach(function () {
 
 	$themes = $this->sandbox . '/include/themes';
 
-	foreach (array('lightx', 'darkx', 'alphax', 'variantx') as $theme) {
+	foreach (array('lightx', 'darkx', 'alphax', 'variantx', 'canvasx') as $theme) {
 		@unlink($themes . '/' . $theme . '/rrdtheme.php');
 		@rmdir($themes . '/' . $theme);
 	}
@@ -85,6 +86,7 @@ it('resolves a light theme to light mode with its font/grid colors', function ()
 	expect($apex['mode'])->toBe('light');
 	expect($apex['foreColor'])->toBe('#000000');
 	expect($apex['gridColor'])->toBe('#cccccc');
+	expect($apex['background'])->toBe('#ffffff');
 });
 
 it('resolves a dark theme to dark mode from its light font luminance', function () {
@@ -95,6 +97,15 @@ it('resolves a dark theme to dark mode from its light font luminance', function 
 	expect($apex['mode'])->toBe('dark');
 	expect($apex['foreColor'])->toBe('#ffffff');
 	expect($apex['gridColor'])->toBe('#545454');
+	expect($apex['background'])->toBe('#11161d');
+});
+
+it('uses the plotting canvas color as the background when back is absent', function () {
+	$GLOBALS['__test_selected_theme'] = 'canvasx';
+
+	$apex = slowlog_apex_theme();
+
+	expect($apex['background'])->toBe('#0b0e13');
 });
 
 it('strips RRDtool alpha suffixes from the resolved theme colors', function () {
@@ -135,4 +146,5 @@ it('falls back to default colors when the theme file is missing', function () {
 	expect($apex['mode'])->toBe('light');
 	expect($apex['foreColor'])->toBe('#000000');
 	expect($apex['gridColor'])->toBe('#cccccc');
+	expect($apex['background'])->toBe('#ffffff');
 });

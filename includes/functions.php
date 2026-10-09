@@ -3112,8 +3112,9 @@ function slowlog_get_chart_scope_items(string $chart_type, int $id): array {
  * Called from slowlog_import() and slowlog_view_charts() to skin the upload
  * donut and the By Method/By Table charts.
  *
- * @return array{mode:string,foreColor:string,gridColor:string} ApexCharts theme
- *               mode ('light'|'dark') plus '#rrggbb' text and gridline colors.
+ * @return array{mode:string,foreColor:string,gridColor:string,background:string}
+ *               ApexCharts theme mode ('light'|'dark') plus '#rrggbb' text,
+ *               gridline, and chart-surface background colors.
  *
  * @global array $config Cacti global configuration array; used to locate the
  *                       active theme's rrdtheme.php.
@@ -3151,6 +3152,11 @@ function slowlog_apex_theme(): array {
 	$font = slowlog_normalize_hex_color($rrdcolors['font'] ?? '', '000000');
 	$grid = slowlog_normalize_hex_color($rrdcolors['grid'] ?? '', 'cccccc');
 
+	// The chart surface must follow the theme too, or ApexCharts paints its default
+	// white plot background over a dark theme. Prefer the theme's panel background
+	// ('back'), falling back to the plotting canvas, then white for light defaults.
+	$back = slowlog_normalize_hex_color($rrdcolors['back'] ?? ($rrdcolors['canvas'] ?? ''), 'ffffff');
+
 	// A light font implies a dark theme; ApexCharts' mode drives the tooltip surface.
 	$r = hexdec(substr($font, 0, 2));
 	$g = hexdec(substr($font, 2, 2));
@@ -3159,9 +3165,10 @@ function slowlog_apex_theme(): array {
 	$luminance = (0.299 * $r) + (0.587 * $g) + (0.114 * $b);
 
 	return [
-		'mode'      => ($luminance >= 128) ? 'dark' : 'light',
-		'foreColor' => '#' . $font,
-		'gridColor' => '#' . $grid
+		'mode'       => ($luminance >= 128) ? 'dark' : 'light',
+		'foreColor'  => '#' . $font,
+		'gridColor'  => '#' . $grid,
+		'background' => '#' . $back
 	];
 }
 
