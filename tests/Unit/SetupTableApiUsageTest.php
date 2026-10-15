@@ -144,16 +144,15 @@ it('defines the stats cache table keyed by logid/scope/scope_key/metric', functi
 		'logid', 'scope', 'scope_key', 'metric', 'sample_count', 'total_value',
 		'min_value', 'p25_value', 'median_value', 'p75_value', 'p95_value', 'max_value',
 	));
-	expect($stats['params'][2]['primary'])->toBe(array('logid', 'scope', 'scope_key', 'metric'));
+	expect($stats['params'][2]['primary'])->toBe('logid`,`scope`,`scope_key`,`metric');
 });
 
-it('declares plugin_slowlog_details\' primary key as an array, not a bare string', function () {
-	// db_update_table()'s existing-primary-key diff path (lib/database.php) passes
-	// $data['primary'] straight to array_diff() without normalizing a string to an array
-	// first - a bare string here throws "array_diff(): Argument #1 ($array) must be of
-	// type array, string given" on every request once the table already exists (only
-	// db_table_create()'s create-only path tolerates either form). Regression test for
-	// that production crash.
+it('passes plugin_slowlog_details a scalar primary key to the create API', function () {
+	// api_plugin_db_table_create() interpolates data['primary'] straight into
+	// PRIMARY KEY (`...`) down to the 1.2.29 compat floor, so an array would render as
+	// PRIMARY KEY (`Array`) and fail the create. slowlog_create_definition() collapses
+	// it to the scalar form; the shared slowlog_details_table_data() keeps the array
+	// that db_update_table() requires on the upgrade path.
 	slowlog_setup_table_new();
 
 	$calls  = slowlog_test_calls_to($GLOBALS['__test_db_calls'], 'api_plugin_db_table_create');
@@ -161,8 +160,8 @@ it('declares plugin_slowlog_details\' primary key as an array, not a bare string
 		return $call['sql'] === 'plugin_slowlog_details';
 	}));
 
-	expect($detail['params'][2]['primary'])->toBeArray();
-	expect($detail['params'][2]['primary'])->toBe(array('logentry'));
+	expect($detail['params'][2]['primary'])->toBeString();
+	expect($detail['params'][2]['primary'])->toBe('logentry');
 });
 
 it('seeds the new methods introduced for this feature', function () {
