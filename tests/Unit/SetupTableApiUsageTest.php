@@ -162,6 +162,11 @@ it('passes plugin_slowlog_details a scalar primary key to the create API', funct
 
 	expect($detail['params'][2]['primary'])->toBeString();
 	expect($detail['params'][2]['primary'])->toBe('logentry');
+
+	// The shared definition consumed by db_update_table() must keep the array form:
+	// lib/database.php array_diff()s $data['primary'] on an existing table, which
+	// fatals on a bare string.
+	expect(slowlog_details_table_data()['primary'])->toBe(array('logentry'));
 });
 
 it('seeds the new methods introduced for this feature', function () {
