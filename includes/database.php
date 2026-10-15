@@ -108,6 +108,26 @@ function slowlog_details_table_data(): array {
 }
 
 /**
+ * Returns a copy of a table definition with an array-valued 'primary'
+ * flattened to the backtick-joined scalar form api_plugin_db_table_create()
+ * expects. Down to this plugin's Cacti 1.2.29 compat floor that API
+ * interpolates $data['primary'] straight into PRIMARY KEY (`...`), so an
+ * array would render as PRIMARY KEY (`Array`) and fail the create. The array
+ * form is kept in the definitions for db_update_table().
+ *
+ * @param array<string, mixed> $data The table definition (array primary).
+ *
+ * @return array<string, mixed> The definition with a scalar primary key.
+ */
+function slowlog_create_definition(array $data): array {
+	if (isset($data['primary']) && is_array($data['primary'])) {
+		$data['primary'] = implode('`,`', $data['primary']);
+	}
+
+	return $data;
+}
+
+/**
  * Creates all of this plugin's database tables (log imports, detail
  * rows and their per-method/per-table associations, the method/table-
  * name/reserved-word reference dictionaries, and cached summary
@@ -134,9 +154,9 @@ function slowlog_setup_table_new(): void {
 	$data['row_format'] = 'Dynamic';
 	$data['comment']    = 'Each Slow Log Can be Tracked';
 
-	api_plugin_db_table_create('slowlog', 'plugin_slowlog', $data);
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog', slowlog_create_definition($data));
 
-	api_plugin_db_table_create('slowlog', 'plugin_slowlog_details', slowlog_details_table_data());
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog_details', slowlog_create_definition(slowlog_details_table_data()));
 
 	// New column since 2.1 - re-issuing this on every upgrade is safe, it's a no-op once applied.
 	api_plugin_db_add_column('slowlog', 'plugin_slowlog_details', ['name' => 'timeout', 'type' => 'double', 'NULL' => false, 'default' => 0, 'comment' => 'The timeout value detected in the query, if any', 'after' => 'query']);
@@ -152,7 +172,7 @@ function slowlog_setup_table_new(): void {
 	$data['type']       = $engine;
 	$data['row_format'] = ($engine === 'Aria') ? 'Page' : 'Dynamic';
 
-	api_plugin_db_table_create('slowlog', 'plugin_slowlog_details_methods', $data);
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog_details_methods', slowlog_create_definition($data));
 
 	$data               = [];
 	$data['columns'][]  = ['name' => 'tableid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true];
@@ -165,7 +185,7 @@ function slowlog_setup_table_new(): void {
 	$data['type']       = $engine;
 	$data['row_format'] = ($engine === 'Aria') ? 'Page' : 'Dynamic';
 
-	api_plugin_db_table_create('slowlog', 'plugin_slowlog_details_tables', $data);
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog_details_tables', slowlog_create_definition($data));
 
 	$data              = [];
 	$data['columns'][] = ['name' => 'method', 'type' => 'varchar(45)', 'NULL' => false];
@@ -177,7 +197,7 @@ function slowlog_setup_table_new(): void {
 	$data['type']       = 'InnoDB';
 	$data['row_format'] = 'Dynamic';
 
-	api_plugin_db_table_create('slowlog', 'plugin_slowlog_methods', $data);
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog_methods', slowlog_create_definition($data));
 
 	// Existing installs may still have the pre-2.4 varchar(45) width; widen it before
 	// inserting the longer ANALYZES/OPTIMIZES/CREATES seed fragments.
@@ -198,7 +218,7 @@ function slowlog_setup_table_new(): void {
 	$data['row_format']    = 'Dynamic';
 	$data['comment']       = 'Dictionary of table names seen in imported slow query logs';
 
-	api_plugin_db_table_create('slowlog', 'plugin_slowlog_table_names', $data);
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog_table_names', slowlog_create_definition($data));
 
 	db_execute('INSERT IGNORE INTO `plugin_slowlog_methods` VALUES
 		(\'INSERTS\',\'INSERT INTO,INSERT IGNORE INTO\',1),
@@ -238,7 +258,7 @@ function slowlog_setup_table_new(): void {
 	$data['type']       = 'InnoDB';
 	$data['row_format'] = 'Dynamic';
 
-	api_plugin_db_table_create('slowlog', 'plugin_slowlog_reserved_words', $data);
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog_reserved_words', slowlog_create_definition($data));
 
 	// The (id, word) primary key doesn't prevent duplicate words on a re-run, since id is
 	// auto-incrementing - only load once, when the table is still empty.
@@ -274,7 +294,7 @@ function slowlog_setup_table_new(): void {
 	$data['row_format'] = 'Dynamic';
 	$data['comment']    = 'Cached box-whisker (min/p25/median/p75/p95/max) + totals per method/table, per imported log';
 
-	api_plugin_db_table_create('slowlog', 'plugin_slowlog_stats', $data);
+	api_plugin_db_table_create('slowlog', 'plugin_slowlog_stats', slowlog_create_definition($data));
 }
 
 /**

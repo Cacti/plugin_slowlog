@@ -78,6 +78,25 @@ it('passes the slowlog plugin name for every table create call', function () {
 	}
 });
 
+it('hands api_plugin_db_table_create a scalar primary key for every table', function () {
+	// api_plugin_db_table_create() interpolates data['primary'] straight into
+	// PRIMARY KEY (`...`) down to the 1.2.29 compat floor, so an array would
+	// render as PRIMARY KEY (`Array`) and fail the create on a fresh install.
+	// db_update_table() needs the array form, so slowlog_details_table_data() keeps it.
+	slowlog_setup_table_new();
+
+	$calls = slowlog_test_calls_to($GLOBALS['__test_db_calls'], 'api_plugin_db_table_create');
+
+	expect($calls)->not->toBeEmpty();
+
+	foreach ($calls as $call) {
+		expect($call['params'][2]['primary'])->toBeString();
+	}
+
+	// the canonical definition consumed by db_update_table() keeps the array form
+	expect(slowlog_details_table_data()['primary'])->toBeArray();
+});
+
 it('adds the new timeout column via the idempotent add-column API', function () {
 	slowlog_setup_table_new();
 
