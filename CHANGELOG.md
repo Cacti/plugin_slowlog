@@ -2,6 +2,7 @@
 
 --- 2.7 ---
 
+* bug: Split the Tables of Interest list on any whitespace (spaces, tabs, line breaks). A list pasted with one table per line never matched, and repeated spaces produced empty table names
 * bug: Stop an import and mark it failed (status 3, "Import Failed - Row Insert Error") when a batch of detail rows cannot be inserted. The failed INSERT result was ignored, so the import finished as complete with those rows missing
 * bug: Truncate imported queries on a character boundary and ignore a Max Query Length of zero or less. Cutting a multibyte character in half made the batch INSERT fail, and a length of 0 stored every query as empty
 * perf: Read the detail rows in 2000-row chunks (only logentry, query and oquery) when associating tables with queries, instead of loading every column of every row of the log at once

@@ -1479,7 +1479,7 @@ function import_post_process(int $logid, string $table_names = '', bool $usecact
 		$known_tables = null;
 
 		if ($table_mode == 'list') {
-			$tables = explode(' ', trim($table_names));
+			$tables = preg_split('/\s+/', trim($table_names), -1, PREG_SPLIT_NO_EMPTY);
 		} elseif ($table_mode == 'cacti') {
 			// must run the tokenizer here (not the old known-tables-only LIKE scan) so that
 			// tables NOT in get_cacti_tables() are actually discovered and can be classified
@@ -1490,7 +1490,7 @@ function import_post_process(int $logid, string $table_names = '', bool $usecact
 		} elseif ($table_mode == 'reference') {
 			get_table_associations($logid);
 
-			$known_tables = explode(' ', trim(db_fetch_cell_prepared('SELECT import_tables FROM plugin_slowlog WHERE logid = ?', [$logid])));
+			$known_tables = preg_split('/\s+/', trim(db_fetch_cell_prepared('SELECT import_tables FROM plugin_slowlog WHERE logid = ?', [$logid])), -1, PREG_SPLIT_NO_EMPTY);
 		} else {
 			get_table_associations($logid);
 		}
