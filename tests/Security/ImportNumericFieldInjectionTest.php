@@ -28,12 +28,10 @@ uses(TestCase::class);
 
 beforeEach(function () {
 	TestCase::loadPluginSource('includes/functions.php');
+});
 
-	slowlog_test_mock_db('db_fetch_cell_prepared', 'COUNT(*)', 1);
-
-	$this->logfile = tempnam(sys_get_temp_dir(), 'slowlog_test_');
-
-	file_put_contents($this->logfile, implode("\n", array(
+it('stores zero for a non-numeric header field instead of passing it into the INSERT', function () {
+	$sql = slowlog_test_import(array(
 		'# Time: 240116  9:00:00',
 		'# User@Host: root[root] @ webhost [10.0.0.9]',
 		'# Thread_id: (SELECT/**/1)  Schema: cacti  QC_hit: No',
@@ -41,18 +39,7 @@ beforeEach(function () {
 		'# Rows_affected: 1  Bytes_sent: 1,(SELECT/**/1)',
 		'SET timestamp=1705395600;',
 		'SELECT 1;',
-		'',
-	)));
-});
-
-afterEach(function () {
-	@unlink($this->logfile);
-});
-
-it('stores zero for a non-numeric header field instead of passing it into the INSERT', function () {
-	import_logfile($this->logfile, 'test', -1, 'accounts users', false, false);
-
-	$sql = slowlog_test_last_details_insert();
+	));
 
 	expect($sql)->not->toBe('');
 	expect($sql)->not->toContain('SELECT/**/');
@@ -60,10 +47,12 @@ it('stores zero for a non-numeric header field instead of passing it into the IN
 	expect($sql)->toContain("0, 'cacti', 0, 0, 7, 1, 0, 'SELECT 1;");
 });
 
-it('keeps well-formed decimal and integer fields unchanged', function () {
-	expect(slowlog_log_number('1.234567'))->toBe('1.234567');
-	expect(slowlog_log_number('120'))->toBe('120');
-	expect(slowlog_log_number('1e5'))->toBe('0');
-	expect(slowlog_log_number('-1'))->toBe('0');
-	expect(slowlog_log_number(''))->toBe('0');
-});
+it('keeps well-formed numbers and zeroes anything else', function ($value, $expected) {
+	expect(slowlog_log_number($value))->toBe($expected);
+})->with(array(
+	'decimal'     => array('1.234567', '1.234567'),
+	'integer'     => array('120', '120'),
+	'exponent'    => array('1e5', '0'),
+	'negative'    => array('-1', '0'),
+	'empty'       => array('', '0'),
+));

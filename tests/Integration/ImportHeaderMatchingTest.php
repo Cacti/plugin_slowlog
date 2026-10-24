@@ -28,12 +28,10 @@ uses(TestCase::class);
 
 beforeEach(function () {
 	TestCase::loadPluginSource('includes/functions.php');
+});
 
-	slowlog_test_mock_db('db_fetch_cell_prepared', 'COUNT(*)', 2);
-
-	$this->logfile = tempnam(sys_get_temp_dir(), 'slowlog_test_');
-
-	file_put_contents($this->logfile, implode("\n", array(
+it('keeps a query that contains SET timestamp= as its own entry', function () {
+	$sql = slowlog_test_import(array(
 		'# Time: 240115  1:02:03',
 		'# User@Host: root[root] @ dbhost [10.0.0.5]',
 		'# Query_time: 1.0  Lock_time: 0.0  Rows_sent: 1  Rows_examined: 1',
@@ -46,18 +44,7 @@ beforeEach(function () {
 		'UPDATE events SET timestamp=NOW() WHERE id = 3',
 		'AND note = \'see # Time: here\' -- # User@Host: x',
 		'# Time: 240115  1:04:00',
-		'',
-	)));
-});
-
-afterEach(function () {
-	@unlink($this->logfile);
-});
-
-it('keeps a query that contains SET timestamp= as its own entry', function () {
-	import_logfile($this->logfile, 'test', -1, 'events', false, false);
-
-	$sql = slowlog_test_last_details_insert();
+	));
 
 	expect($sql)->toContain("'" . date('Y-m-d H:i:s', 1705280590) . "'");
 	expect($sql)->toContain('UPDATE events SET timestamp=NOW() WHERE id = 3');
@@ -66,7 +53,7 @@ it('keeps a query that contains SET timestamp= as its own entry', function () {
 });
 
 it('imports an entry whose header has no Time line, as the server writes for the same second', function () {
-	file_put_contents($this->logfile, implode("\n", array(
+	$sql = slowlog_test_import(array(
 		'# Time: 240115  1:02:03',
 		'# User@Host: cacti[cacti] @ dbhost [10.0.0.7]',
 		'# Query_time: 0.7  Lock_time: 0.0  Rows_sent: 2  Rows_examined: 9',
@@ -76,12 +63,7 @@ it('imports an entry whose header has no Time line, as the server writes for the
 		'# Query_time: 3.1  Lock_time: 0.2  Rows_sent: 4  Rows_examined: 8',
 		'SET timestamp=1705280523;',
 		'SELECT 2;',
-		'',
-	)));
-
-	import_logfile($this->logfile, 'test', 100, 'events', false, false);
-
-	$sql = slowlog_test_last_details_insert();
+	), 100);
 
 	expect($sql)->toContain("'cacti', 'dbhost', '10.0.0.7'");
 	expect($sql)->toContain("'app', 'dbhost', '10.0.0.6'");

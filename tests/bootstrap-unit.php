@@ -478,6 +478,28 @@ function slowlog_test_last_details_insert() {
 	return $sql;
 }
 
+/**
+ * Writes the given lines to a temporary slow log, imports it with import_logfile() (no background
+ * worker) and returns the bulk INSERT it issued. Needs includes/functions.php to be loaded.
+ *
+ * @param array<int, string> $lines  The log, one element per line.
+ * @param int                $length The maximum query length option.
+ * @param int|null           $logid  A pre-created parent logid, or null.
+ *
+ * @return string The INSERT SQL, or '' when none was issued.
+ */
+function slowlog_test_import(array $lines, $length = -1, $logid = null) {
+	slowlog_test_mock_db('db_fetch_cell_prepared', 'COUNT(*)', 1);
+
+	$file = tempnam(sys_get_temp_dir(), 'slowlog_test_');
+
+	file_put_contents($file, implode("\n", $lines) . "\n");
+	import_logfile($file, 'test', $length, 'accounts users', false, false, null, $logid);
+	@unlink($file);
+
+	return slowlog_test_last_details_insert();
+}
+
 function slowlog_test_load($path) {
 	global $config;
 

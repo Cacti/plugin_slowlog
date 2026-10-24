@@ -48,23 +48,13 @@ it('leaves the query alone for -1, 0 and negative lengths', function () {
 });
 
 it('keeps imported rows when the length option is zero', function () {
-	slowlog_test_mock_db('db_fetch_cell_prepared', 'COUNT(*)', 1);
-
-	$logfile = tempnam(sys_get_temp_dir(), 'slowlog_test_');
-
-	file_put_contents($logfile, implode("\n", array(
+	$sql = slowlog_test_import(array(
 		'# Time: 240116  9:00:00',
 		'# User@Host: root[root] @ webhost [10.0.0.9]',
 		'# Query_time: 0.5  Lock_time: 0.01  Rows_sent: 1  Rows_examined: 1',
 		'SET timestamp=1705395600;',
 		'SELECT 1;',
-		'',
-	)));
-
-	import_logfile($logfile, 'test', 0, 'accounts', false, false);
-	@unlink($logfile);
-
-	$sql = slowlog_test_last_details_insert();
+	), 0);
 
 	expect($sql)->toContain("'SELECT 1; ')");
 });

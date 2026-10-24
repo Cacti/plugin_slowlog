@@ -30,37 +30,14 @@ beforeEach(function () {
 	TestCase::loadPluginSource('includes/functions.php');
 });
 
-it('parses the MariaDB form', function () {
-	expect(slowlog_parse_user_host("# User@Host: root[root] @ dbhost-new [10.0.0.5]\n"))
-		->toBe(array('root', 'dbhost', '10.0.0.5'));
-});
-
-it('does not include the MySQL Id suffix in the address', function () {
-	expect(slowlog_parse_user_host("# User@Host: root[root] @ localhost [192.168.100.100]  Id:     5\n"))
-		->toBe(array('root', 'localhost', '192.168.100.100'));
-});
-
-it('keeps an IPv6 address intact', function () {
-	expect(slowlog_parse_user_host("# User@Host: app[app] @ localhost [::1]  Id: 12\n"))
-		->toBe(array('app', 'localhost', '::1'));
-});
-
-it('returns an empty host and address when the server logs neither', function () {
-	expect(slowlog_parse_user_host("# User@Host: event_scheduler[event_scheduler] @  []\n"))
-		->toBe(array('event_scheduler', '', ''));
-});
-
-it('keeps an at sign that is part of the user name', function () {
-	expect(slowlog_parse_user_host("# User@Host: svc@corp[svc@corp] @ web1.example.com [10.1.2.3]\n"))
-		->toBe(array('svc@corp', 'web1', '10.1.2.3'));
-});
-
-it('accepts a user without the bracketed name', function () {
-	expect(slowlog_parse_user_host("# User@Host: root @ localhost\n"))
-		->toBe(array('root', 'localhost', ''));
-});
-
-it('returns empty values for a line of the wrong shape', function () {
-	expect(slowlog_parse_user_host("# User@Host: garbage\n"))
-		->toBe(array('', '', ''));
-});
+it('parses the header', function ($line, $expected) {
+	expect(slowlog_parse_user_host($line))->toBe($expected);
+})->with(array(
+	'MariaDB form'                           => array("# User@Host: root[root] @ dbhost-new [10.0.0.5]\n", array('root', 'dbhost', '10.0.0.5')),
+	'MySQL Id suffix is not part of the address' => array("# User@Host: root[root] @ localhost [192.168.100.100]  Id:     5\n", array('root', 'localhost', '192.168.100.100')),
+	'IPv6 address'                           => array("# User@Host: app[app] @ localhost [::1]  Id: 12\n", array('app', 'localhost', '::1')),
+	'no host and no address'                 => array("# User@Host: event_scheduler[event_scheduler] @  []\n", array('event_scheduler', '', '')),
+	'at sign in the user name'               => array("# User@Host: svc@corp[svc@corp] @ web1.example.com [10.1.2.3]\n", array('svc@corp', 'web1', '10.1.2.3')),
+	'user without the bracketed name'        => array("# User@Host: root @ localhost\n", array('root', 'localhost', '')),
+	'wrong shape'                            => array("# User@Host: garbage\n", array('', '', '')),
+));
