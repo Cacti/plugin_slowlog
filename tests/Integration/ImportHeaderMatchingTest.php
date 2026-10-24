@@ -46,7 +46,7 @@ it('keeps a query that contains SET timestamp= as its own entry', function () {
 		'# Time: 240115  1:04:00',
 	));
 
-	expect($sql)->toContain("'" . date('Y-m-d H:i:s', 1705280590) . "'");
+	expect($sql)->toContain('FROM_UNIXTIME(1705280590)');
 	expect($sql)->toContain('UPDATE events SET timestamp=NOW() WHERE id = 3');
 	expect($sql)->toContain('see # Time: here');
 	expect(substr_count($sql, "'root', 'dbhost', '10.0.0.5'"))->toBe(2);

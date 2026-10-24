@@ -4,6 +4,7 @@
 
 * security: Cast the numeric fields parsed from a slow log header (`Query_time`, `Lock_time`, `Rows_*`, `Bytes_sent`, `Thread_id`) to plain numbers before they are placed in the bulk `plugin_slowlog_details` INSERT; a non-numeric value is stored as 0
 * security: Escape the table name used as the option value in the Details view's table filter; names are parsed from imported queries and can contain markup characters
+* bug: Store the time of each slow log entry through `FROM_UNIXTIME()` instead of formatting it with PHP's `date()`. The epoch from a `SET timestamp=` line is an absolute instant, and PHP's time zone can differ from the database session's, which shifted every stored time by the difference. A MySQL 8 ISO `# Time:` (with `Z` or an offset) is now read with its zone, and a MariaDB `# Time:` with a one digit hour no longer loses its time of day
 * bug: Make the No and Return controls on the delete confirmation page plain buttons. They were submit buttons that posted the same selected_items field as Yes, so clicking No deleted the selected logs
 * bug: Match the slow log header lines (`# Time:`, `# User@Host:`, `SET timestamp=` and the other `#` lines) only at the start of a line. A query containing `SET timestamp=` was read as a header and dropped from the import
 * bug: Parse the `# User@Host:` header with a pattern instead of splitting on every colon. The MySQL `Id:` suffix was stored as part of the client address (and IPv6 addresses were lost), which could also overflow the address column

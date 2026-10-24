@@ -200,6 +200,49 @@ function slowlog_import_failed(int $logid): void {
 }
 
 /**
+ * Returns the SQL for a timestamp column value taken from an epoch. The epoch is an absolute instant,
+ * so it goes through FROM_UNIXTIME() and the database's own session time zone, not through PHP's
+ * date(), whose zone can differ from the database's.
+ *
+ * Called from slowlog_time_expression() and import_logfile() for "SET timestamp=" lines.
+ *
+ * @param int $epoch Seconds since 1970-01-01 UTC; clamped to the range of a TIMESTAMP column.
+ *
+ * @return string The SQL expression.
+ */
+function slowlog_epoch_expression(int $epoch): string {
+	return 'FROM_UNIXTIME(' . min(max($epoch, 0), 2147483647) . ')';
+}
+
+/**
+ * Returns the SQL for the time in a "# Time:" header line. MySQL 8 writes an ISO 8601 time in UTC
+ * or with an offset ("2024-01-15T01:02:03.123456Z"), which names an absolute instant and is read
+ * with that zone. Older servers write a wall-clock "YYMMDD H:MM:SS" in the server's own zone, which
+ * is stored as written.
+ *
+ * Called from import_logfile() for each "# Time:" header.
+ *
+ * @param string $line The "# Time:" header line.
+ *
+ * @return string The SQL expression for the timestamp column.
+ */
+function slowlog_time_expression(string $line): string {
+	// the server pads a one digit hour with a second space, so split on any run of whitespace
+	$parts = preg_split('/\s+/', trim($line)) ?: [];
+	$time  = $parts[2] ?? '';
+
+	if (preg_match('/^\d{4}-\d{2}-\d{2}T/', $time)) {
+		$epoch = strtotime($time);
+
+		if ($epoch !== false) {
+			return slowlog_epoch_expression($epoch);
+		}
+	}
+
+	return db_qstr('20' . substr($time, 0, 2) . '-' . substr($time, 2, 2) . '-' . substr($time, 4, 2) . (isset($parts[3]) ? ' ' . $parts[3] : ''));
+}
+
+/**
  * Returns a numeric field from a slow log header line in a form that is safe to place
  * unquoted in the bulk INSERT, or '0' when the value is not a plain decimal number. The
  * log is user-supplied, and these fields are concatenated into the SQL text rather than
@@ -1033,7 +1076,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 
 		if ($fh !== false) {
 			// variables related to each slowlog entry
-			$date          = 0;
+			$date          = db_qstr('0');
 			$user          = '';
 			$host          = '';
 			$ip            = '';
@@ -1059,8 +1102,8 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 				}
 
 				if (strncmp($l, 'SET timestamp=', 14) === 0) {
-					$parts   = explode('=', $l);
-					$date    = date('Y-m-d H:i:s', intval($parts[1]));
+					$parts = explode('=', $l);
+					$date  = slowlog_epoch_expression(intval($parts[1]));
 				} elseif (strncmp($l, '# Time:', 7) === 0) {
 					// we are a good log, let's make an entry
 					if (!$start) {
@@ -1091,7 +1134,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 
 							$records[] = '(' .
 							$logid . ', ' .
-							db_qstr($date) . ', ' .
+							$date . ', ' .
 							db_qstr($user) . ', ' .
 							db_qstr($host) . ', ' .
 							db_qstr($ip) . ', ' .
@@ -1111,12 +1154,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 
 					$query  = '';
 					$oquery = '';
-					$p1     = explode(' ', $l);
-					$date   = '20' .
-						substr($p1[2], 0, 2) . '-' .
-						substr($p1[2], 2, 2) . '-' .
-						substr($p1[2], 4, 2) .
-						(isset($p1[3]) ? ' ' . $p1[3] : '');
+					$date   = slowlog_time_expression($l);
 
 					if ($start_time == 0) {
 						$start_time = $date;
@@ -1130,7 +1168,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 
 							$records[] = '(' .
 							$logid . ', ' .
-							db_qstr($date) . ', ' .
+							$date . ', ' .
 							db_qstr($user) . ', ' .
 							db_qstr($host) . ', ' .
 							db_qstr($ip) . ', ' .
@@ -1248,7 +1286,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 
 				$records[] = '(' .
 				$logid . ', ' .
-				db_qstr($date) . ', ' .
+				$date . ', ' .
 				db_qstr($user) . ', ' .
 				db_qstr($host) . ', ' .
 				db_qstr($ip) . ', ' .
