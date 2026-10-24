@@ -1660,7 +1660,10 @@ function get_table_associations(int $logid, int $logentry = -1): void {
 	}
 
 	foreach ($rows as $row) {
-		$tables = slowlog_extract_tables_from_query($row['query']);
+		// The stored query has its line breaks collapsed, so a trailing -- or # comment
+		// would hide the rest of the statement from the comment masking. The original text
+		// keeps its newlines.
+		$tables = slowlog_extract_tables_from_query(isset($row['oquery']) && $row['oquery'] !== '' ? $row['oquery'] : $row['query']);
 
 		if (cacti_sizeof($tables)) {
 			foreach ($tables as $t) {
