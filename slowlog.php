@@ -765,10 +765,12 @@ function slowlog_view_details(): void {
 		$rows = get_request_var('rows');
 	}
 
+	list($rows, $page) = slowlog_page_bounds($rows, get_request_var('page'));
+
 	$sql_params  = [];
 	$sql_where   = '';
 	$sql_orderby = get_order_string();
-	$sql_limit   = ' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows;
+	$sql_limit   = ' LIMIT ' . ($rows * ($page - 1)) . ',' . $rows;
 
 	// form the 'where' clause for our main sql query
 	if (get_request_var('filter') != '') {

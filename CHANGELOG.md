@@ -2,6 +2,7 @@
 
 --- 2.7 ---
 
+* bug: Bound the rows per page (1 to 1000) and the page number in the Details view before building its LIMIT. A request with a very large page size loaded every matching row, including the query text, into memory, and a negative value produced a SQL error
 * bug: Show the Slowlog tab using `is_realm_allowed()` instead of reading `user_auth_realm`, so users who get the realm through a group see it, and stop caching the answer in the session so a changed grant applies without a new login
 * bug: Record the new plugin version in `plugin_config` only after the schema upgrade succeeds. The version was written first, so a failed ALTER was never retried
 * bug: Widen columns that were too narrow for real slow log data - `user` (128), `schema` (64) and `ip_address` (45) on `plugin_slowlog_details`, table names (64) on the table association, dictionary and stats tables, and `import_text_status` (128). A value that did not fit made the INSERT fail under strict SQL mode. Existing installs are altered once when the plugin version changes to 2.7

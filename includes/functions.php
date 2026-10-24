@@ -215,6 +215,33 @@ function slowlog_log_number(string $value): string {
 	return preg_match('/^[0-9]+(?:\.[0-9]+)?$/', $value) ? $value : '0';
 }
 
+// the largest page the Details view will build, matching the biggest rows-per-page choice
+const SLOWLOG_MAX_PAGE_ROWS = 1000;
+
+/**
+ * Bounds the rows-per-page and page number taken from the request before they are used in
+ * a LIMIT clause. The request filter only checks that they are integers, so zero, negative
+ * and very large values would otherwise reach the query; a huge page size loads every
+ * matching row, including both query columns, into memory.
+ *
+ * Called from slowlog_view_details().
+ *
+ * @param mixed $rows The requested (or configured default) rows per page.
+ * @param mixed $page The requested page number.
+ *
+ * @return array{0: int, 1: int} The rows per page (1 to SLOWLOG_MAX_PAGE_ROWS, 30 when the
+ *                               value is not positive) and the page number (at least 1).
+ */
+function slowlog_page_bounds($rows, $page): array {
+	$rows = (int) $rows;
+
+	if ($rows < 1) {
+		$rows = 30;
+	}
+
+	return [min($rows, SLOWLOG_MAX_PAGE_ROWS), max(1, (int) $page)];
+}
+
 // the 5 plugin_slowlog_details columns plugin_slowlog_stats tracks a distribution for
 const SLOWLOG_STATS_METRICS = ['query_time', 'rows_sent', 'rows_examined', 'rows_affected', 'bytes_sent'];
 
