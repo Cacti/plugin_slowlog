@@ -938,7 +938,7 @@ function slowlog_view_details(): void {
 
 	$jsprefix = 'slowlog.php?action=details&logid=' . get_request_var('logid');
 
-	$nav = html_nav_bar('slowlog.php?action=details&logid=' . get_request_var('logid'), MAX_DISPLAY_PAGES, get_request_var_request('page'), $rows, $total_rows, cacti_sizeof($display_text), __('Log Entries', 'slowlog'), 'page', 'main');
+	$nav = html_nav_bar('slowlog.php?action=details&logid=' . get_request_var('logid'), MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, cacti_sizeof($display_text), __('Log Entries', 'slowlog'), 'page', 'main');
 
 	html_start_box(__('MariaDB/MySQL SlowLog Details', 'slowlog'), '100%', false, 3, 'center', '');
 	slowlog_details_filter();
@@ -2149,11 +2149,11 @@ function slowlog_details_filter(): void {
 						</td>
 						<td>
 							<select id='rows'>
-								<option value='-1'<?php if (get_request_var_request('rows') == '-1') {?> selected<?php }?>><?php print __('Default', 'slowlog'); ?></option>
+								<option value='-1'<?php if (get_request_var('rows') == '-1') {?> selected<?php }?>><?php print __('Default', 'slowlog'); ?></option>
 								<?php
 	if (cacti_sizeof($item_rows)) {
 		foreach ($item_rows as $key => $value) {
-			print "<option value='" . $key . "'" . (get_request_var_request('rows') == $key ? ' selected' : '') . '>' . $value . '</option>';
+			print "<option value='" . $key . "'" . (get_request_var('rows') == $key ? ' selected' : '') . '>' . $value . '</option>';
 		}
 	}
 	?>
