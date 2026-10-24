@@ -78,18 +78,17 @@ function e2e_upload(string $name, array $fields): array {
 
 	slowlog_e2e_request($web, 'POST', 'plugins/slowlog/slowlog.php?action=import', array_merge(['save_component_import' => '1', 'description' => $tag . $name, 'length' => '-1', 'table_mode' => 'all', 'table_names' => '', '__csrf_magic' => slowlog_e2e_token($form['body'])], $fields));
 
-	// 0 is queued and 1 is post-processing; 2 is complete and 3 is a failed import
+	// the record is written while the request runs, so a missing one means the upload was refused; an
+	// accepted one is queued (0), post-processing (1), complete (2) or failed (3) while the worker runs
 	$deadline = time() + 240;
+	$sql      = 'SELECT logid, import_status, import_text_status, import_lines FROM plugin_slowlog WHERE description = ?';
+	$row      = db_fetch_row_prepared($sql, [$tag . $name]);
 
-	do {
-		$row = db_fetch_row_prepared('SELECT logid, import_status, import_text_status, import_lines FROM plugin_slowlog WHERE description = ?', [$tag . $name]);
-
-		if ($row && $row['import_status'] >= 2) {
-			break;
-		}
-
+	while ($row && $row['import_status'] < 2 && time() < $deadline) {
 		usleep(300000);
-	} while (time() < $deadline);
+
+		$row = db_fetch_row_prepared($sql, [$tag . $name]);
+	}
 
 	if (!$row) {
 		return $out['uploads'][$name] = ['created' => false];
