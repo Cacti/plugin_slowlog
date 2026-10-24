@@ -985,10 +985,10 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 					$query_start = true;
 				}
 
-				if (strpos($l, 'SET timestamp=') !== false) {
+				if (strncmp($l, 'SET timestamp=', 14) === 0) {
 					$parts   = explode('=', $l);
 					$date    = date('Y-m-d H:i:s', intval($parts[1]));
-				} elseif (strpos($l, '# Time:') !== false) {
+				} elseif (strncmp($l, '# Time:', 7) === 0) {
 					// we are a good log, let's make an entry
 					if (!$start) {
 						// A caller (the web upload handler) may have already inserted the parent
@@ -1052,7 +1052,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 					}
 
 					$query_start = false;
-				} elseif (strpos($l, '# User@Host:') !== false) {
+				} elseif (strncmp($l, '# User@Host:', 12) === 0) {
 					if ($query_start) {
 						if ($query != '') {
 							if ($length != -1) {
@@ -1091,7 +1091,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 					$ip    = str_replace(']', '', trim($host1[1]));
 
 					$query_start = false;
-				} elseif (strpos($l, '# Query_time:') !== false) {
+				} elseif (strncmp($l, '# Query_time:', 13) === 0) {
 					$data = preg_split('/\s+/', $l) ?: [];
 
 					if (cacti_sizeof($data) < 9) {
@@ -1102,7 +1102,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 					$lock_time     = slowlog_log_number($data[4]);
 					$rows_sent     = slowlog_log_number($data[6]);
 					$rows_examined = slowlog_log_number($data[8]);
-				} elseif (strpos($l, '# Rows_affected:') !== false) {
+				} elseif (strncmp($l, '# Rows_affected:', 16) === 0) {
 					$data = preg_split('/\s+/', $l) ?: [];
 
 					if (cacti_sizeof($data) < 5) {
@@ -1111,7 +1111,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 
 					$rows_affected = slowlog_log_number($data[2]);
 					$bytes_sent    = slowlog_log_number($data[4]);
-				} elseif (strpos($l, '# Thread_id:') !== false) {
+				} elseif (strncmp($l, '# Thread_id:', 12) === 0) {
 					$data = preg_split('/\s+/', $l) ?: [];
 
 					if (cacti_sizeof($data) < 7) {
@@ -1121,7 +1121,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 					$thread_id     = slowlog_log_number($data[2]);
 					$schema        = $data[4];
 					$qc_hit        = $data[6] == 'No' ? 0 : 1;
-				} elseif (strpos($l, '# administrator command:') !== false) {
+				} elseif (strncmp($l, '# administrator command:', 24) === 0) {
 					continue;
 				} elseif ($start) {
 					if (strpos($l, '/*!32311 LOCAL */') === false) {
