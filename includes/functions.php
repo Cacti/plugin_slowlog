@@ -78,7 +78,7 @@ function get_cacti_tables(): string {
 			if ($db['Database'] == 'information_schema' || $db['Database'] == 'mysql') {
 				// Skip
 			} else {
-				$tables .= (strlen($tables) ? ' ' : '') . implode(' ', array_rekey(db_fetch_assoc('SHOW TABLES FROM ' . $db['Database']), 'Tables_in_' . $db['Database'], 'Tables_in_' . $db['Database']));
+				$tables .= (strlen($tables) ? ' ' : '') . implode(' ', array_rekey(db_fetch_assoc('SHOW TABLES FROM `' . str_replace('`', '``', $db['Database']) . '`'), 'Tables_in_' . $db['Database'], 'Tables_in_' . $db['Database']));
 			}
 		}
 	}
