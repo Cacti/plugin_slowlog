@@ -168,20 +168,26 @@ try {
 	}
 
 	// 5. the details list: every filter, with the expected number of rows taken from the database
-	$count = function (string $where, array $params) use ($big): int {
-		return (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_slowlog_details sld
+	$count = function (string $user = '', string $host = '', string $table = '', string $method = '', string $text = '') use ($big): int {
+		return (int) db_fetch_cell_prepared("SELECT COUNT(*) FROM plugin_slowlog_details sld
 			LEFT JOIN plugin_slowlog_details_tables sldt ON sld.logid = sldt.logid AND sld.logentry = sldt.logentry
 			LEFT JOIN plugin_slowlog_details_methods sldm ON sld.logid = sldm.logid AND sld.logentry = sldm.logentry
-			WHERE sld.logid = ? ' . $where, array_merge([$big], $params));
+			WHERE sld.logid = ?
+			AND (? = '' OR sld.user = ?)
+			AND (? = '' OR sld.host = ?)
+			AND (? = '' OR sldt.table_name = ?)
+			AND (? = '' OR sldm.method = ?)
+			AND (? = '' OR sld.host LIKE ? OR sld.user LIKE ? OR sld.query LIKE ? OR sld.ip_address LIKE ?)",
+			[$big, $user, $user, $host, $host, $table, $table, $method, $method, $text, '%' . $text . '%', '%' . $text . '%', '%' . $text . '%', '%' . $text . '%']);
 	};
 
 	$out['expected'] = [
-		'user'    => $count('AND sld.user = ?', ['poller']),
-		'host'    => $count('AND sld.host = ?', ['host3']),
-		'table'   => $count('AND sldt.table_name = ?', ['graph_local']),
-		'mmethod' => $count('AND sldm.method = ?', ['UPDATES']),
-		'method'  => $count('AND sldm.method = ?', ['SELECTS']),
-		'filter'  => $count('AND (sld.host LIKE ? OR sld.user LIKE ? OR sld.query LIKE ? OR sld.ip_address LIKE ?)', ['%graph_local%', '%graph_local%', '%graph_local%', '%graph_local%']),
+		'user'    => $count('poller'),
+		'host'    => $count('', 'host3'),
+		'table'   => $count('', '', 'graph_local'),
+		'mmethod' => $count('', '', '', 'UPDATES'),
+		'method'  => $count('', '', '', 'SELECTS'),
+		'filter'  => $count('', '', '', '', 'graph_local'),
 	];
 
 	$all = $base . '&reset=true&rows=1000';
