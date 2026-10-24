@@ -1,0 +1,25 @@
+/usr/sbin/mariadbd, Version: 11.8.9-MariaDB (mariadb.org binary distribution). started with:
+Tcp port: 3306  Unix socket: /run/mysqld/mysqld.sock
+Time                 Id Command    Argument
+# Time: 240115  1:02:03
+# User@Host: cacti_poller_with_a_long_user_name[cacti_poller_with_a_long_user_name] @ monitor-new.example.com [192.168.100.100]  Id:     5
+# Query_time: 1.234567  Lock_time: 0.000456  Rows_sent: 3  Rows_examined: 120
+SET timestamp=1705280523;
+SELECT h.id FROM host h -- active devices only
+JOIN graph_local gl ON gl.host_id = h.id
+WHERE h.disabled = '';
+# Time: 240115  1:03:10
+# User@Host: web[web] @ localhost [::1]  Id: 6
+# Thread_id: 6  Schema: cacti  QC_hit: No
+# Query_time: 2.000000  Lock_time: 0.000100  Rows_sent: 1  Rows_examined: 5
+# Rows_affected: 1  Bytes_sent: 512
+SET timestamp=1705280590;
+UPDATE settings SET timestamp=NOW() WHERE name = 'e2e';
+# Time: 240115  1:04:20
+# User@Host: report[report] @ batch1 [10.0.0.9]  Id: 7
+# Thread_id: 7  Schema: cacti  QC_hit: No
+# Query_time: 0.500000  Lock_time: 0.010000  Rows_sent: (SELECT/**/1)  Rows_examined: 7
+# Rows_affected: 0  Bytes_sent: 99
+SET timestamp=1705280660;
+SELECT * FROM `rrd_archive_snapshot_extended_history_table_for_capacity_report` WHERE name = 'caf' ;
+# Time: 240115  1:05:00
