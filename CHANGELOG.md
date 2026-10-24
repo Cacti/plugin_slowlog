@@ -1,5 +1,9 @@
 ## ChangeLog
 
+--- 2.7 ---
+
+* security: Cast the numeric fields parsed from a slow log header (`Query_time`, `Lock_time`, `Rows_*`, `Bytes_sent`, `Thread_id`) to plain numbers before they are placed in the bulk `plugin_slowlog_details` INSERT; a non-numeric value is stored as 0
+
 --- 2.6 ---
 
 * security: Move the slow-query views' inline event handlers to CSP-safe bindings so the pages no longer trip Cacti's Content-Security-Policy script-src-attr directive: the charts/summary/details filter selects, Go/Clear buttons, time-shift icons and per-field clear glyph are bound in each view's ready block, and the confirmation Cancel button uses the `cactiReturnTo` class

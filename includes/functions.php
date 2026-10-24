@@ -161,6 +161,22 @@ function slowlog_bulk_insert_table_rows(array $rows): void {
 	}
 }
 
+/**
+ * Returns a numeric field from a slow log header line in a form that is safe to place
+ * unquoted in the bulk INSERT, or '0' when the value is not a plain decimal number. The
+ * log is user-supplied, and these fields are concatenated into the SQL text rather than
+ * bound, so anything else (for example a subquery) must never reach the statement.
+ *
+ * Called from import_logfile() for each numeric field it parses.
+ *
+ * @param string $value The raw whitespace-delimited token from the log line.
+ *
+ * @return string The token unchanged when it is a plain decimal number, otherwise '0'.
+ */
+function slowlog_log_number(string $value): string {
+	return preg_match('/^[0-9]+(?:\.[0-9]+)?$/', $value) ? $value : '0';
+}
+
 // the 5 plugin_slowlog_details columns plugin_slowlog_stats tracks a distribution for
 const SLOWLOG_STATS_METRICS = ['query_time', 'rows_sent', 'rows_examined', 'rows_affected', 'bytes_sent'];
 
@@ -1082,10 +1098,10 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 						continue;
 					}
 
-					$query_time    = $data[2];
-					$lock_time     = $data[4];
-					$rows_sent     = $data[6];
-					$rows_examined = $data[8];
+					$query_time    = slowlog_log_number($data[2]);
+					$lock_time     = slowlog_log_number($data[4]);
+					$rows_sent     = slowlog_log_number($data[6]);
+					$rows_examined = slowlog_log_number($data[8]);
 				} elseif (strpos($l, '# Rows_affected:') !== false) {
 					$data = preg_split('/\s+/', $l) ?: [];
 
@@ -1093,8 +1109,8 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 						continue;
 					}
 
-					$rows_affected = $data[2];
-					$bytes_sent    = $data[4];
+					$rows_affected = slowlog_log_number($data[2]);
+					$bytes_sent    = slowlog_log_number($data[4]);
 				} elseif (strpos($l, '# Thread_id:') !== false) {
 					$data = preg_split('/\s+/', $l) ?: [];
 
@@ -1102,7 +1118,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 						continue;
 					}
 
-					$thread_id     = $data[2];
+					$thread_id     = slowlog_log_number($data[2]);
 					$schema        = $data[4];
 					$qc_hit        = $data[6] == 'No' ? 0 : 1;
 				} elseif (strpos($l, '# administrator command:') !== false) {
