@@ -52,7 +52,7 @@ it('never returns a page below 1', function () {
 });
 
 it('builds the Details LIMIT from the bounded values', function () {
-	$source = file_get_contents(realpath(__DIR__ . '/../../slowlog.php'));
+	$source = file_get_contents(realpath(__DIR__ . '/../../slowlog.php')) . slowlog_test_helper_source();
 
 	expect($source)->toContain('list($rows, $page) = slowlog_page_bounds($rows, get_request_var(\'page\'));');
 	expect($source)->toContain("\$sql_limit   = ' LIMIT ' . (\$rows * (\$page - 1)) . ',' . \$rows;");

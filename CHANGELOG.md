@@ -2,6 +2,11 @@
 
 --- 2.7 ---
 
+* bug: Return import and reprocessing outcomes to CLI callers, preserve failed source files, and stop post-processing after database failures
+* refactor: Separate streaming log parsing, bounded detail writes, SQL table extraction, statistics, and page queries while preserving the existing public helper functions
+* performance: Bound retained statistics samples across groups and process one scope at a time; retain exact counts, totals, minima and maxima
+* dev: Add regression coverage for import failures, parser boundaries, page queries and statistics budgets, plus a repeatable isolated profiling driver
+
 * security: Cast the numeric fields parsed from a slow log header (`Query_time`, `Lock_time`, `Rows_*`, `Bytes_sent`, `Thread_id`) to plain numbers before they are placed in the bulk `plugin_slowlog_details` INSERT; a non-numeric value is stored as 0
 * security: Escape the table name used as the option value in the Details view's table filter; names are parsed from imported queries and can contain markup characters
 * bug: Store the time of each slow log entry through `FROM_UNIXTIME()` instead of formatting it with PHP's `date()`. The epoch from a `SET timestamp=` line is an absolute instant, and PHP's time zone can differ from the database session's, which shifted every stored time by the difference. A MySQL 8 ISO `# Time:` (with `Z` or an offset) is now read with its zone, and a MariaDB `# Time:` with a one digit hour no longer loses its time of day

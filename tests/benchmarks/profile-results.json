@@ -1,0 +1,326 @@
+{
+  "baseline": "27e7149a4d1f9a443e2767cd1f967a32a7a5126d",
+  "php": "8.4.25",
+  "database": "stubbed",
+  "repetitions": 5,
+  "results": [
+    {
+      "version": "baseline",
+      "case": "stats",
+      "median_seconds": 0.488040666,
+      "peak_bytes": 31457280,
+      "runs": [
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.488040666,
+          "peak_bytes": 31457280,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.482760708,
+          "peak_bytes": 31457280,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.478763,
+          "peak_bytes": 31457280,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.49475675,
+          "peak_bytes": 31457280,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.488421958,
+          "peak_bytes": 31457280,
+          "php": "8.4.25",
+          "database": "stubbed"
+        }
+      ]
+    },
+    {
+      "version": "refactor",
+      "case": "stats",
+      "median_seconds": 0.41896425,
+      "peak_bytes": 14680064,
+      "runs": [
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.429537,
+          "peak_bytes": 14680064,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.4155735,
+          "peak_bytes": 14680064,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.41896425,
+          "peak_bytes": 14680064,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.418381625,
+          "peak_bytes": 14680064,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.421409083,
+          "peak_bytes": 14680064,
+          "php": "8.4.25",
+          "database": "stubbed"
+        }
+      ]
+    },
+    {
+      "version": "baseline",
+      "case": "ingest",
+      "median_seconds": 0.41150775,
+      "peak_bytes": 2097152,
+      "runs": [
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.41150775,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.4028625,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.40880525,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.413497458,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.420532625,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        }
+      ]
+    },
+    {
+      "version": "refactor",
+      "case": "ingest",
+      "median_seconds": 0.43752625,
+      "peak_bytes": 2097152,
+      "runs": [
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.436202708,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.4444915,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.43752625,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.4391055,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.435058625,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        }
+      ]
+    },
+    {
+      "version": "baseline",
+      "case": "tables",
+      "median_seconds": 0.240397875,
+      "peak_bytes": 2097152,
+      "runs": [
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.240397875,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.239619416,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.241340083,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.241071125,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.2398035,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        }
+      ]
+    },
+    {
+      "version": "refactor",
+      "case": "tables",
+      "median_seconds": 0.240730833,
+      "peak_bytes": 2097152,
+      "runs": [
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.239154417,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.240730833,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.241230875,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.239053834,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.240981083,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        }
+      ]
+    }
+  ]
+}
