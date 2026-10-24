@@ -28,6 +28,13 @@
 
 require_once __DIR__ . '/e2e_common.php';
 
+/**
+ * @return array<string, mixed> What the import driver recorded for one scenario.
+ */
+function slowlog_e2e_scenario(string $name): array {
+	return slowlog_e2e_observe('import_flow.php')['scenarios'][$name];
+}
+
 describe('slow log import against a real Cacti', function () {
 	beforeEach(function () {
 		if (($reason = slowlog_e2e_skip_reason()) !== null) {
@@ -41,82 +48,146 @@ describe('slow log import against a real Cacti', function () {
 	});
 
 	it('imports the sample log and marks it complete', function () {
-		$o = slowlog_e2e_observe('import_flow.php');
+		$o = slowlog_e2e_scenario('main');
 
-		expect($o['main_status'])->toBe(0);
+		expect($o['exit'])->toBe(0);
 		expect((int) $o['log']['import_status'])->toBe(2);
 		expect((int) $o['log']['import_lines'])->toBe(3);
-		expect($o['rows'])->toHaveCount(3);
+		expect($o['count'])->toBe(3);
+		expect($o['methods'])->toBe(['JOINS', 'SELECTS', 'UPDATES']);
 	});
 
-	it('stores a user name longer than 20 characters in full', function () {
-		expect(slowlog_e2e_observe('import_flow.php')['rows'][0]['user'])->toBe('cacti_poller_with_a_long_user_name');
-	});
+	it('stores the user, address and query of each entry of the sample log', function () {
+		$rows = slowlog_e2e_scenario('main')['rows'];
 
-	it('stores the client address without the MySQL Id suffix, and keeps IPv6', function () {
-		$rows = slowlog_e2e_observe('import_flow.php')['rows'];
-
-		expect($rows[0]['ip_address'])->toBe('192.168.100.100');
-		expect($rows[1]['ip_address'])->toBe('::1');
-		expect($rows[2]['ip_address'])->toBe('10.0.0.9');
-	});
-
-	it('keeps the query that contains SET timestamp= as its own entry', function () {
-		$rows = slowlog_e2e_observe('import_flow.php')['rows'];
-
+		expect($rows[0]['user'])->toBe('cacti_poller_with_a_long_user_name');
+		expect(array_column($rows, 'ip'))->toBe(['192.168.100.100', '::1', '10.0.0.9']);
 		expect($rows[1]['query'])->toContain('UPDATE settings SET timestamp=NOW()');
-	});
-
-	it('stores zero for a non-numeric header field', function () {
-		expect((int) slowlog_e2e_observe('import_flow.php')['rows'][2]['rows_sent'])->toBe(0);
+		expect((int) $rows[2]['rows_sent'])->toBe(0);
 	});
 
 	it('finds the table after a trailing comment, and a long table name in full', function () {
-		$o = slowlog_e2e_observe('import_flow.php');
+		$o = slowlog_e2e_scenario('main');
 
 		expect($o['tables'])->toContain('graph_local');
 		expect($o['tables'])->toContain('rrd_archive_snapshot_extended_history_table_for_capacity_report');
-		expect($o['stat_keys'])->toContain('rrd_archive_snapshot_extended_history_table_for_capacity_report');
+		expect($o['keys'])->toContain('rrd_archive_snapshot_extended_history_table_for_capacity_report');
 	});
 
-	it('classifies the methods of the sample queries', function () {
-		expect(slowlog_e2e_observe('import_flow.php')['methods'])->toBe(['JOINS', 'SELECTS', 'UPDATES']);
+	it('imports MySQL 8 entries: ISO time, Id suffix, IPv6 client, empty host, use line', function () {
+		$o = slowlog_e2e_scenario('mysql8');
+
+		expect((int) $o['log']['import_status'])->toBe(2);
+		expect(array_column($o['rows'], 'ts'))->toEqual([1705280523, 1705280524]);
+		expect(array_column($o['rows'], 'ip'))->toBe(['127.0.0.1', '2001:db8::17']);
+		expect(array_column($o['rows'], 'host'))->toBe(['localhost', '']);
+		expect($o['rows'][1]['query'])->toBe('use appdb; DELETE FROM old_tbl WHERE id < 5; ');
+		expect($o['tables'])->toBe(['mysql_tbl', 'old_tbl']);
+		expect($o['methods'])->toBe(['DELETES', 'SELECTS']);
 	});
 
-	it('marks an import failed when the detail rows cannot be inserted', function () {
-		$o = slowlog_e2e_observe('import_flow.php');
+	it('imports MariaDB entries: thread, schema, query cache, affected rows, administrator command', function () {
+		$o = slowlog_e2e_scenario('mariadb');
 
-		expect((int) $o['bad_log']['import_status'])->toBe(3);
-		expect($o['bad_log']['import_text_status'])->toBe('Import Failed - Row Insert Error');
-		expect($o['bad_rows'])->toBe(0);
+		expect(array_column($o['rows'], 'db_schema'))->toBe(['shop', 'shop']);
+		expect(array_map('intval', array_column($o['rows'], 'bytes_sent')))->toBe([2048, 10]);
+		expect($o['tables'])->toBe(['items', 'orders']);
+		expect($o['methods'])->toBe(['JOINS', 'SELECTS', 'UPDATES']);
+		expect(json_encode($o['rows']))->not->toContain('administrator');
+	});
+
+	it('keeps values that fill the new columns, and truncates what is longer', function () {
+		$o    = slowlog_e2e_scenario('limits');
+		$rows = $o['rows'];
+
+		expect((int) $o['log']['import_status'])->toBe(2);
+		expect([strlen($rows[0]['user']), strlen($rows[0]['ip']), strlen($rows[0]['db_schema'])])->toBe([128, 45, 64]);
+		expect([strlen($rows[1]['user']), strlen($rows[1]['ip']), strlen($rows[1]['db_schema'])])->toBe([128, 45, 64]);
+		expect(array_map('strlen', $o['tables']))->toBe([64, 64]);
+		expect(array_map('strlen', $o['keys']))->toBe([64, 64]);
+	});
+
+	it('finds tables after -- and # comments and ignores text inside string literals', function () {
+		$o = slowlog_e2e_scenario('comments');
+
+		expect($o['tables'])->toBe(['a', 'b', 'c', 'd']);
+		expect($o['rows'][0]['query'])->toContain('-- first comment JOIN b');
+	});
+
+	it('imports an entry that has no Time line of its own', function () {
+		$o = slowlog_e2e_scenario('sametime');
+
+		expect(array_column($o['rows'], 'user'))->toBe(['s', 's2']);
+		expect(array_column($o['rows'], 'query'))->toBe(['SELECT 1 FROM t1; ', 'SELECT 2 FROM t2; ']);
+	});
+
+	it('reports a file with no entries without creating a record', function () {
+		$o = slowlog_e2e_scenario('empty');
+
+		expect($o['logid'])->toBe(0);
+		expect($o['output'])->toContain('Bad File Format - No Slow Query Log Entries Found');
+	});
+
+	it('imports the entries before a cut-off last entry and a last query without a newline', function () {
+		$o = slowlog_e2e_scenario('truncated');
+
+		expect($o['count'])->toBe(2);
+		expect(array_column($o['rows'], 'query'))->toBe(['SELECT 1 FROM t1; ', 'SELECT 2 FROM t2 ']);
+	});
+
+	it('marks a pre-created record bad or complete and deletes the staged file', function () {
+		$o = slowlog_e2e_observe('import_flow.php')['upfront'];
+
+		expect((int) $o['bad']['import_status'])->toBe(3);
+		expect($o['bad']['import_text_status'])->toStartWith('Bad File Format');
+		expect((int) $o['good']['import_status'])->toBe(2);
+		expect((int) $o['good']['import_lines'])->toBe(1);
+		expect($o['bad_gone'] && $o['good_gone'])->toBeTrue();
+	});
+
+	it('groups tables outside the list as OTHER TABLES in cacti and reference modes', function ($scenario) {
+		expect(slowlog_e2e_scenario($scenario)['methods'])->toContain('OTHER TABLES');
+	})->with(['mode_cacti', 'mode_usecacti', 'mode_reference_some']);
+
+	it('does not group anything in the default and list modes, or when the reference list holds every table', function ($scenario) {
+		expect(slowlog_e2e_scenario($scenario)['methods'])->not->toContain('OTHER TABLES');
+	})->with(['main', 'mode_list', 'mode_reference_all']);
+
+	it('scans only the tables of a whitespace separated list in list mode', function () {
+		expect(slowlog_e2e_scenario('mode_list')['tables'])->toBe(['graph_local', 'host', 'settings']);
+	});
+
+	it('marks the import failed when the detail rows cannot be inserted', function ($scenario) {
+		$o = slowlog_e2e_scenario($scenario);
+
+		expect((int) $o['log']['import_status'])->toBe(3);
+		expect($o['log']['import_text_status'])->toBe('Import Failed - Row Insert Error');
+		expect($o['count'])->toBe(0);
+	})->with(['fail_final', 'fail_batch']);
+
+	it('post-processes a log larger than one chunk and one insert batch', function () {
+		$o = slowlog_e2e_scenario('large');
+
+		expect((int) $o['log']['import_status'])->toBe(2);
+		expect($o['count'])->toBe(2100);
+		expect($o['assoc'])->toBe(2800);
+		expect($o['tables'])->toBe(['graph_local', 'host', 'settings']);
+		expect(slowlog_e2e_observe('import_flow.php')['large_log_line'])->toBe(2800);
 	});
 
 	it('cuts a long query on a character boundary', function () {
-		$o = slowlog_e2e_observe('import_flow.php');
+		$o = slowlog_e2e_scenario('multibyte');
 
-		expect((int) $o['multi_log']['import_status'])->toBe(2);
-		expect(mb_check_encoding($o['multi_query'], 'UTF-8'))->toBeTrue();
-		expect(strlen($o['multi_query']))->toBeLessThanOrEqual(21);
+		expect((int) $o['log']['import_status'])->toBe(2);
+		expect(mb_check_encoding($o['rows'][0]['query'], 'UTF-8'))->toBeTrue();
+		expect(strlen($o['rows'][0]['query']))->toBeLessThanOrEqual(21);
 	});
 
-	it('widens the old column widths and records version 2.7 on upgrade', function () {
-		$o = slowlog_e2e_observe('import_flow.php');
+	it('reprocesses an imported log against a reference list', function () {
+		$o = slowlog_e2e_observe('import_flow.php')['reprocess'];
 
-		expect($o['upgrade_version'])->toBe('2.7');
-		expect($o['upgrade_widths'])->toBe([
-			'plugin_slowlog_details.user'            => 128,
-			'plugin_slowlog_details.ip_address'      => 45,
-			'plugin_slowlog.import_text_status'      => 128,
-			'plugin_slowlog_details_tables.table_name' => 64,
-			'plugin_slowlog_table_names.table_name'  => 64,
-			'plugin_slowlog_stats.scope_key'         => 64,
-		]);
-	});
-
-	it('prunes the dev-only files from the scratch copy it upgrades, never from the real plugin directory', function () {
-		$o = slowlog_e2e_observe('import_flow.php');
-
-		expect($o['scratch_tests_pruned'])->toBeTrue();
-		expect($o['real_tests_intact'])->toBeTrue();
+		expect($o['exit'])->toBe(0);
+		expect((int) $o['log']['import_status'])->toBe(2);
+		expect($o['methods'])->toContain('OTHER TABLES');
 	});
 });

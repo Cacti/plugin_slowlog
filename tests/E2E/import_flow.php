@@ -45,26 +45,28 @@ $saved_log = slowlog_e2e_redirect_log($tmp);
 
 $plugin  = $root . '/plugins/slowlog';
 $fixture = $plugin . '/tests/E2E/fixtures/sample-slow.log';
-$tag     = 'e2e-' . getmypid();
-$out     = [];
+$tag     = 'e2e' . getmypid();
+$out     = ['scenarios' => []];
+$made    = [];
 
 /**
  * Runs import_log.php for a log file and returns its exit status and output.
  *
  * @param string $logfile The log to import.
  * @param string $name    The description to import it under.
- * @param string $extra   Extra command line options.
+ * @param string $extra   Command line options after the defaults; the last of a repeated option wins.
+ * @param bool   $mode    Whether to pass --table-mode=all first.
  *
  * @return array{0: int, 1: string}
  */
-function e2e_import(string $logfile, string $name, string $extra = ''): array {
+function e2e_import(string $logfile, string $name, string $extra = '', bool $mode = true): array {
 	global $plugin;
 
 	$lines  = [];
 	$status = 0;
 
 	exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($plugin . '/import_log.php') . ' --logfile=' . escapeshellarg($logfile)
-		. ' --description=' . escapeshellarg($name) . ' --table-mode=all ' . $extra . ' 2>&1', $lines, $status);
+		. ' --description=' . escapeshellarg($name) . ($mode ? ' --table-mode=all ' : ' ') . $extra . ' 2>&1', $lines, $status);
 
 	return [$status, implode("\n", $lines)];
 }
@@ -76,41 +78,150 @@ function e2e_logid(string $name): int {
 	return (int) db_fetch_cell_prepared('SELECT logid FROM plugin_slowlog WHERE description = ?', [$name]);
 }
 
-// 1. the sample log, through the CLI the way an operator runs it
-list($status, $text) = e2e_import($fixture, $tag . '-main');
-$logid = e2e_logid($tag . '-main');
+/**
+ * Imports a log through the CLI and records what reached the plugin tables.
+ *
+ * @param string             $name   The scenario name; also the import's description suffix.
+ * @param array<int, string> $lines  The log, one element per line, or a path to an existing log.
+ * @param string             $extra  Extra command line options.
+ * @param bool               $detail Whether to keep every row (small logs only).
+ * @param bool               $mode   Whether to pass --table-mode=all.
+ */
+function e2e_scenario(string $name, $lines, string $extra = '', bool $detail = true, bool $mode = true): void {
+	global $tag, $tmp, $out, $made;
 
-$out['main_status'] = $status;
-$out['main_output'] = $text;
+	$file = is_array($lines) ? $tmp . '/' . $name . '.log' : $lines;
 
-$out['log'] = db_fetch_row_prepared('SELECT import_status, import_text_status, import_lines FROM plugin_slowlog WHERE logid = ?', [$logid]);
+	if (is_array($lines)) {
+		file_put_contents($file, implode("\n", $lines));
+	}
 
-$out['rows'] = db_fetch_assoc_prepared('SELECT user, host, ip_address, `schema`, rows_sent, rows_examined, bytes_sent, query
-	FROM plugin_slowlog_details WHERE logid = ? ORDER BY logentry', [$logid]);
+	list($status, $text) = e2e_import($file, $tag . $name, $extra, $mode);
 
-$out['tables'] = array_column(db_fetch_assoc_prepared('SELECT DISTINCT table_name FROM plugin_slowlog_details_tables WHERE logid = ? ORDER BY table_name', [$logid]), 'table_name');
-$out['stat_keys'] = array_column(db_fetch_assoc_prepared("SELECT DISTINCT scope_key FROM plugin_slowlog_stats WHERE logid = ? AND scope = 'table' ORDER BY scope_key", [$logid]), 'scope_key');
-$out['methods']   = array_column(db_fetch_assoc_prepared('SELECT DISTINCT method FROM plugin_slowlog_details_methods WHERE logid = ? ORDER BY method', [$logid]), 'method');
+	$logid = e2e_logid($tag . $name);
+	$obs   = ['exit' => $status, 'output' => substr($text, 0, 300), 'logid' => $logid, 'file_kept' => is_file($file)];
 
-$out['widths'] = [
-	'ip_address' => (int) db_fetch_cell("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'plugin_slowlog_details' AND COLUMN_NAME = 'ip_address'"),
-	'user'       => (int) db_fetch_cell("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'plugin_slowlog_details' AND COLUMN_NAME = 'user'"),
+	if ($logid) {
+		$made[] = $logid;
+
+		$obs['log']    = db_fetch_row_prepared('SELECT import_status, import_text_status, import_lines FROM plugin_slowlog WHERE logid = ?', [$logid]);
+		$obs['count']  = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_slowlog_details WHERE logid = ?', [$logid]);
+		$obs['assoc']  = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_slowlog_details_tables WHERE logid = ?', [$logid]);
+		$obs['tables'] = array_column(db_fetch_assoc_prepared('SELECT DISTINCT table_name FROM plugin_slowlog_details_tables WHERE logid = ? ORDER BY table_name', [$logid]), 'table_name');
+		$obs['keys']   = array_column(db_fetch_assoc_prepared("SELECT DISTINCT scope_key FROM plugin_slowlog_stats WHERE logid = ? AND scope = 'table' ORDER BY scope_key", [$logid]), 'scope_key');
+		$obs['methods'] = array_column(db_fetch_assoc_prepared('SELECT DISTINCT method FROM plugin_slowlog_details_methods WHERE logid = ? ORDER BY method', [$logid]), 'method');
+
+		if ($detail) {
+			$obs['rows'] = db_fetch_assoc_prepared('SELECT user, host, ip_address AS ip, `schema` AS db_schema, rows_sent, rows_examined, bytes_sent, query, UNIX_TIMESTAMP(date) AS ts
+				FROM plugin_slowlog_details WHERE logid = ? ORDER BY logentry', [$logid]);
+		}
+	}
+
+	if (is_array($lines)) {
+		@unlink($file);
+	}
+
+	$out['scenarios'][$name] = $obs;
+}
+
+/**
+ * @param array<int, string> $head The header lines of one entry.
+ */
+function e2e_entry(string $time, string $userhost, array $head, string $query): array {
+	return array_merge(['# Time: ' . $time, '# User@Host: ' . $userhost], $head, [$query]);
+}
+
+$timing = '# Query_time: 1.000000  Lock_time: 0.000100  Rows_sent: 1  Rows_examined: 1';
+
+// 1. the sample log, as an operator imports it
+e2e_scenario('main', $fixture);
+
+// 2. MySQL 8 format: ISO time, Id suffix, IPv6 client, empty host, a "use" line
+e2e_scenario('mysql8', array_merge(
+	['/usr/sbin/mysqld, Version: 8.0.36 (MySQL Community Server - GPL). started with:'],
+	e2e_entry('2024-01-15T01:02:03.123456Z', 'root[root] @ localhost [127.0.0.1]  Id:     8', ['# Query_time: 0.000123  Lock_time: 0.000000 Rows_sent: 1  Rows_examined: 1', 'SET timestamp=1705280523;'], 'SELECT * FROM mysql_tbl;'),
+	e2e_entry('2024-01-15T01:02:04.000000Z', 'app[app] @  [2001:db8::17]  Id: 9', [$timing, 'use appdb;', 'SET timestamp=1705280524;'], 'DELETE FROM old_tbl WHERE id < 5;'),
+	['# Time: 2024-01-15T01:02:05.000000Z', '']
+));
+
+// 3. MariaDB format: Thread_id, Schema, QC_hit, Rows_affected, administrator command
+e2e_scenario('mariadb', array_merge(
+	e2e_entry('240115  1:02:03', 'maria[maria] @ db1 [10.1.1.1]', ['# Thread_id: 11  Schema: shop  QC_hit: Yes', $timing, '# Rows_affected: 4  Bytes_sent: 2048', 'SET timestamp=1705280523;'], 'UPDATE orders SET paid = 1 WHERE id = 4;'),
+	['# administrator command: Prepare;'],
+	e2e_entry('240115  1:02:05', 'maria[maria] @ db1 [10.1.1.1]', ['# Thread_id: 12  Schema: shop  QC_hit: No', $timing, '# Rows_affected: 0  Bytes_sent: 10', 'SET timestamp=1705280525;'], 'SELECT id FROM orders JOIN items ON items.order_id = orders.id;'),
+	['# Time: 240115  1:02:09', '']
+));
+
+// 4. values at the column limits and beyond (the server truncates what does not fit)
+$ip45 = '0000:0000:0000:0000:0000:ffff:192.168.100.200';
+$edge = array_merge(
+	e2e_entry('240115  1:02:03', str_repeat('u', 128) . '[x] @ h1 [' . $ip45 . ']', ['# Thread_id: 1  Schema: ' . str_repeat('s', 64) . '  QC_hit: No', $timing, 'SET timestamp=1705280523;'], 'SELECT 1 FROM `' . str_repeat('t', 64) . '`;'),
+	e2e_entry('240115  1:02:04', str_repeat('v', 140) . '[x] @ h2 [' . str_repeat('9', 50) . ']', ['# Thread_id: 2  Schema: ' . str_repeat('d', 70) . '  QC_hit: No', $timing, 'SET timestamp=1705280524;'], 'SELECT 1 FROM `' . str_repeat('w', 70) . '`;'),
+	['# Time: 240115  1:02:09', '']
+);
+
+e2e_scenario('limits', $edge);
+
+// 5. queries with line breaks and comments of every kind
+e2e_scenario('comments', array_merge(
+	e2e_entry('240115  1:02:03', 'c[c] @ h [10.0.0.1]', [$timing, 'SET timestamp=1705280523;'], "SELECT * FROM a -- first comment\nJOIN b ON a.id = b.id # second comment\nLEFT JOIN c ON c.id = a.id /* third */\nWHERE a.x = '-- not a comment';"),
+	e2e_entry('240115  1:02:04', 'c[c] @ h [10.0.0.1]', [$timing, 'SET timestamp=1705280524;'], "SELECT 'FROM zzz' AS note FROM d;"),
+	['# Time: 240115  1:02:09', '']
+));
+
+// the server writes no Time line for an entry in the same second as the one before it
+e2e_scenario('sametime', array_merge(
+	e2e_entry('240115  1:02:03', 's[s] @ h [10.0.0.8]', [$timing, 'SET timestamp=1705280523;'], 'SELECT 1 FROM t1;'),
+	['# User@Host: s2[s2] @ h [10.0.0.9]', $timing, 'SET timestamp=1705280523;', 'SELECT 2 FROM t2;', '# Time: 240115  1:02:09', '']
+), '--length=200');
+
+// 6. a log with no entries, and one whose last entry is cut off
+e2e_scenario('empty', ['not a slow log', 'just text', ''], '', false);
+e2e_scenario('truncated', array_merge(
+	e2e_entry('240115  1:02:03', 't[t] @ h [10.0.0.2]', [$timing, 'SET timestamp=1705280523;'], 'SELECT 1 FROM t1;'),
+	e2e_entry('240115  1:02:04', 't[t] @ h [10.0.0.2]', [$timing, 'SET timestamp=1705280524;'], 'SELECT 2 FROM t2'),
+	['# Time: 240115  1:02:05', '# User@Host: t[t] @ h [10.0.0.2]', '# Query_time: 1.0  Lock_time: 0.0  Rows_sent: 1']
+));
+
+// 7. a parent record created up front (as the upload page does), with a bad file and a good one
+db_execute_prepared('INSERT INTO plugin_slowlog (description) VALUES (?)', [$tag . 'upfront-bad']);
+$upfront_bad = (int) db_fetch_insert_id();
+db_execute_prepared('INSERT INTO plugin_slowlog (description) VALUES (?)', [$tag . 'upfront-good']);
+$upfront_good = (int) db_fetch_insert_id();
+$made[] = $upfront_bad;
+$made[] = $upfront_good;
+
+file_put_contents($tmp . '/upfront-bad.log', "not a log\n");
+file_put_contents($tmp . '/upfront-good.log', implode("\n", e2e_entry('240115  1:02:03', 'u[u] @ h [10.0.0.3]', [$timing, 'SET timestamp=1705280523;'], 'SELECT 1 FROM t1;')) . "\n# Time: 240115  1:02:09\n");
+
+e2e_import($tmp . '/upfront-bad.log', $tag . 'upfront-bad', '--logid=' . $upfront_bad . ' --delete-after');
+e2e_import($tmp . '/upfront-good.log', $tag . 'upfront-good', '--logid=' . $upfront_good . ' --delete-after');
+
+$out['upfront'] = [
+	'bad'       => db_fetch_row_prepared('SELECT import_status, import_text_status FROM plugin_slowlog WHERE logid = ?', [$upfront_bad]),
+	'good'      => db_fetch_row_prepared('SELECT import_status, import_text_status, import_lines FROM plugin_slowlog WHERE logid = ?', [$upfront_good]),
+	'bad_gone'  => !is_file($tmp . '/upfront-bad.log'),
+	'good_gone' => !is_file($tmp . '/upfront-good.log'),
 ];
 
-// 2. a failed INSERT must fail the import instead of completing it with rows missing; the
-// trigger stands in for any server side failure (a packet over max_allowed_packet, a lock
-// timeout) and is removed again afterwards
-$bad = $tmp . '/' . $tag . '-bad.log';
+// 8. table modes
+$reference = "host\ngraph_local\n\tsettings  rrd_archive_snapshot_extended_history_table_for_capacity_report\n";
 
-file_put_contents($bad, implode("\n", [
-	'# Time: 240115  1:02:03',
-	'# User@Host: e2e_fail_user[e2e_fail_user] @ localhost [127.0.0.1]  Id: 5',
-	'# Query_time: 1.0  Lock_time: 0.0  Rows_sent: 1  Rows_examined: 1',
-	'SET timestamp=1705280523;',
-	'SELECT 1;',
-	'# Time: 240115  1:05:00',
-	'',
-]));
+e2e_scenario('mode_cacti', $fixture, '--table-mode=cacti', false);
+e2e_scenario('mode_usecacti', $fixture, '--usecacti', false, false);
+e2e_scenario('mode_reference_some', $fixture, '--table-mode=reference --table-names=' . escapeshellarg("host\ngraph_local\n"), false);
+e2e_scenario('mode_reference_all', $fixture, '--table-mode=reference --table-names=' . escapeshellarg($reference), false);
+e2e_scenario('mode_list', $fixture, '--table-names=' . escapeshellarg("host\t graph_local\nsettings"), false, false);
+
+// 9. a failing INSERT stops the import: through the final flush, and through a full batch
+$synthetic = ['SELECT * FROM host WHERE id = {i}', 'UPDATE graph_local SET x = {i} WHERE id = 1', "SELECT a.id FROM settings AS a -- c\nJOIN host ON host.id = a.id"];
+
+slowlog_e2e_synthetic_log($tmp . '/fail-final.log', 3, $synthetic);
+slowlog_e2e_synthetic_log($tmp . '/fail-batch.log', SLOWLOG_IMPORT_BATCH_SIZE + 5, $synthetic);
+
+foreach (['fail-final', 'fail-batch'] as $name) {
+	file_put_contents($tmp . '/' . $name . '.log', preg_replace('/# User@Host: cacti\[cacti\]/', '# User@Host: e2e_fail_user[x]', (string) file_get_contents($tmp . '/' . $name . '.log'), 1));
+}
 
 db_execute('DROP TRIGGER IF EXISTS slowlog_e2e_fail');
 db_execute("CREATE TRIGGER slowlog_e2e_fail BEFORE INSERT ON plugin_slowlog_details FOR EACH ROW
@@ -120,95 +231,41 @@ db_execute("CREATE TRIGGER slowlog_e2e_fail BEFORE INSERT ON plugin_slowlog_deta
 		END IF;
 	END");
 
-list($status, $text) = e2e_import($bad, $tag . '-bad');
-$bad_id = e2e_logid($tag . '-bad');
+e2e_scenario('fail_final', $tmp . '/fail-final.log', '', false);
+e2e_scenario('fail_batch', $tmp . '/fail-batch.log', '', false);
 
 db_execute('DROP TRIGGER IF EXISTS slowlog_e2e_fail');
+@unlink($tmp . '/fail-final.log');
+@unlink($tmp . '/fail-batch.log');
 
-$out['bad_log']  = db_fetch_row_prepared('SELECT import_status, import_text_status FROM plugin_slowlog WHERE logid = ?', [$bad_id]);
-$out['bad_rows'] = (int) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_slowlog_details WHERE logid = ?', [$bad_id]);
-@unlink($bad);
+// 10. a log larger than one chunk of detail rows (2000) and one INSERT batch (1000)
+slowlog_e2e_synthetic_log($tmp . '/large.log', 2100, $synthetic);
+file_put_contents($tmp . '/cacti.log', '');
 
-// 3. a length cap must not cut a multibyte character in half
-$multi = $tmp . '/' . $tag . '-multi.log';
+e2e_scenario('large', $tmp . '/large.log', '', false);
 
-file_put_contents($multi, implode("\n", [
-	'# Time: 240115  1:02:03',
-	'# User@Host: root[root] @ localhost [127.0.0.1]  Id: 5',
-	'# Query_time: 1.0  Lock_time: 0.0  Rows_sent: 1  Rows_examined: 1',
-	'SET timestamp=1705280523;',
-	"SELECT '" . str_repeat("\u{00e9}", 40) . "' FROM host;",
-	'# Time: 240115  1:05:00',
-	'',
-]));
+$out['large_log_line'] = preg_match('/Post Processing Tables associated: (\d+)/', (string) file_get_contents($tmp . '/cacti.log'), $m) ? (int) $m[1] : 0;
 
-list($status, $text) = e2e_import($multi, $tag . '-multi', '--length=21');
-$multi_id = e2e_logid($tag . '-multi');
+// 11. the length option on multibyte text, and reprocessing an existing log
+e2e_scenario('multibyte', array_merge(
+	e2e_entry('240115  1:02:03', 'm[m] @ h [10.0.0.4]', [$timing, 'SET timestamp=1705280523;'], "SELECT '" . str_repeat("\u{00e9}", 40) . "' FROM host;"),
+	['# Time: 240115  1:02:09', '']
+), '--length=21');
 
-$out['multi_log']   = db_fetch_row_prepared('SELECT import_status FROM plugin_slowlog WHERE logid = ?', [$multi_id]);
-$out['multi_query'] = (string) db_fetch_cell_prepared('SELECT query FROM plugin_slowlog_details WHERE logid = ?', [$multi_id]);
-@unlink($multi);
+$reprocess = e2e_logid($tag . 'main');
 
-// 4. the upgrade path: an install at the old schema and version is widened and re-versioned
-$old = ['plugin_slowlog_details' => [['user', 'varchar(20) NOT NULL'], ['ip_address', 'varchar(15) NOT NULL']],
-	'plugin_slowlog' => [['import_text_status', "varchar(40) NOT NULL DEFAULT ''"]],
-	'plugin_slowlog_details_tables' => [['table_name', 'varchar(45) NOT NULL']],
-	'plugin_slowlog_table_names' => [['table_name', "varchar(45) NOT NULL DEFAULT ''"]],
-	'plugin_slowlog_stats' => [['scope_key', 'varchar(45) NOT NULL']]];
+exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($plugin . '/import_log.php') . ' --reprocess=' . $reprocess . ' --table-names=' . escapeshellarg("host\ngraph_local") . ' --table-mode=reference 2>&1', $ignore, $status);
 
-// rows from the sample import would not fit the old widths, so remove them first
-foreach ([$logid, $bad_id, $multi_id] as $id) {
+$out['reprocess'] = [
+	'exit'    => $status,
+	'log'     => db_fetch_row_prepared('SELECT import_status, import_text_status FROM plugin_slowlog WHERE logid = ?', [$reprocess]),
+	'methods' => array_column(db_fetch_assoc_prepared('SELECT DISTINCT method FROM plugin_slowlog_details_methods WHERE logid = ? ORDER BY method', [$reprocess]), 'method'),
+];
+
+foreach ($made as $id) {
 	api_slowlog_remove($id);
 }
 
-foreach ($old as $table => $columns) {
-	foreach ($columns as $column) {
-		db_execute("ALTER TABLE `$table` MODIFY COLUMN `{$column[0]}` {$column[1]}");
-	}
-}
-
-// slowlog_check_upgrade() prunes the dev-only files, tests/ included, from base_path/plugins/slowlog
-// once the upgrade succeeds. Run it against a scratch copy of the plugin directory so a test run can
-// never delete the real tree. The copy's database.php is an empty stub because the real one is
-// already loaded.
-$scratch = $tmp . '/upgrade-tree';
-
-slowlog_e2e_copy_tree($plugin, $scratch . '/plugins/slowlog');
-file_put_contents($scratch . '/plugins/slowlog/includes/database.php', "<?php\n");
-
-$real_base = $config['base_path'];
-$real_version = db_fetch_cell_prepared('SELECT version FROM plugin_config WHERE directory = ?', ['slowlog']);
-
-db_execute_prepared('UPDATE plugin_config SET version = ? WHERE directory = ?', ['2.6', 'slowlog']);
-
-$_SERVER['PHP_SELF'] = '/cacti/plugins.php';
-$config['base_path'] = $scratch;
-
-try {
-	slowlog_check_upgrade();
-} finally {
-	$config['base_path'] = $real_base;
-
-	// a run that stopped half way must not leave the installed version behind the code
-	if (db_fetch_cell_prepared('SELECT version FROM plugin_config WHERE directory = ?', ['slowlog']) != $real_version) {
-		db_execute_prepared('UPDATE plugin_config SET version = ? WHERE directory = ?', [$real_version, 'slowlog']);
-	}
-}
-
-$out['upgrade_version']       = db_fetch_cell_prepared('SELECT version FROM plugin_config WHERE directory = ?', ['slowlog']);
-$out['scratch_tests_pruned']  = !is_dir($scratch . '/plugins/slowlog/tests');
-$out['real_tests_intact']     = is_file($plugin . '/tests/bin/patch-coverage.php') && is_file($fixture);
-$out['upgrade_widths']  = [];
-
-foreach ($old as $table => $columns) {
-	foreach ($columns as $column) {
-		$out['upgrade_widths'][$table . '.' . $column[0]] = (int) db_fetch_cell_prepared('SELECT CHARACTER_MAXIMUM_LENGTH
-			FROM information_schema.COLUMNS
-			WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?', [$table, $column[0]]);
-	}
-}
-
 slowlog_e2e_restore_log_setting($saved_log);
-slowlog_e2e_remove_tree($scratch);
 
 print json_encode($out) . PHP_EOL;
