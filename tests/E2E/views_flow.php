@@ -34,7 +34,7 @@ if (PHP_SAPI !== 'cli' || getenv('SLOWLOG_E2E') !== '1' || !is_dir((string) gete
 
 require_once __DIR__ . '/e2e_boot.php';
 
-$admin   = slowlog_e2e_user('e2e_views_admin', [slowlog_e2e_realm()]);
+$admin   = slowlog_e2e_user('e2e_views_admin', [slowlog_e2e_realm(), slowlog_e2e_manage_realm()]);
 $web     = slowlog_e2e_web_start($tmp);
 $made    = [];
 $markers = ['Fatal error', 'Parse error', 'Warning:', 'Notice:', 'Deprecated:', 'Undefined '];

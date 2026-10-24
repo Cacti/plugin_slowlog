@@ -1,5 +1,12 @@
 ## ChangeLog
 
+--- 2.8 ---
+
+* security: Add a management realm, "Plugin -> MySQL Slow Log Management". Importing, uploading and deleting logs now need it in addition to the viewing realm; a user who holds only the viewing realm can read the list, details, query and chart pages. The import form, an upload and a delete are refused for such a user and the list no longer shows the Import link, the checkboxes or the actions menu
+* bug: The upgrade to 2.8 registers the management realm and grants it to every user and every group that holds the viewing realm, once, so nobody loses import or delete when upgrading. A later narrowing by an administrator is not undone, because the grant runs only on the way up from an older version
+* bug: Raise the PHP execution time and memory limits only for the import form, an upload and a delete, instead of for every request to the page. Viewing a log now runs with the limits the web server is configured with; the page size is already bounded
+* dev: Cover the realm checks, the grant on upgrade (once, and not undone) with unit and end-to-end tests
+
 --- 2.7 ---
 
 * security: Cast the numeric fields parsed from a slow log header (`Query_time`, `Lock_time`, `Rows_*`, `Bytes_sent`, `Thread_id`) to plain numbers before they are placed in the bulk `plugin_slowlog_details` INSERT; a non-numeric value is stored as 0

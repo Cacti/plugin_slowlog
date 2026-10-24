@@ -30,6 +30,10 @@ msgstr ""
 msgid "Import Failed - Row Insert Error"
 msgstr ""
 
+#: slowlog.php
+msgid "ERROR: You do not have permission to import or delete Slowlog files."
+msgstr ""
+
 #: includes/slowlog_functions.php
 msgid "Bad File Format - No Slow Query Log Entries Found"
 msgstr ""
