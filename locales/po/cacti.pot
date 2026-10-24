@@ -26,6 +26,10 @@ msgstr ""
 msgid "Read Error - Import Aborted, Log May Be Truncated"
 msgstr ""
 
+#: includes/functions.php
+msgid "Import Failed - Row Insert Error"
+msgstr ""
+
 #: includes/slowlog_functions.php
 msgid "Bad File Format - No Slow Query Log Entries Found"
 msgstr ""
