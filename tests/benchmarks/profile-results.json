@@ -1,5 +1,5 @@
 {
-  "baseline": "27e7149a4d1f9a443e2767cd1f967a32a7a5126d",
+  "baseline": "c81fe12a401cacb6cce31282e9198a5762221919",
   "php": "8.4.25",
   "database": "stubbed",
   "repetitions": 5,
@@ -7,14 +7,14 @@
     {
       "version": "baseline",
       "case": "stats",
-      "median_seconds": 0.488040666,
+      "median_seconds": 0.498099709,
       "peak_bytes": 31457280,
       "runs": [
         {
           "case": "stats",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.488040666,
+          "seconds": 0.5258865,
           "peak_bytes": 31457280,
           "php": "8.4.25",
           "database": "stubbed"
@@ -23,7 +23,7 @@
           "case": "stats",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.482760708,
+          "seconds": 0.498099709,
           "peak_bytes": 31457280,
           "php": "8.4.25",
           "database": "stubbed"
@@ -32,7 +32,7 @@
           "case": "stats",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.478763,
+          "seconds": 0.495398417,
           "peak_bytes": 31457280,
           "php": "8.4.25",
           "database": "stubbed"
@@ -41,7 +41,7 @@
           "case": "stats",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.49475675,
+          "seconds": 0.493131584,
           "peak_bytes": 31457280,
           "php": "8.4.25",
           "database": "stubbed"
@@ -50,7 +50,7 @@
           "case": "stats",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.488421958,
+          "seconds": 0.513453709,
           "peak_bytes": 31457280,
           "php": "8.4.25",
           "database": "stubbed"
@@ -60,14 +60,14 @@
     {
       "version": "refactor",
       "case": "stats",
-      "median_seconds": 0.41896425,
+      "median_seconds": 0.458813458,
       "peak_bytes": 14680064,
       "runs": [
         {
           "case": "stats",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.429537,
+          "seconds": 0.460331333,
           "peak_bytes": 14680064,
           "php": "8.4.25",
           "database": "stubbed"
@@ -76,7 +76,7 @@
           "case": "stats",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.4155735,
+          "seconds": 0.455543791,
           "peak_bytes": 14680064,
           "php": "8.4.25",
           "database": "stubbed"
@@ -85,7 +85,7 @@
           "case": "stats",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.41896425,
+          "seconds": 0.458813458,
           "peak_bytes": 14680064,
           "php": "8.4.25",
           "database": "stubbed"
@@ -94,7 +94,7 @@
           "case": "stats",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.418381625,
+          "seconds": 0.452139833,
           "peak_bytes": 14680064,
           "php": "8.4.25",
           "database": "stubbed"
@@ -103,7 +103,7 @@
           "case": "stats",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.421409083,
+          "seconds": 0.460223958,
           "peak_bytes": 14680064,
           "php": "8.4.25",
           "database": "stubbed"
@@ -113,14 +113,14 @@
     {
       "version": "baseline",
       "case": "ingest",
-      "median_seconds": 0.41150775,
+      "median_seconds": 0.42903925,
       "peak_bytes": 2097152,
       "runs": [
         {
           "case": "ingest",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.41150775,
+          "seconds": 0.437912542,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -129,7 +129,7 @@
           "case": "ingest",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.4028625,
+          "seconds": 0.423615125,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -138,7 +138,7 @@
           "case": "ingest",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.40880525,
+          "seconds": 0.42903925,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -147,7 +147,7 @@
           "case": "ingest",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.413497458,
+          "seconds": 0.416132125,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -156,7 +156,7 @@
           "case": "ingest",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.420532625,
+          "seconds": 0.439437958,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -166,14 +166,14 @@
     {
       "version": "refactor",
       "case": "ingest",
-      "median_seconds": 0.43752625,
+      "median_seconds": 0.390664625,
       "peak_bytes": 2097152,
       "runs": [
         {
           "case": "ingest",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.436202708,
+          "seconds": 0.403556292,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -182,7 +182,7 @@
           "case": "ingest",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.4444915,
+          "seconds": 0.383948917,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -191,7 +191,7 @@
           "case": "ingest",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.43752625,
+          "seconds": 0.381581584,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -200,7 +200,7 @@
           "case": "ingest",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.4391055,
+          "seconds": 0.390762125,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -209,7 +209,7 @@
           "case": "ingest",
           "entries": 100000,
           "groups": 64,
-          "seconds": 0.435058625,
+          "seconds": 0.390664625,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -219,14 +219,14 @@
     {
       "version": "baseline",
       "case": "tables",
-      "median_seconds": 0.240397875,
+      "median_seconds": 0.235515292,
       "peak_bytes": 2097152,
       "runs": [
         {
           "case": "tables",
           "entries": 10000,
           "groups": 64,
-          "seconds": 0.240397875,
+          "seconds": 0.235349375,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -235,7 +235,7 @@
           "case": "tables",
           "entries": 10000,
           "groups": 64,
-          "seconds": 0.239619416,
+          "seconds": 0.234072625,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -244,7 +244,7 @@
           "case": "tables",
           "entries": 10000,
           "groups": 64,
-          "seconds": 0.241340083,
+          "seconds": 0.237612417,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -253,7 +253,7 @@
           "case": "tables",
           "entries": 10000,
           "groups": 64,
-          "seconds": 0.241071125,
+          "seconds": 0.235515292,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -262,7 +262,7 @@
           "case": "tables",
           "entries": 10000,
           "groups": 64,
-          "seconds": 0.2398035,
+          "seconds": 0.238649792,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -272,14 +272,14 @@
     {
       "version": "refactor",
       "case": "tables",
-      "median_seconds": 0.240730833,
+      "median_seconds": 0.237336792,
       "peak_bytes": 2097152,
       "runs": [
         {
           "case": "tables",
           "entries": 10000,
           "groups": 64,
-          "seconds": 0.239154417,
+          "seconds": 0.234339417,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -288,7 +288,7 @@
           "case": "tables",
           "entries": 10000,
           "groups": 64,
-          "seconds": 0.240730833,
+          "seconds": 0.236929166,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -297,7 +297,7 @@
           "case": "tables",
           "entries": 10000,
           "groups": 64,
-          "seconds": 0.241230875,
+          "seconds": 0.237336792,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -306,7 +306,7 @@
           "case": "tables",
           "entries": 10000,
           "groups": 64,
-          "seconds": 0.239053834,
+          "seconds": 0.239337083,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"
@@ -315,7 +315,7 @@
           "case": "tables",
           "entries": 10000,
           "groups": 64,
-          "seconds": 0.240981083,
+          "seconds": 0.238890583,
           "peak_bytes": 2097152,
           "php": "8.4.25",
           "database": "stubbed"

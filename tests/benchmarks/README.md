@@ -10,15 +10,15 @@ mise exec php@8.4.25 -- php tests/benchmarks/profile_pipeline.php --case=ingest 
 mise exec php@8.4.25 -- php tests/benchmarks/profile_pipeline.php --case=tables --entries=10000
 ```
 
-Use `--root=/path/to/baseline` to run the same driver against another checkout. Each measurement must run in a fresh PHP process. `profile-results.json` records five runs per case for base `27e7149a4d1f9a443e2767cd1f967a32a7a5126d` and the refactor, on the same host with PHP 8.4.25 and seed 12345.
+Use `--root=/path/to/baseline` to run the same driver against another checkout. Each measurement must run in a fresh PHP process. `profile-results.json` records five runs per case for base `c81fe12a401cacb6cce31282e9198a5762221919` and the refactor, on the same host with PHP 8.4.25 and seed 12345.
 
 | Case | Base median | Refactor median | Base peak | Refactor peak |
 | --- | ---: | ---: | ---: | ---: |
-| Statistics, 100,000 rows, 64 groups | 0.488 s | 0.419 s | 30 MiB | 14 MiB |
-| Ingestion, 100,000 entries | 0.412 s | 0.438 s | 2 MiB | 2 MiB |
-| Table extraction, 10,000 statements | 0.240 s | 0.241 s | 2 MiB | 2 MiB |
+| Statistics, 100,000 rows, 64 groups | 0.498 s | 0.459 s | 30 MiB | 14 MiB |
+| Ingestion, 100,000 entries | 0.429 s | 0.391 s | 2 MiB | 2 MiB |
+| Table extraction, 10,000 statements | 0.236 s | 0.237 s | 2 MiB | 2 MiB |
 
-Statistics used 53% less peak memory and took 14% less elapsed time in this fixture. Ingestion took about 6% longer; table extraction was essentially unchanged. Repeat on representative production input before extrapolating these numbers.
+Statistics used 53% less peak memory and took 8% less elapsed time in this fixture. Ingestion took about 9% less time; table extraction was essentially unchanged. Repeat on representative production input before extrapolating these numbers.
 
 An Xdebug call profile of 10,000 statistics rows identified the accumulator and repeated sample-limit calculation as the largest PHP costs. Reusing the last pure sample-limit calculation avoids repeated logarithms while retaining only two scalar values. Profile timings include instrumentation overhead and are not the benchmark timings above.
 
