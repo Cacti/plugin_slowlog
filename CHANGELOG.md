@@ -2,6 +2,7 @@
 
 --- 2.7 ---
 
+* bug: Truncate imported queries on a character boundary and ignore a Max Query Length of zero or less. Cutting a multibyte character in half made the batch INSERT fail, and a length of 0 stored every query as empty
 * perf: Read the detail rows in 2000-row chunks (only logentry, query and oquery) when associating tables with queries, instead of loading every column of every row of the log at once
 * bug: Detect tables from the original query text rather than the whitespace-collapsed copy. A trailing `--` or `#` comment on one line masked the rest of the collapsed statement, so tables after it were missing from the By Table views
 * bug: Parse the `# User@Host:` header with a pattern instead of splitting on every colon. The MySQL `Id:` suffix was stored as part of the client address (and IPv6 addresses were lost), which could also overflow the address column

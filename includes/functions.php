@@ -162,6 +162,26 @@ function slowlog_bulk_insert_table_rows(array $rows): void {
 }
 
 /**
+ * Truncates a query to at most $length bytes without cutting a multibyte character in
+ * half, which would make the INSERT fail on a UTF-8 column. A length of -1, or any value
+ * below 1, leaves the query as is.
+ *
+ * Called from import_logfile() for each entry when a maximum query length is set.
+ *
+ * @param string $query  The normalized query text.
+ * @param int    $length The maximum length in bytes, or -1 for no limit.
+ *
+ * @return string The query, truncated when $length is a positive number.
+ */
+function slowlog_truncate_query(string $query, int $length): string {
+	if ($length < 1) {
+		return $query;
+	}
+
+	return function_exists('mb_strcut') ? mb_strcut($query, 0, $length, 'UTF-8') : substr($query, 0, $length);
+}
+
+/**
  * Returns a numeric field from a slow log header line in a form that is safe to place
  * unquoted in the bulk INSERT, or '0' when the value is not a plain decimal number. The
  * log is user-supplied, and these fields are concatenated into the SQL text rather than
@@ -1014,9 +1034,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 						$start = true;
 					} else {
 						if ($query != '') {
-							if ($length != -1) {
-								$query = substr($query, 0, $length);
-							}
+							$query = slowlog_truncate_query($query, $length);
 
 							$records[] = '(' .
 							$logid . ', ' .
@@ -1055,9 +1073,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 				} elseif (strncmp($l, '# User@Host:', 12) === 0) {
 					if ($query_start) {
 						if ($query != '') {
-							if ($length != -1) {
-								$query = substr($query, 0, $length);
-							}
+							$query = slowlog_truncate_query($query, $length);
 
 							$records[] = '(' .
 							$logid . ', ' .
@@ -1170,9 +1186,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 			}
 
 			if ($query != '') {
-				if ($length != -1) {
-					$query = substr($query, 0, $length);
-				}
+				$query = slowlog_truncate_query($query, $length);
 
 				$records[] = '(' .
 				$logid . ', ' .
