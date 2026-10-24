@@ -1082,13 +1082,7 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 						$oquery = '';
 					}
 
-					$p1    = explode(':', $l);
-					$p2    = explode('@', $p1[1]);
-					$user1 = explode('[', trim($p2[0]));
-					$user  = $user1[0];
-					$host1 = explode('[', trim($p2[1]));
-					$host  = slowlog_strip_domain(trim($host1[0]));
-					$ip    = str_replace(']', '', trim($host1[1]));
+					list($user, $host, $ip) = slowlog_parse_user_host($l);
 
 					$query_start = false;
 				} elseif (strncmp($l, '# Query_time:', 13) === 0) {
@@ -2503,6 +2497,27 @@ function slowlog_debug(string $string): void {
 	if ($debug) {
 		print 'DEBUG: ' . trim($string) . PHP_EOL;
 	}
+}
+
+/**
+ * Splits a slow log "# User@Host:" header into the user, the short host name and the client
+ * address. The line is not split on every ':' because an IPv6 address contains them and
+ * MySQL appends "Id: N" after the address.
+ *
+ * Called from import_logfile() for each entry header.
+ *
+ * @param string $line The "# User@Host:" header line.
+ *
+ * @return array{0: string, 1: string, 2: string} The user, short host name and address,
+ *                                                or three empty strings when the line
+ *                                                does not have the expected shape.
+ */
+function slowlog_parse_user_host(string $line): array {
+	if (!preg_match('/^# User@Host:\s*(\S*?)(?:\[[^\]]*\])?\s+@\s+([^\s\[]*)\s*(?:\[([^\]]*)\])?/', $line, $m)) {
+		return ['', '', ''];
+	}
+
+	return [$m[1], slowlog_strip_domain($m[2]), isset($m[3]) ? $m[3] : ''];
 }
 
 /**

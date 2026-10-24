@@ -2,6 +2,7 @@
 
 --- 2.7 ---
 
+* bug: Parse the `# User@Host:` header with a pattern instead of splitting on every colon. The MySQL `Id:` suffix was stored as part of the client address (and IPv6 addresses were lost), which could also overflow the address column
 * bug: Match the slow log header lines (`# Time:`, `# User@Host:`, `SET timestamp=` and the other `#` lines) only at the start of a line. A query containing `SET timestamp=` was read as a header and dropped from the import
 * bug: Make the No and Return controls on the delete confirmation page plain buttons. They were submit buttons that posted the same selected_items field as Yes, so clicking No deleted the selected logs
 * security: Escape the table name used as the option value in the Details view's table filter; names are parsed from imported queries and can contain markup characters
