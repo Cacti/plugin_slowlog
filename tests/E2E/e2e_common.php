@@ -37,6 +37,28 @@ function slowlog_e2e_root(): string {
 }
 
 /**
+ * Prepares a driver process: moves to the Cacti root and gives the Cacti CLI bootstrap an argv.
+ *
+ * @return string The Cacti root.
+ */
+function slowlog_e2e_enter(string $driver): string {
+	$root = slowlog_e2e_root();
+
+	chdir($root);
+
+	$_SERVER['argv'] = [basename($driver)];
+
+	return $root;
+}
+
+/**
+ * @return string The private temp directory the test process gave the driver.
+ */
+function slowlog_e2e_tmp(): string {
+	return rtrim((string) getenv('SLOWLOG_E2E_TMP'), '/');
+}
+
+/**
  * Whether the test user can write Cacti's log; Cacti's CLI bootstrap exits when it cannot, so
  * a driver started by this user would print nothing useful.
  */
