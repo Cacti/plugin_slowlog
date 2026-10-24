@@ -330,6 +330,9 @@ function slowlog_e2e_login(array $web, string $user, string $password): void {
 function slowlog_e2e_user(string $name, array $user_realms, array $group_realms = []): array {
 	$password = 'E2e-' . bin2hex(random_bytes(6)) . '!';
 
+	// a run that was stopped early can leave its user behind, and a second user of the same name would be the one that signs in
+	slowlog_e2e_drop_users(db_fetch_assoc_prepared('SELECT id, username AS name FROM user_auth WHERE username = ?', [$name]));
+
 	db_execute_prepared('INSERT INTO user_auth (username, password, realm, full_name, must_change_password, password_change, enabled, lastchange) VALUES (?, ?, 0, ?, ?, ?, ?, ?)',
 		[$name, password_hash($password, PASSWORD_DEFAULT), $name, '', '', 'on', time()]);
 

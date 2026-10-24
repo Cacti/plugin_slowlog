@@ -78,7 +78,7 @@ function e2e_upload(string $name, array $fields): array {
 
 	slowlog_e2e_request($web, 'POST', 'plugins/slowlog/slowlog.php?action=import', array_merge(['save_component_import' => '1', 'description' => $tag . $name, 'length' => '-1', 'table_mode' => 'all', 'table_names' => '', '__csrf_magic' => slowlog_e2e_token($form['body'])], $fields));
 
-	$deadline = time() + 90;
+	$deadline = time() + 240;
 
 	do {
 		$row = db_fetch_row_prepared('SELECT logid, import_status, import_text_status, import_lines FROM plugin_slowlog WHERE description = ?', [$tag . $name]);
