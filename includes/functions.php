@@ -378,8 +378,9 @@ const SLOWLOG_STATS_SAMPLE_CAP = 20000;
 /**
  * Reduces one metric's raw value list (any order) into the summary plugin_slowlog_stats
  * stores for it: sample count, sum, and the min/p25/median/p75/p95/max box-whisker points.
- * $exact_count/$exact_sum override the count/total derived from $values, for callers (e.g.
- * slowlog_compute_stats()) that only pass in a bounded sample of the real population.
+ * $exact_count/$exact_sum/$exact_min/$exact_max override the values derived from $values, for
+ * callers (e.g. slowlog_compute_stats()) that only pass in a bounded sample of the real
+ * population.
  *
  * @param array      $values      The (possibly sampled) raw metric values
  *                                to summarize.
@@ -390,12 +391,16 @@ const SLOWLOG_STATS_SAMPLE_CAP = 20000;
  *                                array_sum($values) when the caller only
  *                                passed a sample; defaults to null (use
  *                                array_sum($values)).
+ * @param float|null $exact_min   The true minimum to report, overriding the
+ *                                sample's minimum; defaults to null.
+ * @param float|null $exact_max   The true maximum to report, overriding the
+ *                                sample's maximum; defaults to null.
  *
  * @return array The summary: 'sample_count', 'total_value', 'min_value',
  *               'p25_value', 'median_value', 'p75_value', 'p95_value',
  *               'max_value'.
  */
-function slowlog_summarize_values(array $values, ?int $exact_count = null, ?float $exact_sum = null): array {
+function slowlog_summarize_values(array $values, ?int $exact_count = null, ?float $exact_sum = null, ?float $exact_min = null, ?float $exact_max = null): array {
 	$count = ($exact_count !== null) ? $exact_count : cacti_sizeof($values);
 
 	if ($count === 0 || !cacti_sizeof($values)) {
@@ -416,19 +421,20 @@ function slowlog_summarize_values(array $values, ?int $exact_count = null, ?floa
 	return [
 		'sample_count' => $count,
 		'total_value'  => ($exact_sum !== null) ? $exact_sum : array_sum($values),
-		'min_value'    => $values[0],
+		'min_value'    => ($exact_min !== null) ? $exact_min : $values[0],
 		'p25_value'    => slowlog_percentile($values, 25),
 		'median_value' => slowlog_percentile($values, 50),
 		'p75_value'    => slowlog_percentile($values, 75),
 		'p95_value'    => slowlog_percentile($values, 95),
-		'max_value'    => $values[cacti_sizeof($values) - 1],
+		'max_value'    => ($exact_max !== null) ? $exact_max : $values[cacti_sizeof($values) - 1],
 	];
 }
 
 /**
  * Records one metric value into the bounded reservoir $values[$scope_key][$metric] (capped at
  * SLOWLOG_STATS_SAMPLE_CAP elements via reservoir sampling) while $totals[$scope_key][$metric]
- * keeps an exact running count/sum, so sample_count/total_value never lose precision even
+ * keeps an exact running count/sum/min/max, so the count, total, min and max never lose
+ * precision even
  * once the reservoir is full and older samples start being probabilistically replaced.
  *
  * Called from slowlog_collect_stats_by_method(),
@@ -449,11 +455,13 @@ function slowlog_summarize_values(array $values, ?int $exact_count = null, ?floa
  */
 function slowlog_accumulate_stat_value(array &$values, array &$totals, string $scope_key, string $metric, float $value): void {
 	if (!isset($totals[$scope_key][$metric])) {
-		$totals[$scope_key][$metric] = ['count' => 0, 'sum' => 0.0];
+		$totals[$scope_key][$metric] = ['count' => 0, 'sum' => 0.0, 'min' => $value, 'max' => $value];
 	}
 
 	$totals[$scope_key][$metric]['count']++;
 	$totals[$scope_key][$metric]['sum'] += $value;
+	$totals[$scope_key][$metric]['min']  = min($totals[$scope_key][$metric]['min'], $value);
+	$totals[$scope_key][$metric]['max']  = max($totals[$scope_key][$metric]['max'], $value);
 
 	if (!isset($values[$scope_key][$metric])) {
 		$values[$scope_key][$metric] = [];
@@ -766,7 +774,7 @@ function slowlog_compute_stats(int $logid): void {
 		foreach ($scope_data['values'] as $scope_key => $metrics) {
 			foreach ($metrics as $metric => $raw_values) {
 				$totals  = $scope_data['totals'][$scope_key][$metric];
-				$summary = slowlog_summarize_values($raw_values, $totals['count'], $totals['sum']);
+				$summary = slowlog_summarize_values($raw_values, $totals['count'], $totals['sum'], $totals['min'], $totals['max']);
 
 				$summary['logid']     = $logid;
 				$summary['scope']     = $scope;

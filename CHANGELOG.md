@@ -2,6 +2,7 @@
 
 --- 2.7 ---
 
+* bug: Report the exact minimum and maximum in the cached box-whisker stats. Once a method or table had more than 20000 entries the values were sampled, and Include Max showed the largest sampled value rather than the real maximum
 * bug: Bound the rows per page (1 to 1000) and the page number in the Details view before building its LIMIT. A request with a very large page size loaded every matching row, including the query text, into memory, and a negative value produced a SQL error
 * bug: Show the Slowlog tab using `is_realm_allowed()` instead of reading `user_auth_realm`, so users who get the realm through a group see it, and stop caching the answer in the session so a changed grant applies without a new login
 * bug: Record the new plugin version in `plugin_config` only after the schema upgrade succeeds. The version was written first, so a failed ALTER was never retried
