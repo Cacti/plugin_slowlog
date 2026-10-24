@@ -21,7 +21,7 @@
 /*
  * Several columns were too narrow for real slow log data: user and schema at 20 characters,
  * ip_address at 15, table names at 45 and the import status text at 40. A value that does not
- * fit makes the INSERT fail under strict SQL mode. New installs get the wider definitions,
+ * fit is truncated, or makes the INSERT fail in strict SQL mode. New installs get the wider definitions,
  * and slowlog_widen_columns() widens existing installs once, during the version upgrade.
  */
 

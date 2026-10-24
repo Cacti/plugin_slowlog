@@ -19,8 +19,7 @@
  +-------------------------------------------------------------------------+
 
 /*
- * When a bulk INSERT of detail rows fails (for example a value that does not fit its column
- * under strict SQL mode), the import has to stop and say so. It used to carry on and finish
+ * When a bulk INSERT of detail rows fails (for example a batch larger than max_allowed_packet), the import has to stop and say so. It used to carry on and finish
  * as a complete import with the rows from the failed batch missing.
  */
 

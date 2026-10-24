@@ -335,8 +335,8 @@ function slowlog_upgrade_tables(): bool {
 /**
  * Widens columns that were too narrow for real slow log data (a user name over 20
  * characters, a table name over 45, or a failure status longer than 40) on installs that
- * created them with the old width. A value that does not fit makes the INSERT fail under
- * strict SQL mode, or truncates it otherwise. Only columns still narrower than the current
+ * created them with the old width. A value that does not fit is truncated, or makes the
+ * INSERT fail when the session is in strict SQL mode. Only columns still narrower than the current
  * definition are altered, so it is a no-op once applied. The plugin_slowlog_details columns
  * are widened by db_update_table() with the rest of that table's definition.
  *
