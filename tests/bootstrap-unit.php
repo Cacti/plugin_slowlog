@@ -347,7 +347,9 @@ if (!function_exists('array_rekey')) {
 
 if (!function_exists('is_realm_allowed')) {
 	function is_realm_allowed($realm) {
-		return true;
+		$GLOBALS['__test_realm_checks'][] = $realm;
+
+		return isset($GLOBALS['__test_realm_allowed']) ? (bool) $GLOBALS['__test_realm_allowed'] : true;
 	}
 }
 

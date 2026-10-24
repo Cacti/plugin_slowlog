@@ -321,26 +321,23 @@ function slowlog_draw_navigation_text(array $nav): array {
 function slowlog_show_tab(): void {
 	global $config;
 
-	if (!isset($_SESSION['sess_slowlog_level'])) {
-		$perms = db_fetch_cell_prepared('SELECT id
+	// Cache only the realm id for the session. Whether the user may use it is asked of
+	// Cacti each time, so group grants count and a changed grant applies without a re-login.
+	if (!isset($_SESSION['sess_slowlog_realm'])) {
+		$realm_id = db_fetch_cell_prepared('SELECT id
 			FROM plugin_realms
-			WHERE file LIKE ?',
-			['%slowlog.php%']) + 100;
+			WHERE plugin = ?
+			AND file = ?',
+			['slowlog', 'slowlog.php']);
 
-		$level = db_fetch_assoc_prepared('SELECT realm_id
-            FROM user_auth_realm
-            WHERE user_id = ?
-            AND realm_id = ?',
-			[$_SESSION['sess_user_id'], $perms]);
-
-		if (cacti_sizeof($level)) {
-			$_SESSION['sess_slowlog_level'] = true;
-		} else {
-			$_SESSION['sess_slowlog_level'] = false;
+		if (empty($realm_id)) {
+			return;
 		}
+
+		$_SESSION['sess_slowlog_realm'] = (int) $realm_id + 100;
 	}
 
-	if ($_SESSION['sess_slowlog_level']) {
+	if (is_realm_allowed($_SESSION['sess_slowlog_realm'])) {
 		if (substr_count($_SERVER['REQUEST_URI'], 'slowlog')) {
 			print '<a href="' . $config['url_path'] . 'plugins/slowlog/slowlog.php"><img src="' . $config['url_path'] . 'plugins/slowlog/images/tab_slowlog_down.gif" alt="SlowLog"></a>';
 		} else {

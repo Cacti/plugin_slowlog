@@ -2,6 +2,7 @@
 
 --- 2.7 ---
 
+* bug: Show the Slowlog tab using `is_realm_allowed()` instead of reading `user_auth_realm`, so users who get the realm through a group see it, and stop caching the answer in the session so a changed grant applies without a new login
 * bug: Record the new plugin version in `plugin_config` only after the schema upgrade succeeds. The version was written first, so a failed ALTER was never retried
 * bug: Widen columns that were too narrow for real slow log data - `user` (128), `schema` (64) and `ip_address` (45) on `plugin_slowlog_details`, table names (64) on the table association, dictionary and stats tables, and `import_text_status` (128). A value that did not fit made the INSERT fail under strict SQL mode. Existing installs are altered once when the plugin version changes to 2.7
 * bug: Quote database names in the `SHOW TABLES FROM` used to build the Cacti table list; a database such as `my-db` was a syntax error and its tables were dropped from the list
