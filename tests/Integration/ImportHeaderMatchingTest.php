@@ -57,13 +57,7 @@ afterEach(function () {
 it('keeps a query that contains SET timestamp= as its own entry', function () {
 	import_logfile($this->logfile, 'test', -1, 'events', false, false);
 
-	$sql = '';
-
-	foreach ($GLOBALS['__test_db_calls'] as $call) {
-		if ($call['fn'] === 'db_execute' && strpos($call['sql'], 'INSERT INTO plugin_slowlog_details (') !== false) {
-			$sql = $call['sql'];
-		}
-	}
+	$sql = slowlog_test_last_details_insert();
 
 	expect($sql)->toContain("'" . date('Y-m-d H:i:s', 1705280590) . "'");
 	expect($sql)->toContain('UPDATE events SET timestamp=NOW() WHERE id = 3');
@@ -74,12 +68,12 @@ it('keeps a query that contains SET timestamp= as its own entry', function () {
 it('imports an entry whose header has no Time line, as the server writes for the same second', function () {
 	file_put_contents($this->logfile, implode("\n", array(
 		'# Time: 240115  1:02:03',
-		'# User@Host: root[root] @ dbhost [10.0.0.5]',
-		'# Query_time: 1.0  Lock_time: 0.0  Rows_sent: 1  Rows_examined: 1',
+		'# User@Host: cacti[cacti] @ dbhost [10.0.0.7]',
+		'# Query_time: 0.7  Lock_time: 0.0  Rows_sent: 2  Rows_examined: 9',
 		'SET timestamp=1705280523;',
 		'SELECT 1;',
 		'# User@Host: app[app] @ dbhost [10.0.0.6]',
-		'# Query_time: 2.0  Lock_time: 0.0  Rows_sent: 1  Rows_examined: 1',
+		'# Query_time: 3.1  Lock_time: 0.2  Rows_sent: 4  Rows_examined: 8',
 		'SET timestamp=1705280523;',
 		'SELECT 2;',
 		'',
@@ -87,15 +81,9 @@ it('imports an entry whose header has no Time line, as the server writes for the
 
 	import_logfile($this->logfile, 'test', 100, 'events', false, false);
 
-	$sql = '';
+	$sql = slowlog_test_last_details_insert();
 
-	foreach ($GLOBALS['__test_db_calls'] as $call) {
-		if ($call['fn'] === 'db_execute' && strpos($call['sql'], 'INSERT INTO plugin_slowlog_details (') !== false) {
-			$sql = $call['sql'];
-		}
-	}
-
-	expect($sql)->toContain("'root', 'dbhost', '10.0.0.5'");
+	expect($sql)->toContain("'cacti', 'dbhost', '10.0.0.7'");
 	expect($sql)->toContain("'app', 'dbhost', '10.0.0.6'");
 	expect($sql)->toContain("'SELECT 1; ')");
 	expect($sql)->toContain("'SELECT 2; ')");

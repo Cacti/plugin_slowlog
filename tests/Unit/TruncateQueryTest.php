@@ -64,13 +64,7 @@ it('keeps imported rows when the length option is zero', function () {
 	import_logfile($logfile, 'test', 0, 'accounts', false, false);
 	@unlink($logfile);
 
-	$sql = '';
-
-	foreach ($GLOBALS['__test_db_calls'] as $call) {
-		if ($call['fn'] === 'db_execute' && strpos($call['sql'], 'INSERT INTO plugin_slowlog_details (') !== false) {
-			$sql = $call['sql'];
-		}
-	}
+	$sql = slowlog_test_last_details_insert();
 
 	expect($sql)->toContain("'SELECT 1; ')");
 });

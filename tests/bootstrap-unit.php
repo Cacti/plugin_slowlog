@@ -461,6 +461,23 @@ if (!defined('MESSAGE_LEVEL_INFO')) {
  *
  * @return void
  */
+/**
+ * The last bulk INSERT into plugin_slowlog_details that import_logfile() issued, from the call log.
+ *
+ * @return string The SQL text, or '' when none was issued.
+ */
+function slowlog_test_last_details_insert() {
+	$sql = '';
+
+	foreach ($GLOBALS['__test_db_calls'] as $call) {
+		if ($call['fn'] === 'db_execute' && strpos($call['sql'], 'INSERT INTO plugin_slowlog_details (') !== false) {
+			$sql = $call['sql'];
+		}
+	}
+
+	return $sql;
+}
+
 function slowlog_test_load($path) {
 	global $config;
 

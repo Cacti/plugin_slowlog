@@ -52,13 +52,7 @@ afterEach(function () {
 it('stores zero for a non-numeric header field instead of passing it into the INSERT', function () {
 	import_logfile($this->logfile, 'test', -1, 'accounts users', false, false);
 
-	$sql = '';
-
-	foreach ($GLOBALS['__test_db_calls'] as $call) {
-		if ($call['fn'] === 'db_execute' && strpos($call['sql'], 'INSERT INTO plugin_slowlog_details (') !== false) {
-			$sql = $call['sql'];
-		}
-	}
+	$sql = slowlog_test_last_details_insert();
 
 	expect($sql)->not->toBe('');
 	expect($sql)->not->toContain('SELECT/**/');
