@@ -192,6 +192,8 @@ jobs:
       run: echo -n "${{ env.CACTI }}" | sudo tee ${{ github.workspace }}/cacti/plugins/slowlog/tests/.cacti-version > /dev/null
 
     - name: Run Pest Unit Tests
+      env:
+        SLOWLOG_E2E: '1'
       run: |
         cd ${{ github.workspace }}/cacti
         "$CACTI_PEST_BIN" --configuration=plugins/slowlog/phpunit.xml \

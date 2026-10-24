@@ -2,6 +2,7 @@
 
 --- 2.7 ---
 
+* dev: Add end-to-end tests that import a sample slow log through `import_log.php` into an installed Cacti, upgrade an old schema, and walk the delete confirmation over HTTP. They run in the CI integration job (`SLOWLOG_E2E=1`) and are skipped otherwise
 * bug: URL-encode the search, method, table, user, host, date and chart scope values the filter forms add to the request. A value containing `&`, `#` or `+` truncated or changed the filter
 * bug: Report the exact minimum and maximum in the cached box-whisker stats. Once a method or table had more than 20000 entries the values were sampled, and Include Max showed the largest sampled value rather than the real maximum
 * bug: Bound the rows per page (1 to 1000) and the page number in the Details view before building its LIMIT. A request with a very large page size loaded every matching row, including the query text, into memory, and a negative value produced a SQL error
