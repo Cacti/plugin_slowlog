@@ -29,6 +29,35 @@
 $slowlog_e2e_root  = dirname(__DIR__, 4);
 $slowlog_e2e_ready = getenv('SLOWLOG_E2E') === '1' && is_readable($slowlog_e2e_root . '/include/config.php');
 
+/**
+ * Whether the test user can write Cacti's log; Cacti's CLI bootstrap exits when it cannot, so
+ * a driver started by this user would print nothing useful.
+ */
+if (!function_exists('slowlog_e2e_log_writable')) {
+	function slowlog_e2e_log_writable(string $root): bool {
+		$log = $root . '/log/cacti.log';
+
+		return is_file($log) ? is_writable($log) : is_writable(dirname($log));
+	}
+
+	/**
+	 * Cuts cacti.log back to the length it had before a driver ran. The job's final step fails on any
+	 * ERROR or WARNING line, and the drivers provoke some on purpose.
+	 */
+	function slowlog_e2e_restore_log(string $root, int $length): void {
+		$log = $root . '/log/cacti.log';
+
+		if (is_file($log) && filesize($log) > $length) {
+			$handle = fopen($log, 'r+');
+
+			if ($handle !== false) {
+				ftruncate($handle, $length);
+				fclose($handle);
+			}
+		}
+	}
+}
+
 /** @return array<string, mixed> */
 function slowlog_e2e_import_observations(string $root): array {
 	static $cache = null;
@@ -37,6 +66,7 @@ function slowlog_e2e_import_observations(string $root): array {
 		$output = [];
 		$status = 0;
 		$tmp    = sys_get_temp_dir() . '/slowlog-e2e-' . bin2hex(random_bytes(6));
+		$before = is_file($root . '/log/cacti.log') ? (int) filesize($root . '/log/cacti.log') : 0;
 
 		mkdir($tmp, 0700);
 		putenv('SLOWLOG_E2E_TMP=' . $tmp);
@@ -44,25 +74,31 @@ function slowlog_e2e_import_observations(string $root): array {
 		exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($root . '/plugins/slowlog/tests/E2E/import_flow.php') . ' 2>&1', $output, $status);
 
 		putenv('SLOWLOG_E2E_TMP');
+		slowlog_e2e_restore_log($root, $before);
 		array_map('unlink', glob($tmp . '/*') ?: []);
 		@rmdir($tmp);
 
 		$json  = json_decode((string) end($output), true);
-		$cache = is_array($json) ? $json : ['driver_failed' => implode("\n", $output)];
+		$cache = is_array($json) ? $json : ['driver_failed' => 'exit status ' . $status . "\n" . implode("\n", $output)];
 	}
 
 	return $cache;
 }
 
 describe('slow log import against a real Cacti', function () use ($slowlog_e2e_root, $slowlog_e2e_ready) {
-	beforeEach(function () use ($slowlog_e2e_ready) {
+	beforeEach(function () use ($slowlog_e2e_root, $slowlog_e2e_ready) {
 		if (!$slowlog_e2e_ready) {
 			$this->markTestSkipped('Set SLOWLOG_E2E=1 with an installed Cacti and database to run.');
+		}
+
+		if (!slowlog_e2e_log_writable($slowlog_e2e_root)) {
+			$this->markTestSkipped('Cacti log/cacti.log is not writable by the test user; Cacti would refuse to start.');
 		}
 	});
 
 	it('runs the driver to completion', function () use ($slowlog_e2e_root) {
-		expect(slowlog_e2e_import_observations($slowlog_e2e_root))->not->toHaveKey('driver_failed');
+		// Comparing the text, not the key, puts the driver's output in the failure.
+		expect(slowlog_e2e_import_observations($slowlog_e2e_root)['driver_failed'] ?? '')->toBe('');
 	});
 
 	it('imports the sample log and marks it complete', function () use ($slowlog_e2e_root) {
