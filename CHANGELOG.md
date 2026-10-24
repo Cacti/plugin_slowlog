@@ -2,6 +2,7 @@
 
 --- 2.7 ---
 
+* bug: Make the No and Return controls on the delete confirmation page plain buttons. They were submit buttons that posted the same selected_items field as Yes, so clicking No deleted the selected logs
 * security: Escape the table name used as the option value in the Details view's table filter; names are parsed from imported queries and can contain markup characters
 * security: Cast the numeric fields parsed from a slow log header (`Query_time`, `Lock_time`, `Rows_*`, `Bytes_sent`, `Thread_id`) to plain numbers before they are placed in the bulk `plugin_slowlog_details` INSERT; a non-numeric value is stored as 0
 

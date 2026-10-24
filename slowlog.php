@@ -292,8 +292,8 @@ function form_actions(): void {
 			<input type='hidden' name='action' value='actions'>
 			<input type='hidden' name='selected_items' value='" . (cacti_sizeof($slowlog_array) ? serialize($slowlog_array) : '') . "'>
 			<input type='hidden' name='drp_action' value='" . html_escape($drp_action) . "'>" . (strlen($save_html) ? "
-			<input type='submit' name='cancel' value='" . __esc('No', 'slowlog') . "'>
-			$save_html" : "<input type='submit' name='cancel' value='" . __esc('Return', 'slowlog') . "'>") . '
+			<input type='button' class='ui-button ui-corner-all ui-widget cactiReturnTo' value='" . __esc('No', 'slowlog') . "'>
+			$save_html" : "<input type='button' class='ui-button ui-corner-all ui-widget cactiReturnTo' value='" . __esc('Return', 'slowlog') . "'>") . '
 		</td>
 	</tr>';
 
