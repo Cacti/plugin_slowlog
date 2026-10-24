@@ -1645,39 +1645,58 @@ function slowlog_tabs(): void {
  * @return void
  */
 function get_table_associations(int $logid, int $logentry = -1): void {
-	$rows_out = [];
+	$chunk_size    = 2000;
+	$last_logentry = 0;
+	$associated    = 0;
 
-	if ($logentry == -1) {
-		$rows = db_fetch_assoc_prepared('SELECT *
-			FROM plugin_slowlog_details
-			WHERE logid = ?',
-			[$logid]);
-	} else {
-		$rows = db_fetch_assoc_prepared('SELECT *
-			FROM plugin_slowlog_details
-			WHERE logid = ? AND logentry = ?',
-			[$logid, $logentry]);
-	}
+	// Read the log in bounded chunks, like the method classification does, so a large log
+	// is never held in memory all at once.
+	do {
+		$rows_out = [];
 
-	foreach ($rows as $row) {
-		// The stored query has its line breaks collapsed, so a trailing -- or # comment
-		// would hide the rest of the statement from the comment masking. The original text
-		// keeps its newlines.
-		$tables = slowlog_extract_tables_from_query(isset($row['oquery']) && $row['oquery'] !== '' ? $row['oquery'] : $row['query']);
-
-		if (cacti_sizeof($tables)) {
-			foreach ($tables as $t) {
-				$rows_out[] = [$logid, $row['logentry'], $t];
-			}
+		if ($logentry == -1) {
+			$rows = db_fetch_assoc_prepared('SELECT logentry, query, oquery
+				FROM plugin_slowlog_details
+				WHERE logid = ?
+				AND logentry > ?
+				ORDER BY logentry
+				LIMIT ' . $chunk_size,
+				[$logid, $last_logentry]);
 		} else {
-			slowlog_debug('No tables found: ' . substr($row['query'], 0, 4000));
+			$rows = db_fetch_assoc_prepared('SELECT logentry, query, oquery
+				FROM plugin_slowlog_details
+				WHERE logid = ? AND logentry = ?',
+				[$logid, $logentry]);
 		}
-	}
 
-	if (cacti_sizeof($rows_out)) {
-		cacti_log('Post Processing Tables associated: ' . cacti_sizeof($rows_out), false, 'SLOWLOG');
+		$batch_count = cacti_sizeof($rows);
 
-		slowlog_bulk_insert_table_rows($rows_out);
+		foreach ($rows as $row) {
+			$last_logentry = $row['logentry'];
+
+			// The stored query has its line breaks collapsed, so a trailing -- or # comment
+			// would hide the rest of the statement from the comment masking. The original text
+			// keeps its newlines.
+			$tables = slowlog_extract_tables_from_query(isset($row['oquery']) && $row['oquery'] !== '' ? $row['oquery'] : $row['query']);
+
+			if (cacti_sizeof($tables)) {
+				foreach ($tables as $t) {
+					$rows_out[] = [$logid, $row['logentry'], $t];
+				}
+			} else {
+				slowlog_debug('No tables found: ' . substr($row['query'], 0, 4000));
+			}
+		}
+
+		if (cacti_sizeof($rows_out)) {
+			$associated += cacti_sizeof($rows_out);
+
+			slowlog_bulk_insert_table_rows($rows_out);
+		}
+	} while ($logentry == -1 && $batch_count === $chunk_size);
+
+	if ($associated > 0) {
+		cacti_log('Post Processing Tables associated: ' . $associated, false, 'SLOWLOG');
 	}
 }
 

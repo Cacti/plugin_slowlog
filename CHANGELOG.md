@@ -2,6 +2,7 @@
 
 --- 2.7 ---
 
+* perf: Read the detail rows in 2000-row chunks (only logentry, query and oquery) when associating tables with queries, instead of loading every column of every row of the log at once
 * bug: Detect tables from the original query text rather than the whitespace-collapsed copy. A trailing `--` or `#` comment on one line masked the rest of the collapsed statement, so tables after it were missing from the By Table views
 * bug: Parse the `# User@Host:` header with a pattern instead of splitting on every colon. The MySQL `Id:` suffix was stored as part of the client address (and IPv6 addresses were lost), which could also overflow the address column
 * bug: Match the slow log header lines (`# Time:`, `# User@Host:`, `SET timestamp=` and the other `#` lines) only at the start of a line. A query containing `SET timestamp=` was read as a header and dropped from the import
