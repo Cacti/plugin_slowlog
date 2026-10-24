@@ -171,13 +171,37 @@ foreach ($old as $table => $columns) {
 	}
 }
 
+// slowlog_check_upgrade() prunes the dev-only files, tests/ included, from base_path/plugins/slowlog
+// once the upgrade succeeds. Run it against a scratch copy of the plugin directory so a test run can
+// never delete the real tree. The copy's database.php is an empty stub because the real one is
+// already loaded.
+$scratch = $tmp . '/upgrade-tree';
+
+slowlog_e2e_copy_tree($plugin, $scratch . '/plugins/slowlog');
+file_put_contents($scratch . '/plugins/slowlog/includes/database.php', "<?php\n");
+
+$real_base = $config['base_path'];
+$real_version = db_fetch_cell_prepared('SELECT version FROM plugin_config WHERE directory = ?', ['slowlog']);
+
 db_execute_prepared('UPDATE plugin_config SET version = ? WHERE directory = ?', ['2.6', 'slowlog']);
 
 $_SERVER['PHP_SELF'] = '/cacti/plugins.php';
+$config['base_path'] = $scratch;
 
-slowlog_check_upgrade();
+try {
+	slowlog_check_upgrade();
+} finally {
+	$config['base_path'] = $real_base;
 
-$out['upgrade_version'] = db_fetch_cell_prepared('SELECT version FROM plugin_config WHERE directory = ?', ['slowlog']);
+	// a run that stopped half way must not leave the installed version behind the code
+	if (db_fetch_cell_prepared('SELECT version FROM plugin_config WHERE directory = ?', ['slowlog']) != $real_version) {
+		db_execute_prepared('UPDATE plugin_config SET version = ? WHERE directory = ?', [$real_version, 'slowlog']);
+	}
+}
+
+$out['upgrade_version']       = db_fetch_cell_prepared('SELECT version FROM plugin_config WHERE directory = ?', ['slowlog']);
+$out['scratch_tests_pruned']  = !is_dir($scratch . '/plugins/slowlog/tests');
+$out['real_tests_intact']     = is_file($plugin . '/tests/bin/patch-coverage.php') && is_file($fixture);
 $out['upgrade_widths']  = [];
 
 foreach ($old as $table => $columns) {
@@ -189,5 +213,6 @@ foreach ($old as $table => $columns) {
 }
 
 slowlog_e2e_restore_log_setting($saved_log);
+slowlog_e2e_remove_tree($scratch);
 
 print json_encode($out) . PHP_EOL;

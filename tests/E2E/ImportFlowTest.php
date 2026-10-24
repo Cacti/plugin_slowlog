@@ -112,4 +112,11 @@ describe('slow log import against a real Cacti', function () {
 			'plugin_slowlog_stats.scope_key'         => 64,
 		]);
 	});
+
+	it('prunes the dev-only files from the scratch copy it upgrades, never from the real plugin directory', function () {
+		$o = slowlog_e2e_observe('import_flow.php');
+
+		expect($o['scratch_tests_pruned'])->toBeTrue();
+		expect($o['real_tests_intact'])->toBeTrue();
+	});
 });

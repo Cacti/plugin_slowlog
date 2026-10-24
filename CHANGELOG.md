@@ -20,6 +20,8 @@
 * bug: URL-encode the search, method, table, user, host, date and chart scope values the filter forms add to the request. A value containing `&`, `#` or `+` truncated or changed the filter
 * perf: Read the detail rows in 2000-row chunks (only logentry, query and oquery) when associating tables with queries, instead of loading every column of every row of the log at once
 * dev: Add end-to-end tests that import a sample slow log through `import_log.php` into an installed Cacti, upgrade an old schema, and walk the delete confirmation over HTTP. They run in the CI integration job (`SLOWLOG_E2E=1`) and are skipped otherwise
+* dev: Run the upgrade end-to-end test against a scratch copy of the plugin directory. The upgrade prunes the dev-only files (including tests/) from the plugin directory it runs in, so running it on the real checkout deleted the test tree in CI
+* dev: Share the end-to-end test helpers and the bulk INSERT lookup between tests instead of repeating them
 
 --- 2.6 ---
 
