@@ -26,83 +26,22 @@
  * provides both. Without them these tests are skipped.
  */
 
-$slowlog_e2e_root  = dirname(__DIR__, 4);
-$slowlog_e2e_ready = getenv('SLOWLOG_E2E') === '1' && is_readable($slowlog_e2e_root . '/include/config.php');
+require_once __DIR__ . '/e2e_common.php';
 
-/**
- * Whether the test user can write Cacti's log; Cacti's CLI bootstrap exits when it cannot, so
- * a driver started by this user would print nothing useful.
- */
-if (!function_exists('slowlog_e2e_log_writable')) {
-	function slowlog_e2e_log_writable(string $root): bool {
-		$log = $root . '/log/cacti.log';
-
-		return is_file($log) ? is_writable($log) : is_writable(dirname($log));
-	}
-
-	/**
-	 * Cuts cacti.log back to the length it had before a driver ran. The job's final step fails on any
-	 * ERROR or WARNING line, and the drivers provoke some on purpose.
-	 */
-	function slowlog_e2e_restore_log(string $root, int $length): void {
-		$log = $root . '/log/cacti.log';
-
-		if (is_file($log) && filesize($log) > $length) {
-			$handle = fopen($log, 'r+');
-
-			if ($handle !== false) {
-				ftruncate($handle, $length);
-				fclose($handle);
-			}
-		}
-	}
-}
-
-/** @return array<string, mixed> */
-function slowlog_e2e_import_observations(string $root): array {
-	static $cache = null;
-
-	if ($cache === null) {
-		$output = [];
-		$status = 0;
-		$tmp    = sys_get_temp_dir() . '/slowlog-e2e-' . bin2hex(random_bytes(6));
-		$before = is_file($root . '/log/cacti.log') ? (int) filesize($root . '/log/cacti.log') : 0;
-
-		mkdir($tmp, 0700);
-		putenv('SLOWLOG_E2E_TMP=' . $tmp);
-
-		exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($root . '/plugins/slowlog/tests/E2E/import_flow.php') . ' 2>&1', $output, $status);
-
-		putenv('SLOWLOG_E2E_TMP');
-		slowlog_e2e_restore_log($root, $before);
-		array_map('unlink', glob($tmp . '/*') ?: []);
-		@rmdir($tmp);
-
-		$json  = json_decode((string) end($output), true);
-		$cache = is_array($json) ? $json : ['driver_failed' => 'exit status ' . $status . "\n" . implode("\n", $output)];
-	}
-
-	return $cache;
-}
-
-describe('slow log import against a real Cacti', function () use ($slowlog_e2e_root, $slowlog_e2e_ready) {
-	beforeEach(function () use ($slowlog_e2e_root, $slowlog_e2e_ready) {
-		if (!$slowlog_e2e_ready) {
-			$this->markTestSkipped('Set SLOWLOG_E2E=1 with an installed Cacti and database to run.');
-		}
-
-		if (!slowlog_e2e_log_writable($slowlog_e2e_root)) {
-			$this->markTestSkipped('Cacti log/cacti.log is not writable by the test user; Cacti would refuse to start.');
+describe('slow log import against a real Cacti', function () {
+	beforeEach(function () {
+		if (($reason = slowlog_e2e_skip_reason()) !== null) {
+			$this->markTestSkipped($reason);
 		}
 	});
 
-	it('runs the driver to completion', function () use ($slowlog_e2e_root) {
+	it('runs the driver to completion', function () {
 		// Comparing the text, not the key, puts the driver's output in the failure.
-		expect(slowlog_e2e_import_observations($slowlog_e2e_root)['driver_failed'] ?? '')->toBe('');
+		expect(slowlog_e2e_observe('import_flow.php')['driver_failed'] ?? '')->toBe('');
 	});
 
-	it('imports the sample log and marks it complete', function () use ($slowlog_e2e_root) {
-		$o = slowlog_e2e_import_observations($slowlog_e2e_root);
+	it('imports the sample log and marks it complete', function () {
+		$o = slowlog_e2e_observe('import_flow.php');
 
 		expect($o['main_status'])->toBe(0);
 		expect((int) $o['log']['import_status'])->toBe(2);
@@ -110,58 +49,58 @@ describe('slow log import against a real Cacti', function () use ($slowlog_e2e_r
 		expect($o['rows'])->toHaveCount(3);
 	});
 
-	it('stores a user name longer than 20 characters in full', function () use ($slowlog_e2e_root) {
-		expect(slowlog_e2e_import_observations($slowlog_e2e_root)['rows'][0]['user'])->toBe('cacti_poller_with_a_long_user_name');
+	it('stores a user name longer than 20 characters in full', function () {
+		expect(slowlog_e2e_observe('import_flow.php')['rows'][0]['user'])->toBe('cacti_poller_with_a_long_user_name');
 	});
 
-	it('stores the client address without the MySQL Id suffix, and keeps IPv6', function () use ($slowlog_e2e_root) {
-		$rows = slowlog_e2e_import_observations($slowlog_e2e_root)['rows'];
+	it('stores the client address without the MySQL Id suffix, and keeps IPv6', function () {
+		$rows = slowlog_e2e_observe('import_flow.php')['rows'];
 
 		expect($rows[0]['ip_address'])->toBe('192.168.100.100');
 		expect($rows[1]['ip_address'])->toBe('::1');
 		expect($rows[2]['ip_address'])->toBe('10.0.0.9');
 	});
 
-	it('keeps the query that contains SET timestamp= as its own entry', function () use ($slowlog_e2e_root) {
-		$rows = slowlog_e2e_import_observations($slowlog_e2e_root)['rows'];
+	it('keeps the query that contains SET timestamp= as its own entry', function () {
+		$rows = slowlog_e2e_observe('import_flow.php')['rows'];
 
 		expect($rows[1]['query'])->toContain('UPDATE settings SET timestamp=NOW()');
 	});
 
-	it('stores zero for a non-numeric header field', function () use ($slowlog_e2e_root) {
-		expect((int) slowlog_e2e_import_observations($slowlog_e2e_root)['rows'][2]['rows_sent'])->toBe(0);
+	it('stores zero for a non-numeric header field', function () {
+		expect((int) slowlog_e2e_observe('import_flow.php')['rows'][2]['rows_sent'])->toBe(0);
 	});
 
-	it('finds the table after a trailing comment, and a long table name in full', function () use ($slowlog_e2e_root) {
-		$o = slowlog_e2e_import_observations($slowlog_e2e_root);
+	it('finds the table after a trailing comment, and a long table name in full', function () {
+		$o = slowlog_e2e_observe('import_flow.php');
 
 		expect($o['tables'])->toContain('graph_local');
 		expect($o['tables'])->toContain('rrd_archive_snapshot_extended_history_table_for_capacity_report');
 		expect($o['stat_keys'])->toContain('rrd_archive_snapshot_extended_history_table_for_capacity_report');
 	});
 
-	it('classifies the methods of the sample queries', function () use ($slowlog_e2e_root) {
-		expect(slowlog_e2e_import_observations($slowlog_e2e_root)['methods'])->toBe(['JOINS', 'SELECTS', 'UPDATES']);
+	it('classifies the methods of the sample queries', function () {
+		expect(slowlog_e2e_observe('import_flow.php')['methods'])->toBe(['JOINS', 'SELECTS', 'UPDATES']);
 	});
 
-	it('marks an import failed when the detail rows cannot be inserted', function () use ($slowlog_e2e_root) {
-		$o = slowlog_e2e_import_observations($slowlog_e2e_root);
+	it('marks an import failed when the detail rows cannot be inserted', function () {
+		$o = slowlog_e2e_observe('import_flow.php');
 
 		expect((int) $o['bad_log']['import_status'])->toBe(3);
 		expect($o['bad_log']['import_text_status'])->toBe('Import Failed - Row Insert Error');
 		expect($o['bad_rows'])->toBe(0);
 	});
 
-	it('cuts a long query on a character boundary', function () use ($slowlog_e2e_root) {
-		$o = slowlog_e2e_import_observations($slowlog_e2e_root);
+	it('cuts a long query on a character boundary', function () {
+		$o = slowlog_e2e_observe('import_flow.php');
 
 		expect((int) $o['multi_log']['import_status'])->toBe(2);
 		expect(mb_check_encoding($o['multi_query'], 'UTF-8'))->toBeTrue();
 		expect(strlen($o['multi_query']))->toBeLessThanOrEqual(21);
 	});
 
-	it('widens the old column widths and records version 2.7 on upgrade', function () use ($slowlog_e2e_root) {
-		$o = slowlog_e2e_import_observations($slowlog_e2e_root);
+	it('widens the old column widths and records version 2.7 on upgrade', function () {
+		$o = slowlog_e2e_observe('import_flow.php');
 
 		expect($o['upgrade_version'])->toBe('2.7');
 		expect($o['upgrade_widths'])->toBe([

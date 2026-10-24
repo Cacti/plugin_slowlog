@@ -69,6 +69,14 @@ foreach (array('import_flow.php', 'delete_flow.php') as $driver) {
 	});
 }
 
+it('shared helper file defines functions only and ends a web request with a 404', function () {
+	$source = file_get_contents(__DIR__ . '/e2e_common.php');
+
+	expect($source)->toContain("if (PHP_SAPI !== 'cli') {");
+	expect($source)->toContain('http_response_code(404);');
+	expect(slowlog_e2e_run_driver('e2e_common.php', array()))->toBe('');
+});
+
 it('keeps the E2E fixtures free of PHP code', function () {
 	foreach (glob(__DIR__ . '/fixtures/*') as $fixture) {
 		expect(pathinfo($fixture, PATHINFO_EXTENSION))->not->toBe('php');

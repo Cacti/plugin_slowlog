@@ -30,35 +30,22 @@
  * this. Every path comes from the file's own location or from environment variables set by
  * the test process, never from a request.
  */
-if (PHP_SAPI !== 'cli' || getenv('SLOWLOG_E2E') !== '1' || !is_dir((string) getenv('SLOWLOG_E2E_TMP'))) {
-	http_response_code(404);
+if (PHP_SAPI !== 'cli' || getenv('SLOWLOG_E2E') !== '1' || !is_dir((string) getenv('SLOWLOG_E2E_TMP'))) { http_response_code(404); exit; }
 
-	exit;
-}
+require_once __DIR__ . '/e2e_common.php';
 
-$root = dirname(__DIR__, 4);
+$root = slowlog_e2e_root();
 $tmp  = rtrim((string) getenv('SLOWLOG_E2E_TMP'), '/');
 
 chdir($root);
 
-$_SERVER['argv'] = ['delete_flow.php'];
+$_SERVER['argv'] = [basename(__FILE__)];
 
 require_once $root . '/include/cli_check.php';
+require_once $root . '/plugins/slowlog/includes/database.php';
 require_once $root . '/plugins/slowlog/includes/functions.php';
 
-// Errors the tests provoke on purpose are logged by Cacti; keep them out of the CI job's cacti.log,
-// which a later step scans for errors.
-$saved_log = db_fetch_cell_prepared("SELECT value FROM settings WHERE name = 'path_cactilog'");
-
-set_config_option('path_cactilog', $tmp . '/cacti.log');
-
-function e2e_restore_log(mixed $saved_log): void {
-	if ($saved_log === false || $saved_log === null) {
-		db_execute_prepared("DELETE FROM settings WHERE name = 'path_cactilog'");
-	} else {
-		set_config_option('path_cactilog', $saved_log);
-	}
-}
+$saved_log = slowlog_e2e_redirect_log($tmp);
 
 $port    = 18000 + (getmypid() % 1000);
 $docroot = $tmp . '/slowlog-e2e-docroot-' . getmypid();
@@ -202,7 +189,7 @@ try {
 	proc_terminate($server);
 	proc_close($server);
 
-	e2e_restore_log($saved_log);
+	slowlog_e2e_restore_log_setting($saved_log);
 
 	foreach ($ids as $id) {
 		api_slowlog_remove($id);
@@ -215,6 +202,6 @@ try {
 	@rmdir($docroot);
 }
 
-e2e_restore_log($saved_log);
+slowlog_e2e_restore_log_setting($saved_log);
 
 print json_encode($out) . PHP_EOL;

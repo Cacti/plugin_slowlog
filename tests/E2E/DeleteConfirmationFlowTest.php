@@ -26,94 +26,33 @@
  * these tests are skipped.
  */
 
-$slowlog_e2e_root  = dirname(__DIR__, 4);
-$slowlog_e2e_ready = getenv('SLOWLOG_E2E') === '1' && is_readable($slowlog_e2e_root . '/include/config.php');
+require_once __DIR__ . '/e2e_common.php';
 
-/**
- * Whether the test user can write Cacti's log; Cacti's CLI bootstrap exits when it cannot, so
- * a driver started by this user would print nothing useful.
- */
-if (!function_exists('slowlog_e2e_log_writable')) {
-	function slowlog_e2e_log_writable(string $root): bool {
-		$log = $root . '/log/cacti.log';
-
-		return is_file($log) ? is_writable($log) : is_writable(dirname($log));
-	}
-
-	/**
-	 * Cuts cacti.log back to the length it had before a driver ran. The job's final step fails on any
-	 * ERROR or WARNING line, and the drivers provoke some on purpose.
-	 */
-	function slowlog_e2e_restore_log(string $root, int $length): void {
-		$log = $root . '/log/cacti.log';
-
-		if (is_file($log) && filesize($log) > $length) {
-			$handle = fopen($log, 'r+');
-
-			if ($handle !== false) {
-				ftruncate($handle, $length);
-				fclose($handle);
-			}
-		}
-	}
-}
-
-/** @return array<string, mixed> */
-function slowlog_e2e_delete_observations(string $root): array {
-	static $cache = null;
-
-	if ($cache === null) {
-		$output = [];
-		$status = 0;
-		$tmp    = sys_get_temp_dir() . '/slowlog-e2e-' . bin2hex(random_bytes(6));
-		$before = is_file($root . '/log/cacti.log') ? (int) filesize($root . '/log/cacti.log') : 0;
-
-		mkdir($tmp, 0700);
-		putenv('SLOWLOG_E2E_TMP=' . $tmp);
-
-		exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($root . '/plugins/slowlog/tests/E2E/delete_flow.php') . ' 2>&1', $output, $status);
-
-		putenv('SLOWLOG_E2E_TMP');
-		slowlog_e2e_restore_log($root, $before);
-		array_map('unlink', glob($tmp . '/*') ?: []);
-		@rmdir($tmp);
-
-		$json  = json_decode((string) end($output), true);
-		$cache = is_array($json) ? $json : ['driver_failed' => 'exit status ' . $status . "\n" . implode("\n", $output)];
-	}
-
-	return $cache;
-}
-
-describe('delete confirmation against a real Cacti', function () use ($slowlog_e2e_root, $slowlog_e2e_ready) {
-	beforeEach(function () use ($slowlog_e2e_root, $slowlog_e2e_ready) {
-		if (!$slowlog_e2e_ready) {
-			$this->markTestSkipped('Set SLOWLOG_E2E=1 with an installed Cacti and database to run.');
-		}
-
-		if (!slowlog_e2e_log_writable($slowlog_e2e_root)) {
-			$this->markTestSkipped('Cacti log/cacti.log is not writable by the test user; Cacti would refuse to start.');
+describe('delete confirmation against a real Cacti', function () {
+	beforeEach(function () {
+		if (($reason = slowlog_e2e_skip_reason()) !== null) {
+			$this->markTestSkipped($reason);
 		}
 	});
 
-	it('runs the driver to completion', function () use ($slowlog_e2e_root) {
-		$o = slowlog_e2e_delete_observations($slowlog_e2e_root);
+	it('runs the driver to completion', function () {
+		$o = slowlog_e2e_observe('delete_flow.php');
 
 		// Comparing the text, not the key, puts the driver's output in the failure.
 		expect($o['driver_failed'] ?? '')->toBe('');
 		expect($o['server_up'])->toBeTrue();
 	});
 
-	it('lists the imported logs for a user who holds the Slowlog realm', function () use ($slowlog_e2e_root) {
-		expect(slowlog_e2e_delete_observations($slowlog_e2e_root)['list_shows_logs'])->toBeTrue();
+	it('lists the imported logs for a user who holds the Slowlog realm', function () {
+		expect(slowlog_e2e_observe('delete_flow.php')['list_shows_logs'])->toBeTrue();
 	});
 
-	it('shows the selected logs on the confirmation page', function () use ($slowlog_e2e_root) {
-		expect(slowlog_e2e_delete_observations($slowlog_e2e_root)['confirm_lists_logs'])->toBeTrue();
+	it('shows the selected logs on the confirmation page', function () {
+		expect(slowlog_e2e_observe('delete_flow.php')['confirm_lists_logs'])->toBeTrue();
 	});
 
-	it('offers Yes as the only submit control and No as a plain button', function () use ($slowlog_e2e_root) {
-		$o = slowlog_e2e_delete_observations($slowlog_e2e_root);
+	it('offers Yes as the only submit control and No as a plain button', function () {
+		$o = slowlog_e2e_observe('delete_flow.php');
 
 		expect($o['confirm_yes_is_submit'])->toBeTrue();
 		expect($o['confirm_no_is_button'])->toBeTrue();
@@ -121,16 +60,16 @@ describe('delete confirmation against a real Cacti', function () use ($slowlog_e
 		expect($o['confirm_submit_controls'])->toBe(1);
 	});
 
-	it('deletes nothing until Yes is submitted', function () use ($slowlog_e2e_root) {
-		expect(slowlog_e2e_delete_observations($slowlog_e2e_root)['kept_after_confirm_page'])->toBeTrue();
+	it('deletes nothing until Yes is submitted', function () {
+		expect(slowlog_e2e_observe('delete_flow.php')['kept_after_confirm_page'])->toBeTrue();
 	});
 
-	it('deletes the selected logs after Yes', function () use ($slowlog_e2e_root) {
-		expect(slowlog_e2e_delete_observations($slowlog_e2e_root)['deleted_after_yes'])->toBeTrue();
+	it('deletes the selected logs after Yes', function () {
+		expect(slowlog_e2e_observe('delete_flow.php')['deleted_after_yes'])->toBeTrue();
 	});
 
-	it('does not serve the page once the realm is revoked', function () use ($slowlog_e2e_root) {
-		$o = slowlog_e2e_delete_observations($slowlog_e2e_root);
+	it('does not serve the page once the realm is revoked', function () {
+		$o = slowlog_e2e_observe('delete_flow.php');
 
 		expect($o['denied_without_realm'])->toBeTrue();
 		expect($o['denied_text'])->toContain('Permission Denied');
