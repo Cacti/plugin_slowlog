@@ -258,6 +258,33 @@ function slowlog_log_number(string $value): string {
 	return preg_match('/^[0-9]+(?:\.[0-9]+)?$/', $value) ? $value : '0';
 }
 
+/**
+ * Raises PHP's execution time and memory limits for the requests that need them, and only those:
+ * the import form and upload (a large file is staged and handed to the background worker) and the
+ * delete of a large log. Every other request keeps the limits the web server was configured with.
+ *
+ * Called from slowlog.php once the request's action is known.
+ *
+ * @param string $action The request's action.
+ *
+ * @return bool True when a limit was raised.
+ */
+function slowlog_apply_request_limits(string $action): bool {
+	$raised = false;
+
+	if (in_array($action, ['edit', 'save', 'import', 'actions'], true)) {
+		ini_set('max_execution_time', '0');
+
+		$raised = true;
+	}
+
+	if (in_array($action, ['edit', 'save', 'import'], true)) {
+		ini_set('memory_limit', '-1');
+	}
+
+	return $raised;
+}
+
 // the largest page the Details view will build, matching the biggest rows-per-page choice
 const SLOWLOG_MAX_PAGE_ROWS = 1000;
 

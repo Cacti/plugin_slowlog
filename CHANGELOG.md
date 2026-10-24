@@ -1,5 +1,9 @@
 ## ChangeLog
 
+--- 2.8 ---
+
+* bug: Raise the PHP execution time and memory limits only for the import form, an upload and a delete, instead of for every request to the page. Viewing a log now runs with the limits the web server is configured with; the page size is already bounded
+
 --- 2.7 ---
 
 * security: Cast the numeric fields parsed from a slow log header (`Query_time`, `Lock_time`, `Rows_*`, `Bytes_sent`, `Thread_id`) to plain numbers before they are placed in the bulk `plugin_slowlog_details` INSERT; a non-numeric value is stored as 0

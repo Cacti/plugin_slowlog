@@ -29,14 +29,13 @@ require_once('./lib/poller.php');
 require_once('./lib/timespan_settings.php');
 require_once('./plugins/slowlog/includes/functions.php');
 
-ini_set('max_execution_time', '0');
-ini_set('memory_limit', '-1');
-
 $actions = [
 	1 => __('Delete', 'slowlog')
 ];
 
 set_default_action('select');
+
+slowlog_apply_request_limits(get_request_var('action'));
 
 switch (get_request_var('action')) {
 	case 'save':
