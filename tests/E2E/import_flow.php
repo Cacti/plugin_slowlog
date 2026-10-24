@@ -32,20 +32,9 @@
  */
 if (PHP_SAPI !== 'cli' || getenv('SLOWLOG_E2E') !== '1' || !is_dir((string) getenv('SLOWLOG_E2E_TMP'))) { http_response_code(404); exit; }
 
-require_once __DIR__ . '/e2e_common.php';
+require_once __DIR__ . '/e2e_boot.php';
 
-$root = slowlog_e2e_enter(__FILE__);
-$tmp  = slowlog_e2e_tmp();
-
-require_once $root . '/include/cli_check.php';
-require_once $root . '/plugins/slowlog/includes/database.php';
-require_once $root . '/plugins/slowlog/includes/functions.php';
-
-$saved_log = slowlog_e2e_redirect_log($tmp);
-
-$plugin  = $root . '/plugins/slowlog';
 $fixture = $plugin . '/tests/E2E/fixtures/sample-slow.log';
-$tag     = 'e2e' . getmypid();
 $out     = ['scenarios' => []];
 $made    = [];
 

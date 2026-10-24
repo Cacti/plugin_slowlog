@@ -48,7 +48,7 @@ function slowlog_e2e_run_driver(string $driver, array $env): string {
 	return $output;
 }
 
-foreach (array_map('basename', glob(__DIR__ . '/*_flow.php')) as $driver) {
+foreach (array_map('basename', array_merge(glob(__DIR__ . '/*_flow.php'), array(__DIR__ . '/e2e_boot.php'))) as $driver) {
 	it("$driver prints nothing without the test environment", function () use ($driver) {
 		expect(slowlog_e2e_run_driver($driver, array()))->toBe('');
 	});

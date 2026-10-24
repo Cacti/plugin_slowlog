@@ -37,16 +37,7 @@
  */
 if (PHP_SAPI !== 'cli' || getenv('SLOWLOG_E2E') !== '1' || !is_dir((string) getenv('SLOWLOG_E2E_TMP'))) { http_response_code(404); exit; }
 
-require_once __DIR__ . '/e2e_common.php';
-
-$root = slowlog_e2e_enter(__FILE__);
-$tmp  = slowlog_e2e_tmp();
-
-require_once $root . '/include/cli_check.php';
-
-$saved_log = slowlog_e2e_redirect_log($tmp);
-$plugin    = $root . '/plugins/slowlog';
-$out       = [];
+require_once __DIR__ . '/e2e_boot.php';
 
 $old = [
 	'ALTER TABLE plugin_slowlog_details MODIFY COLUMN user varchar(20) NOT NULL',
