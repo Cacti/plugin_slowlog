@@ -121,6 +121,15 @@ describe('slow log import against a real Cacti', function () {
 		expect(array_column($o['rows'], 'query'))->toBe(['SELECT 1 FROM t1; ', 'SELECT 2 FROM t2; ']);
 	});
 
+	it('imports the last entry of a log that ends without a closing Time line, and a header it cannot read', function () {
+		$o = slowlog_e2e_scenario('noeof');
+
+		expect($o['count'])->toBe(2);
+		expect(array_column($o['rows'], 'user'))->toBe(['', 'last']);
+		expect(array_column($o['rows'], 'query'))->toBe(['SET @counter = 1; ', 'SELECT 9 FROM t9; ']);
+		expect($o['tables'])->toBe(['t9']);
+	});
+
 	it('reports a file with no entries without creating a record', function () {
 		$o = slowlog_e2e_scenario('empty');
 

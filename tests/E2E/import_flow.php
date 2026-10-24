@@ -164,6 +164,13 @@ e2e_scenario('sametime', array_merge(
 	['# User@Host: s2[s2] @ h [10.0.0.9]', $timing, 'SET timestamp=1705280523;', 'SELECT 2 FROM t2;', '# Time: 240115  1:02:09', '']
 ), '--length=200');
 
+// a log that simply stops after its last query (no closing Time line), with a header that cannot be
+// read and a statement that names no table
+e2e_scenario('noeof', array_merge(
+	e2e_entry('240115  1:02:03', 'garbage', [$timing, 'SET timestamp=1705280523;'], 'SET @counter = 1;'),
+	e2e_entry('240115  1:02:04', 'last[last] @ h [10.0.0.10]', [$timing, 'SET timestamp=1705280524;'], 'SELECT 9 FROM t9;')
+), '--length=200');
+
 // 6. a log with no entries, and one whose last entry is cut off
 e2e_scenario('empty', ['not a slow log', 'just text', ''], '', false);
 e2e_scenario('truncated', array_merge(
