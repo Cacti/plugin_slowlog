@@ -50,7 +50,30 @@ describe('access to Slowlog against a real Cacti', function () {
 
 		expect($o['page']['none']['shows_page'])->toBeFalse();
 		expect($o['page']['none']['denied'])->toBeTrue();
-		expect($o['kept_after_post'])->toBeTrue();
+		expect($o['kept_after_post']['none'])->toBeTrue();
+		expect($o['uploaded']['none'])->toBeFalse();
+	});
+
+	it('lets a user who holds only the viewing realm read the list but not import or delete', function () {
+		$o = slowlog_e2e_observe('access_flow.php');
+
+		expect($o['page']['viewer']['shows_page'])->toBeTrue();
+		expect($o['controls']['viewer'])->toBe(['add_link' => false, 'actions' => false, 'checkboxes' => false]);
+		expect($o['kept_after_post']['viewer'])->toBeTrue();
+		expect($o['uploaded']['viewer'])->toBeFalse();
+		expect($o['form_denied']['viewer'])->toBeTrue();
+	});
+
+	it('shows the import link, the actions and the checkboxes to users who hold the management realm directly or through a group', function ($user) {
+		expect(slowlog_e2e_observe('access_flow.php')['controls'][$user])->toBe(['add_link' => true, 'actions' => true, 'checkboxes' => true]);
+	})->with(['direct', 'group']);
+
+	it('lets a user with the management realm delete, and stops once that realm is revoked', function () {
+		$o = slowlog_e2e_observe('access_flow.php');
+
+		expect($o['manager_deleted'])->toBeTrue();
+		expect($o['kept_after_manage_revoked'])->toBeTrue();
+		expect($o['still_views'])->toBeTrue();
 	});
 
 	it('shows the tab to users who hold the realm directly or through a group, from a fresh or a cached session', function ($user) {
