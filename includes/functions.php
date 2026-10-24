@@ -182,6 +182,24 @@ function slowlog_truncate_query(string $query, int $length): string {
 }
 
 /**
+ * Marks an import as failed after a batch of detail rows could not be inserted, so the log
+ * is not finalized as a complete import with rows silently missing.
+ *
+ * Called from import_logfile() when a bulk INSERT returns false.
+ *
+ * @param int $logid The plugin_slowlog.logid being imported.
+ *
+ * @return void
+ */
+function slowlog_import_failed(int $logid): void {
+	db_execute_prepared('UPDATE plugin_slowlog
+		SET import_status = 3,
+		import_text_status = ?
+		WHERE logid = ?',
+		[__('Import Failed - Row Insert Error', 'slowlog'), $logid]);
+}
+
+/**
  * Returns a numeric field from a slow log header line in a form that is safe to place
  * unquoted in the bulk INSERT, or '0' when the value is not a plain decimal number. The
  * log is user-supplied, and these fields are concatenated into the SQL text rather than
@@ -1155,7 +1173,12 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 					$lines   += cacti_sizeof($records);
 
 					// insert the records
-					db_execute($sql_prefix . $sql_data);
+					if (db_execute($sql_prefix . $sql_data) === false) {
+						fclose($fh);
+						slowlog_import_failed((int) $logid);
+
+						return;
+					}
 
 					// reinitialize the records array
 					$records = [];
@@ -1216,7 +1239,11 @@ function import_logfile(string $logfile, string $description = 'Imported using i
 				$lines   += cacti_sizeof($records);
 
 				// insert the records
-				db_execute($sql_prefix . $sql_data);
+				if (db_execute($sql_prefix . $sql_data) === false) {
+					slowlog_import_failed((int) $logid);
+
+					return;
+				}
 
 				$records = [];
 			}
