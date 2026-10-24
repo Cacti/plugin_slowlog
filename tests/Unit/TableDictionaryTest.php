@@ -79,7 +79,7 @@ it('does nothing when the log has no associated tables', function () {
 });
 
 it('is invoked as part of the normal post-processing pipeline', function () {
-	$source = file_get_contents(realpath(__DIR__ . '/../../includes/functions.php'));
+	$source = slowlog_test_helper_source();
 
 	expect($source)->toContain('slowlog_sync_table_dictionary($logid, $known_tables);');
 });

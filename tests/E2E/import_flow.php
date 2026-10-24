@@ -190,10 +190,12 @@ $made[] = $upfront_good;
 file_put_contents($tmp . '/upfront-bad.log', "not a log\n");
 file_put_contents($tmp . '/upfront-good.log', implode("\n", e2e_entry('240115  1:02:03', 'u[u] @ h [10.0.0.3]', [$timing, 'SET timestamp=1705280523;'], 'SELECT 1 FROM t1;')) . "\n# Time: 240115  1:02:09\n");
 
-e2e_import($tmp . '/upfront-bad.log', $tag . 'upfront-bad', '--logid=' . $upfront_bad . ' --delete-after');
-e2e_import($tmp . '/upfront-good.log', $tag . 'upfront-good', '--logid=' . $upfront_good . ' --delete-after');
+[$bad_exit] = e2e_import($tmp . '/upfront-bad.log', $tag . 'upfront-bad', '--logid=' . $upfront_bad . ' --delete-after');
+[$good_exit] = e2e_import($tmp . '/upfront-good.log', $tag . 'upfront-good', '--logid=' . $upfront_good . ' --delete-after');
 
 $out['upfront'] = [
+	'bad_exit' => $bad_exit,
+	'good_exit' => $good_exit,
 	'bad'       => db_fetch_row_prepared('SELECT import_status, import_text_status FROM plugin_slowlog WHERE logid = ?', [$upfront_bad]),
 	'good'      => db_fetch_row_prepared('SELECT import_status, import_text_status, import_lines FROM plugin_slowlog WHERE logid = ?', [$upfront_good]),
 	'bad_gone'  => !is_file($tmp . '/upfront-bad.log'),
@@ -257,6 +259,23 @@ $out['reprocess'] = [
 	'log'     => db_fetch_row_prepared('SELECT import_status, import_text_status FROM plugin_slowlog WHERE logid = ?', [$reprocess]),
 	'methods' => array_column(db_fetch_assoc_prepared('SELECT DISTINCT method FROM plugin_slowlog_details_methods WHERE logid = ? ORDER BY method', [$reprocess]), 'method'),
 ];
+
+// A rejected statistics write must fail file imports and both worker CLI paths.
+slowlog_e2e_synthetic_log($tmp . '/fail-stats.log', 3, $synthetic);
+db_execute('DROP TRIGGER IF EXISTS slowlog_e2e_stats_fail');
+db_execute("CREATE TRIGGER slowlog_e2e_stats_fail BEFORE INSERT ON plugin_slowlog_stats FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'forced statistics failure'");
+try {
+	e2e_scenario('fail_stats', $tmp . '/fail-stats.log', '--delete-after', false);
+	$failed_id = e2e_logid($tag . 'fail_stats');
+	foreach (['logid', 'reprocess'] as $option) {
+		$ignore = [];
+		exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($plugin . '/import_log.php') . ' --' . $option . '=' . $failed_id . ' --table-mode=all 2>&1', $ignore, $status);
+		$out['failed_worker'][$option] = ['exit' => $status, 'status' => (int) db_fetch_cell_prepared('SELECT import_status FROM plugin_slowlog WHERE logid = ?', [$failed_id])];
+	}
+} finally {
+	db_execute('DROP TRIGGER IF EXISTS slowlog_e2e_stats_fail');
+}
+@unlink($tmp . '/fail-stats.log');
 
 foreach ($made as $id) {
 	api_slowlog_remove($id);

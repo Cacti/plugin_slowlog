@@ -144,14 +144,17 @@ describe('slow log import against a real Cacti', function () {
 		expect(array_column($o['rows'], 'query'))->toBe(['SELECT 1 FROM t1; ', 'SELECT 2 FROM t2 ']);
 	});
 
-	it('marks a pre-created record bad or complete and deletes the staged file', function () {
+	it('returns failure and retains bad input, and deletes successfully imported input', function () {
 		$o = slowlog_e2e_observe('import_flow.php')['upfront'];
 
 		expect((int) $o['bad']['import_status'])->toBe(3);
 		expect($o['bad']['import_text_status'])->toStartWith('Bad File Format');
 		expect((int) $o['good']['import_status'])->toBe(2);
 		expect((int) $o['good']['import_lines'])->toBe(1);
-		expect($o['bad_gone'] && $o['good_gone'])->toBeTrue();
+		expect($o['bad_gone'])->toBeFalse();
+		expect($o['good_gone'])->toBeTrue();
+		expect($o['bad_exit'])->toBe(1);
+		expect($o['good_exit'])->toBe(0);
 	});
 
 	it('groups tables outside the list as OTHER TABLES in cacti and reference modes', function ($scenario) {
@@ -169,6 +172,7 @@ describe('slow log import against a real Cacti', function () {
 	it('marks the import failed when the detail rows cannot be inserted', function ($scenario) {
 		$o = slowlog_e2e_scenario($scenario);
 
+		expect($o['exit'])->toBe(1);
 		expect((int) $o['log']['import_status'])->toBe(3);
 		expect($o['log']['import_text_status'])->toBe('Import Failed - Row Insert Error');
 		expect($o['count'])->toBe(0);
@@ -199,4 +203,19 @@ describe('slow log import against a real Cacti', function () {
 		expect((int) $o['log']['import_status'])->toBe(2);
 		expect($o['methods'])->toContain('OTHER TABLES');
 	});
+
+	it('retains input and returns failure when persisting statistics is rejected', function () {
+		$o = slowlog_e2e_scenario('fail_stats');
+		expect($o['exit'])->toBe(1);
+		expect($o['file_kept'])->toBeTrue();
+		expect((int) $o['log']['import_status'])->toBe(3);
+		expect($o['count'])->toBe(3);
+	});
+
+	it('returns nonzero from failed post-processing and reprocessing CLI workers', function () {
+		foreach (slowlog_e2e_observe('import_flow.php')['failed_worker'] as $worker) {
+			expect($worker)->toBe(['exit' => 1, 'status' => 3]);
+		}
+	});
+
 });
