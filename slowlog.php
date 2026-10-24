@@ -1553,7 +1553,7 @@ function slowlog_charts_filter(string $method, int $id): void {
 			function applyChartsFilter() {
 				var strURL = 'slowlog.php?action=<?php print $method == 'tables' ? 'tables' : 'methods'; ?>&header=false&logid=<?php print (int) $id; ?>';
 
-				strURL += '&chart_scope=' + ($('#chart_scope').val() || []).join(',');
+				strURL += '&chart_scope=' + encodeURIComponent(($('#chart_scope').val() || []).join(','));
 				strURL += '&chart_top=' + $('#chart_top').val();
 				strURL += '&include_max=' + ($('#include_max').is(':checked') ? 'on' : '');
 
@@ -2025,7 +2025,7 @@ function filter(): void {
 			<td>
 				<script type='text/javascript' <?php print plugin_slowlog_csp_nonce(); ?>>
 				function applyFilter() {
-					var strURL = '?action=select&header=false&filter=' + $('#filter').val();
+					var strURL = '?action=select&header=false&filter=' + encodeURIComponent($('#filter').val());
 					loadPageNoHeader(strURL);
 				}
 
@@ -2309,15 +2309,15 @@ var pageTab   = <?php print json_encode(get_request_var('tab'));?>;
 				var strURL = 'slowlog.php?action=details&logid=' + logid;
 
 				strURL += '&header=false';
-				strURL += '&filter=' + $('#filter').val();
+				strURL += '&filter=' + encodeURIComponent($('#filter').val());
 				strURL += '&rows=' + $('#rows').val();
 				strURL += '&logid=' + $('#logid').val();
-				strURL += '&mmethod=' + $('#mmethod').val();
-				strURL += '&table=' + $('#table').val();
-				strURL += '&user=' + $('#myuser').val();
-				strURL += '&host=' + $('#host').val();
-				strURL += '&date1=' + $('#date1').val();
-				strURL += '&date2=' + $('#date2').val();
+				strURL += '&mmethod=' + encodeURIComponent($('#mmethod').val());
+				strURL += '&table=' + encodeURIComponent($('#table').val());
+				strURL += '&user=' + encodeURIComponent($('#myuser').val());
+				strURL += '&host=' + encodeURIComponent($('#host').val());
+				strURL += '&date1=' + encodeURIComponent($('#date1').val());
+				strURL += '&date2=' + encodeURIComponent($('#date2').val());
 
 				loadPageNoHeader(strURL);
 			}
@@ -2332,8 +2332,8 @@ var pageTab   = <?php print json_encode(get_request_var('tab'));?>;
 				var strURL = 'slowlog.php?tab='+pageTab+'&header=false&logid=' + logid;
 
 				strURL += '&shift_left=true';
-				strURL += '&date1='+$('#date1').val();
-				strURL += '&date2='+$('#date2').val();
+				strURL += '&date1='+encodeURIComponent($('#date1').val());
+				strURL += '&date2='+encodeURIComponent($('#date2').val());
 				strURL += '&predefined_timeshift='+$('#predefined_timeshift').val();
 
 				loadPageNoHeader(strURL);
@@ -2343,8 +2343,8 @@ var pageTab   = <?php print json_encode(get_request_var('tab'));?>;
 				var strURL  = 'slowlog.php?tab='+pageTab+'&header=false&logid=' + logid;
 
 				strURL += '&shift_right=true';
-				strURL += '&date1='+$('#date1').val();
-				strURL += '&date2='+$('#date2').val();
+				strURL += '&date1='+encodeURIComponent($('#date1').val());
+				strURL += '&date2='+encodeURIComponent($('#date2').val());
 				strURL += '&predefined_timeshift='+$('#predefined_timeshift').val();
 
 				loadPageNoHeader(strURL);
