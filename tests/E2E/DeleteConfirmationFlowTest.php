@@ -36,19 +36,15 @@ describe('delete confirmation against a real Cacti', function () {
 	});
 
 	it('runs the driver to completion', function () {
+		// Comparing the text, not the key, puts the driver's output in the failure.
+		expect(slowlog_e2e_observe('delete_flow.php')['driver_failed'] ?? '')->toBe('');
+	});
+
+	it('lists the imported logs and shows the selected ones on the confirmation page', function () {
 		$o = slowlog_e2e_observe('delete_flow.php');
 
-		// Comparing the text, not the key, puts the driver's output in the failure.
-		expect($o['driver_failed'] ?? '')->toBe('');
-		expect($o['server_up'])->toBeTrue();
-	});
-
-	it('lists the imported logs for a user who holds the Slowlog realm', function () {
-		expect(slowlog_e2e_observe('delete_flow.php')['list_shows_logs'])->toBeTrue();
-	});
-
-	it('shows the selected logs on the confirmation page', function () {
-		expect(slowlog_e2e_observe('delete_flow.php')['confirm_lists_logs'])->toBeTrue();
+		expect($o['list_shows_logs'])->toBeTrue();
+		expect($o['confirm_lists_logs'])->toBeTrue();
 	});
 
 	it('offers Yes as the only submit control and No as a plain button', function () {
@@ -60,18 +56,42 @@ describe('delete confirmation against a real Cacti', function () {
 		expect($o['confirm_submit_controls'])->toBe(1);
 	});
 
+	it('shows a Return button and no Yes when nothing is selected', function () {
+		$o = slowlog_e2e_observe('delete_flow.php');
+
+		expect($o['none_message'])->toBeTrue();
+		expect($o['none_return_button'])->toBeTrue();
+		expect($o['none_has_yes'])->toBeFalse();
+	});
+
 	it('deletes nothing until Yes is submitted', function () {
 		expect(slowlog_e2e_observe('delete_flow.php')['kept_after_confirm_page'])->toBeTrue();
 	});
 
-	it('deletes the selected logs after Yes', function () {
-		expect(slowlog_e2e_observe('delete_flow.php')['deleted_after_yes'])->toBeTrue();
+	it('deletes nothing for an unknown action, a non-numeric selection, a plain GET, a missing token or an empty selection', function () {
+		$o = slowlog_e2e_observe('delete_flow.php');
+
+		expect($o['kept_after_rejects'])->toBeTrue();
+		expect($o['kept_without_token'])->toBeTrue();
+		expect($o['kept_after_empty_selection'])->toBeTrue();
 	});
 
-	it('does not serve the page once the realm is revoked', function () {
+	it('deletes exactly the confirmed logs after Yes', function () {
+		$o = slowlog_e2e_observe('delete_flow.php');
+
+		expect($o['deleted_after_yes'])->toBeTrue();
+		expect($o['others_kept'])->toBeTrue();
+	});
+
+	it('deletes on a direct form post that carries a valid token', function () {
+		expect(slowlog_e2e_observe('delete_flow.php')['direct_post_with_token_deletes'])->toBeTrue();
+	});
+
+	it('does not serve the page, or delete, once the realm is revoked', function () {
 		$o = slowlog_e2e_observe('delete_flow.php');
 
 		expect($o['denied_without_realm'])->toBeTrue();
-		expect($o['denied_text'])->toContain('Permission Denied');
+		expect($o['denied_text'])->toMatch('/Permission Denied|cactiRedirect|Access Denied/');
+		expect($o['kept_when_denied'])->toBeTrue();
 	});
 });

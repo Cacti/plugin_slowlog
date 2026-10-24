@@ -22,6 +22,7 @@
 * dev: Add end-to-end tests that import a sample slow log through `import_log.php` into an installed Cacti, upgrade an old schema, and walk the delete confirmation over HTTP. They run in the CI integration job (`SLOWLOG_E2E=1`) and are skipped otherwise
 * dev: Run the upgrade end-to-end test against a scratch copy of the plugin directory. The upgrade prunes the dev-only files (including tests/) from the plugin directory it runs in, so running it on the real checkout deleted the test tree in CI
 * dev: Share the end-to-end test helpers and the bulk INSERT lookup between tests instead of repeating them
+* dev: Extend the end-to-end tests to cover the changes against an installed Cacti and a real database: imports of MySQL 8, MariaDB, IPv6, multi-line, boundary-width, multibyte, empty, truncated and 2,100-entry logs, a failing insert, every table mode, the upload page, the details list with every sort, filter, page size and page number, the charts, the delete confirmation, access by user, group and no realm, and the 2.6 to 2.7 upgrade
 
 --- 2.6 ---
 

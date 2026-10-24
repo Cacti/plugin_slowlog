@@ -19,9 +19,10 @@
  +-------------------------------------------------------------------------+
 
 /*
- * Driver for DeleteConfirmationFlowTest. Starts PHP's built-in web server on the installed
- * Cacti, signs in over HTTP, and walks the delete confirmation: select logs, open the
- * confirmation page, confirm. Prints one JSON object on the last line of output.
+ * Driver for DeleteConfirmationFlowTest. Starts PHP's built-in web server on the installed Cacti, signs in
+ * over HTTP as an administrator, and walks the delete confirmation: select logs, open the confirmation
+ * page, confirm, and the requests that must not delete anything. Prints one JSON object on the last line
+ * of output.
  */
 
 /*
@@ -38,166 +39,118 @@ $root = slowlog_e2e_enter(__FILE__);
 $tmp  = slowlog_e2e_tmp();
 
 require_once $root . '/include/cli_check.php';
-require_once $root . '/plugins/slowlog/includes/database.php';
 require_once $root . '/plugins/slowlog/includes/functions.php';
 
 $saved_log = slowlog_e2e_redirect_log($tmp);
+$plugin    = $root . '/plugins/slowlog';
+$tag       = 'e2e' . getmypid();
+$out       = [];
 
-$port    = 18000 + (getmypid() % 1000);
-$docroot = $tmp . '/slowlog-e2e-docroot-' . getmypid();
-$base    = 'http://127.0.0.1:' . $port;
-$jar     = $tmp . '/slowlog-e2e-jar-' . getmypid();
-$tag     = 'e2e-del-' . getmypid();
-$password = 'E2e-' . bin2hex(random_bytes(6)) . '!';
-$out     = [];
-$ids     = [];
+$admin = slowlog_e2e_user('e2e_del_admin', [slowlog_e2e_realm()]);
+$web   = slowlog_e2e_web_start($tmp);
+$ids   = [];
 
-$saved = db_fetch_row_prepared('SELECT password, must_change_password, password_change, lastchange FROM user_auth WHERE id = 1');
-
-/**
- * Sends one request to the built-in server, keeping the session cookie between calls.
- *
- * @param string               $method GET or POST.
- * @param string               $path   The request path and query.
- * @param array<string,string> $fields Form fields for a POST.
- *
- * @return string The response body.
- */
-function e2e_request(string $method, string $path, array $fields = []): string {
-	global $base, $jar;
-
-	$ch = curl_init($base . $path);
-
-	curl_setopt_array($ch, [
-		CURLOPT_RETURNTRANSFER => true,
-		CURLOPT_FOLLOWLOCATION => true,
-		CURLOPT_COOKIEJAR      => $jar,
-		CURLOPT_COOKIEFILE     => $jar,
-		CURLOPT_TIMEOUT        => 30,
-	]);
-
-	if ($method === 'POST') {
-		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields));
-	}
-
-	$body = curl_exec($ch);
-
-	curl_close($ch);
-
-	return is_string($body) ? $body : '';
-}
-
-/** @return string The CSRF token of the first form on a page. */
-function e2e_token(string $html): string {
-	return preg_match('/name=[\'"]__csrf_magic[\'"]\s+value=[\'"]([^\'"]+)[\'"]/', $html, $m)
-		|| preg_match('/value=[\'"]([^\'"]+)[\'"][^>]*name=[\'"]__csrf_magic[\'"]/', $html, $m) ? $m[1] : '';
-}
-
-function e2e_exists(int $id): bool {
-	return (bool) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_slowlog WHERE logid = ?', [$id]);
-}
-
-foreach ([1, 2] as $n) {
+foreach ([1, 2, 3, 4, 5] as $n) {
 	db_execute_prepared('INSERT INTO plugin_slowlog (description, import_status, import_text_status) VALUES (?, 2, ?)', [$tag . '-' . $n, 'All Tables Processed']);
 	$ids[$n] = (int) db_fetch_insert_id();
 }
 
-$realm = (int) db_fetch_cell_prepared("SELECT id FROM plugin_realms WHERE plugin = 'slowlog' AND file = 'slowlog.php'") + 100;
+/**
+ * @return bool Whether the log still exists.
+ */
+function e2e_exists(int $id): bool {
+	return (bool) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_slowlog WHERE logid = ?', [$id]);
+}
 
-db_execute_prepared('INSERT IGNORE INTO user_auth_realm (user_id, realm_id) VALUES (1, ?)', [$realm]);
-db_execute_prepared("UPDATE user_auth SET password = ?, must_change_password = '', password_change = '', lastchange = ? WHERE id = 1", [password_hash($password, PASSWORD_DEFAULT), time()]);
+/**
+ * Posts to the Slowlog page.
+ *
+ * @param array<string, mixed> $fields The form fields.
+ *
+ * @return string The response body.
+ */
+function e2e_post(array $fields): string {
+	global $web;
 
-// Cacti builds its links from url_path (/cacti/ by default), so serve the tree under that path
-mkdir($docroot);
-symlink($root, $docroot . '/cacti');
-
-$server = proc_open([PHP_BINARY, '-S', '127.0.0.1:' . $port, '-t', $docroot], [['pipe', 'r'], ['file', '/dev/null', 'w'], ['file', '/dev/null', 'w']], $pipes);
+	return slowlog_e2e_request($web, 'POST', 'plugins/slowlog/slowlog.php', $fields)['body'];
+}
 
 try {
-	$up = false;
+	slowlog_e2e_login($web, $admin['name'], $admin['password']);
 
-	for ($i = 0; $i < 50 && !$up; $i++) {
-		$sock = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.2);
+	$list  = slowlog_e2e_request($web, 'GET', 'plugins/slowlog/slowlog.php')['body'];
+	$token = slowlog_e2e_token($list);
 
-		if ($sock) {
-			fclose($sock);
-			$up = true;
-		} else {
-			usleep(100000);
-		}
-	}
+	$out['list_shows_logs'] = strpos($list, $tag . '-1') !== false && strpos($list, $tag . '-2') !== false;
 
-	$out['server_up'] = $up;
+	// select two logs and ask for the delete action
+	$confirm = e2e_post(['action' => 'actions', 'drp_action' => '1', 'chk_' . $ids[1] => $ids[1], 'chk_' . $ids[2] => $ids[2], '__csrf_magic' => $token]);
 
-	$login = e2e_request('GET', '/cacti/index.php');
-
-	e2e_request('POST', '/cacti/index.php', [
-		'action'         => 'login',
-		'login_username' => 'admin',
-		'login_password' => $password,
-		'realm'          => 'local',
-		'__csrf_magic'   => e2e_token($login),
-	]);
-
-	$list = e2e_request('GET', '/cacti/plugins/slowlog/slowlog.php');
-
-	$out['list_shows_logs']  = strpos($list, $tag . '-1') !== false && strpos($list, $tag . '-2') !== false;
-
-	// select both logs and ask for the delete action
-	$confirm = e2e_request('POST', '/cacti/plugins/slowlog/slowlog.php', [
-		'action'               => 'actions',
-		'drp_action'           => '1',
-		'chk_' . $ids[1]       => $ids[1],
-		'chk_' . $ids[2]       => $ids[2],
-		'__csrf_magic'         => e2e_token($list),
-	]);
-
-	$out['confirm_lists_logs']       = strpos($confirm, $tag . '-1') !== false && strpos($confirm, $tag . '-2') !== false;
-	$out['confirm_yes_is_submit']    = (bool) preg_match("/<input type='submit' name='save' value='Yes'/", $confirm);
-	$out['confirm_no_is_button']     = (bool) preg_match("/<input type='button'[^>]*cactiReturnTo[^>]*value='No'/", $confirm);
-	$out['confirm_submit_controls']  = preg_match_all("/<input type='submit'/", $confirm);
-	$out['confirm_cancel_submit']    = (bool) preg_match("/<input type='submit' name='cancel'/", $confirm);
-
-	// opening the confirmation page deletes nothing
+	$out['confirm_lists_logs']      = strpos($confirm, $tag . '-1') !== false && strpos($confirm, $tag . '-2') !== false;
+	$out['confirm_yes_is_submit']   = (bool) preg_match("/<input type='submit' name='save' value='Yes'/", $confirm);
+	$out['confirm_no_is_button']    = (bool) preg_match("/<input type='button'[^>]*cactiReturnTo[^>]*value='No'/", $confirm);
+	$out['confirm_submit_controls'] = preg_match_all("/<input type='submit'/", $confirm);
+	$out['confirm_cancel_submit']   = (bool) preg_match("/<input type='submit' name='cancel'/", $confirm);
 	$out['kept_after_confirm_page'] = e2e_exists($ids[1]) && e2e_exists($ids[2]);
 
+	// nothing selected: a page with a Return button and no Yes
+	$none = e2e_post(['action' => 'actions', 'drp_action' => '1', '__csrf_magic' => $token]);
+
+	$out['none_message']       = strpos($none, 'You must select at least one Slowlog record.') !== false;
+	$out['none_return_button'] = (bool) preg_match("/<input type='button'[^>]*cactiReturnTo[^>]*value='Return'/", $none);
+	$out['none_has_yes']       = strpos($none, "value='Yes'") !== false;
+
+	// an action that does not exist, a non-numeric selection, and a plain GET delete nothing
+	e2e_post(['action' => 'actions', 'drp_action' => '99', 'chk_' . $ids[3] => $ids[3], '__csrf_magic' => $token]);
+	e2e_post(['action' => 'actions', 'drp_action' => '1', 'chk_abc' => 'abc', '__csrf_magic' => $token]);
+	slowlog_e2e_request($web, 'GET', 'plugins/slowlog/slowlog.php?action=actions&drp_action=1&chk_' . $ids[3] . '=' . $ids[3]);
+
+	$out['kept_after_rejects'] = e2e_exists($ids[3]);
+
+	// Yes deletes exactly the confirmed logs
 	preg_match("/name='selected_items' value='([^']*)'/", $confirm, $selected);
 
-	e2e_request('POST', '/cacti/plugins/slowlog/slowlog.php', [
-		'action'         => 'actions',
-		'drp_action'     => '1',
-		'selected_items' => html_entity_decode($selected[1] ?? ''),
-		'save'           => 'Yes',
-		'__csrf_magic'   => e2e_token($confirm),
-	]);
+	e2e_post(['action' => 'actions', 'drp_action' => '1', 'selected_items' => html_entity_decode($selected[1] ?? ''), 'save' => 'Yes', '__csrf_magic' => slowlog_e2e_token($confirm)]);
 
 	$out['deleted_after_yes'] = !e2e_exists($ids[1]) && !e2e_exists($ids[2]);
+	$out['others_kept']       = e2e_exists($ids[3]) && e2e_exists($ids[4]);
 
-	// a denied user must not reach the page
-	db_execute_prepared('DELETE FROM user_auth_realm WHERE user_id = 1 AND realm_id = ?', [$realm]);
+	// the form post that Yes sends, made directly with a valid token, also deletes (the confirmation is a page, not a server state)
+	e2e_post(['action' => 'actions', 'drp_action' => '1', 'selected_items' => serialize([$ids[3]]), '__csrf_magic' => $token]);
 
-	$denied = e2e_request('GET', '/cacti/plugins/slowlog/slowlog.php');
+	$out['direct_post_with_token_deletes'] = !e2e_exists($ids[3]);
 
-	$out['denied_without_realm'] = strpos($denied, $tag) === false;
-	$out['denied_text']          = substr(trim(preg_replace('/\s+/', ' ', strip_tags($denied))), 0, 120);
+	// an empty selection posted by Return deletes nothing
+	e2e_post(['action' => 'actions', 'drp_action' => '1', 'selected_items' => '', '__csrf_magic' => $token]);
+
+	$out['kept_after_empty_selection'] = e2e_exists($ids[4]) && e2e_exists($ids[5]);
+
+	// a delete request without the CSRF token is refused; this comes late because some Cacti versions
+	// end the session when a request fails the CSRF check
+	e2e_post(['action' => 'actions', 'drp_action' => '1', 'selected_items' => serialize([$ids[5]])]);
+
+	$out['kept_without_token'] = e2e_exists($ids[5]);
+
+	// once the realm is revoked the page is denied and a delete request does nothing
+	db_execute_prepared('DELETE FROM user_auth_realm WHERE user_id = ? AND realm_id = ?', [$admin['id'], slowlog_e2e_realm()]);
+	db_execute_prepared('UPDATE user_auth SET reset_perms = ? WHERE id = ?', [random_int(1, 2000000000), $admin['id']]);
+
+	$denied = slowlog_e2e_request($web, 'GET', 'plugins/slowlog/slowlog.php')['body'];
+
+	e2e_post(['action' => 'actions', 'drp_action' => '1', 'selected_items' => serialize([$ids[4]]), '__csrf_magic' => $token]);
+
+	$out['denied_without_realm']  = strpos($denied, $tag) === false;
+	$out['denied_text']           = (preg_match('/Permission Denied|cactiRedirect|Access Denied/', $denied, $m) ? $m[0] : substr(trim(preg_replace('/\s+/', ' ', strip_tags($denied))), 0, 120));
+	$out['kept_when_denied']      = e2e_exists($ids[4]);
 } finally {
-	proc_terminate($server);
-	proc_close($server);
-
-	slowlog_e2e_restore_log_setting($saved_log);
+	slowlog_e2e_web_stop($web);
 
 	foreach ($ids as $id) {
 		api_slowlog_remove($id);
 	}
 
-	db_execute_prepared('DELETE FROM user_auth_realm WHERE user_id = 1 AND realm_id = ?', [$realm]);
-	db_execute_prepared('UPDATE user_auth SET password = ?, must_change_password = ?, password_change = ?, lastchange = ? WHERE id = 1', [$saved['password'], $saved['must_change_password'], $saved['password_change'], $saved['lastchange']]);
-	@unlink($jar);
-	@unlink($docroot . '/cacti');
-	@rmdir($docroot);
+	slowlog_e2e_drop_users([$admin]);
+	slowlog_e2e_restore_log_setting($saved_log);
 }
-
-slowlog_e2e_restore_log_setting($saved_log);
 
 print json_encode($out) . PHP_EOL;
