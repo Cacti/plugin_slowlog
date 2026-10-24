@@ -198,6 +198,17 @@ function slowlog_check_upgrade(): void {
 		['slowlog']);
 
 	if ($current != $old) {
+		db_execute('DELETE FROM plugin_hooks WHERE function="slowlog_page_head"');
+
+		// The schema create/refresh lives in includes/database.php (the thold model). Record
+		// the new version only once it has succeeded, otherwise a failed ALTER would be
+		// treated as applied and never retried.
+		if (!slowlog_upgrade_tables()) {
+			cacti_log('WARNING: slowlog schema upgrade did not complete; the installed version is left unchanged so it is retried', false, 'SLOWLOG');
+
+			return;
+		}
+
 		db_execute_prepared('UPDATE plugin_config
 			SET version = ?
 			WHERE directory = ?',
@@ -209,11 +220,6 @@ function slowlog_check_upgrade(): void {
 			webpage = ?
 			WHERE directory = ?',
 			[$info['version'], $info['longname'], $info['author'], $info['homepage'], $info['name']]);
-
-		db_execute('DELETE FROM plugin_hooks WHERE function="slowlog_page_head"');
-
-		// The schema create/refresh lives in includes/database.php (the thold model).
-		slowlog_upgrade_tables();
 
 		slowlog_prune_files();
 	}

@@ -2,6 +2,7 @@
 
 --- 2.7 ---
 
+* bug: Record the new plugin version in `plugin_config` only after the schema upgrade succeeds. The version was written first, so a failed ALTER was never retried
 * bug: Widen columns that were too narrow for real slow log data - `user` (128), `schema` (64) and `ip_address` (45) on `plugin_slowlog_details`, table names (64) on the table association, dictionary and stats tables, and `import_text_status` (128). A value that did not fit made the INSERT fail under strict SQL mode. Existing installs are altered once when the plugin version changes to 2.7
 * bug: Quote database names in the `SHOW TABLES FROM` used to build the Cacti table list; a database such as `my-db` was a syntax error and its tables were dropped from the list
 * bug: Split the Tables of Interest list on any whitespace (spaces, tabs, line breaks). A list pasted with one table per line never matched, and repeated spaces produced empty table names
