@@ -2,6 +2,7 @@
 
 --- 2.7 ---
 
+* security: Escape the table name used as the option value in the Details view's table filter; names are parsed from imported queries and can contain markup characters
 * security: Cast the numeric fields parsed from a slow log header (`Query_time`, `Lock_time`, `Rows_*`, `Bytes_sent`, `Thread_id`) to plain numbers before they are placed in the bulk `plugin_slowlog_details` INSERT; a non-numeric value is stored as 0
 
 --- 2.6 ---

@@ -2138,7 +2138,7 @@ function slowlog_details_filter(): void {
 
 	if (cacti_sizeof($tables)) {
 		foreach ($tables as $t) {
-			print '<option value="' . $t['table_name'] . '"' . (get_request_var('table') == $t['table_name'] ? ' selected' : '') . '>' . html_escape($t['table_name']) . '</option>';
+			print '<option value="' . html_escape($t['table_name']) . '"' . (get_request_var('table') == $t['table_name'] ? ' selected' : '') . '>' . html_escape($t['table_name']) . '</option>';
 		}
 	}
 	?>
