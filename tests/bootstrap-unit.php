@@ -133,7 +133,10 @@ function slowlog_test_db_result($fn, $sql, $params, $default) {
 				: (strpos($sql, $fixture['match']) !== false);
 
 			if ($matched) {
-				return $fixture['result'];
+				if ($fixture['result'] instanceof Throwable) {
+					throw $fixture['result'];
+				}
+				return is_callable($fixture['result']) ? $fixture['result']($sql, $params) : $fixture['result'];
 			}
 		}
 	}
@@ -396,7 +399,7 @@ if (!function_exists('is_error_message')) {
 
 if (!function_exists('sql_save')) {
 	function sql_save($array, $table, $key = 'id') {
-		return isset($array['id']) ? $array['id'] : 1;
+		return $GLOBALS['__test_sql_save_result'] ?? (isset($array['id']) ? $array['id'] : 1);
 	}
 }
 
@@ -512,4 +515,17 @@ function slowlog_test_load($path) {
 			$GLOBALS[$__name] = $__value;
 		}
 	}
+}
+
+/**
+ * Read the plugin helper modules for source-contract security assertions.
+ *
+ * @return string Combined helper source.
+ */
+function slowlog_test_helper_source(): string {
+	$source = '';
+	foreach (['functions.php', 'log_parser.php', 'sql_tables.php', 'statistics.php', 'queries.php'] as $file) {
+		$source .= file_get_contents(__DIR__ . '/../includes/' . $file) . PHP_EOL;
+	}
+	return $source;
 }
