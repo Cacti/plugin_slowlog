@@ -144,18 +144,16 @@ if ($logfile !== false) {
 	// --logid alongside --logfile means the caller (the web upload handler) already
 	// inserted the parent record so its status is visible immediately - reuse it
 	// instead of creating a second one.
-	import_logfile($logfile, $description, $length, $table_names, $usecacti, false, $table_mode, $logid !== false ? (int) $logid : null);
+	$success = import_logfile($logfile, $description, $length, $table_names, $usecacti, false, $table_mode, $logid !== false ? (int) $logid : null);
 
-	if ($delete_after) {
-		@unlink($logfile);
-	}
+	exit(slowlog_finish_file_import($success, $logfile, $delete_after));
 } elseif ($logid !== false) {
-	import_post_process((int) $logid, $table_names, $usecacti, $table_mode);
+	exit(import_post_process((int) $logid, $table_names, $usecacti, $table_mode) ? 0 : 1);
 } elseif ($reprocess !== false) {
 	if (strtolower($reprocess) == 'all') {
-		slowlog_reprocess_all($table_names, $usecacti, $table_mode);
+		exit(slowlog_reprocess_all($table_names, $usecacti, $table_mode) ? 0 : 1);
 	} elseif (preg_match('/^[1-9][0-9]*$/', trim((string) $reprocess))) {
-		slowlog_reprocess((int) $reprocess, $table_names, $usecacti, $table_mode);
+		exit(slowlog_reprocess((int) $reprocess, $table_names, $usecacti, $table_mode) ? 0 : 1);
 	} else {
 		print "ERROR: Invalid --reprocess value '$reprocess', must be a positive integer logid or 'all'" . PHP_EOL . PHP_EOL;
 		display_help();

@@ -1,5 +1,34 @@
 ## ChangeLog
 
+--- 2.7 ---
+
+* security: Cast the numeric fields parsed from a slow log header (`Query_time`, `Lock_time`, `Rows_*`, `Bytes_sent`, `Thread_id`) to plain numbers before they are placed in the bulk `plugin_slowlog_details` INSERT; a non-numeric value is stored as 0
+* security: Escape the table name used as the option value in the Details view's table filter; names are parsed from imported queries and can contain markup characters
+* bug: Return import and reprocessing outcomes to CLI callers, preserve failed source files, and stop post-processing after database failures
+* refactor: Separate streaming log parsing, bounded detail writes, SQL table extraction, statistics, and page queries while preserving the existing public helper functions
+* performance: Bound retained statistics samples across groups and process one scope at a time; retain exact counts, totals, minima and maxima
+* dev: Add regression coverage for import failures, parser boundaries, page queries and statistics budgets, plus a repeatable isolated profiling driver
+* bug: Store the time of each slow log entry through `FROM_UNIXTIME()` instead of formatting it with PHP's `date()`. The epoch from a `SET timestamp=` line is an absolute instant, and PHP's time zone can differ from the database session's, which shifted every stored time by the difference. A MySQL 8 ISO `# Time:` (with `Z` or an offset) is now read with its zone, and a MariaDB `# Time:` with a one digit hour no longer loses its time of day
+* bug: Make the No and Return controls on the delete confirmation page plain buttons. They were submit buttons that posted the same selected_items field as Yes, so clicking No deleted the selected logs
+* bug: Match the slow log header lines (`# Time:`, `# User@Host:`, `SET timestamp=` and the other `#` lines) only at the start of a line. A query containing `SET timestamp=` was read as a header and dropped from the import
+* bug: Parse the `# User@Host:` header with a pattern instead of splitting on every colon. The MySQL `Id:` suffix was stored as part of the client address (and IPv6 addresses were lost), which could also overflow the address column
+* bug: Detect tables from the original query text rather than the whitespace-collapsed copy. A trailing `--` or `#` comment on one line masked the rest of the collapsed statement, so tables after it were missing from the By Table views
+* bug: Truncate imported queries on a character boundary and ignore a Max Query Length of zero or less. Cutting a multibyte character in half made the batch INSERT fail, and a length of 0 stored every query as empty
+* bug: Stop an import and mark it failed (status 3, "Import Failed - Row Insert Error") when a batch of detail rows cannot be inserted. The failed INSERT result was ignored, so the import finished as complete with those rows missing
+* bug: Split the Tables of Interest list on any whitespace (spaces, tabs, line breaks). A list pasted with one table per line never matched, and repeated spaces produced empty table names
+* bug: Quote database names in the `SHOW TABLES FROM` used to build the Cacti table list; a database such as `my-db` was a syntax error and its tables were dropped from the list
+* bug: Widen columns that were too narrow for real slow log data - `user` (128), `schema` (64) and `ip_address` (45) on `plugin_slowlog_details`, table names (64) on the table association, dictionary and stats tables, and `import_text_status` (128). A value that did not fit was silently truncated (merging distinct users or tables), or failed the INSERT where the session is in strict SQL mode. Existing installs are altered once when the plugin version changes to 2.7
+* bug: Record the new plugin version in `plugin_config` only after the schema upgrade succeeds. The version was written first, so a failed ALTER was never retried
+* bug: Show the Slowlog tab using `is_realm_allowed()` instead of reading `user_auth_realm`, so users who get the realm through a group see it, and stop caching the answer in the session so a changed grant applies without a new login
+* bug: Bound the rows per page (1 to 1000) and the page number in the Details view before building its LIMIT. A request with a very large page size loaded every matching row, including the query text, into memory, and a negative value produced a SQL error
+* bug: Report the exact minimum and maximum in the cached box-whisker stats. Once a method or table had more than 20000 entries the values were sampled, and Include Max showed the largest sampled value rather than the real maximum
+* bug: URL-encode the search, method, table, user, host, date and chart scope values the filter forms add to the request. A value containing `&`, `#` or `+` truncated or changed the filter
+* perf: Read the detail rows in 2000-row chunks (only logentry, query and oquery) when associating tables with queries, instead of loading every column of every row of the log at once
+* dev: Add end-to-end tests that import a sample slow log through `import_log.php` into an installed Cacti, upgrade an old schema, and walk the delete confirmation over HTTP. They run in the CI integration job (`SLOWLOG_E2E=1`) and are skipped otherwise
+* dev: Run the upgrade end-to-end test against a scratch copy of the plugin directory. The upgrade prunes the dev-only files (including tests/) from the plugin directory it runs in, so running it on the real checkout deleted the test tree in CI
+* dev: Share the end-to-end test helpers and the bulk INSERT lookup between tests instead of repeating them
+* dev: Extend the end-to-end tests to cover the changes against an installed Cacti and a real database: imports of MySQL 8, MariaDB, IPv6, multi-line, boundary-width, multibyte, empty, truncated and 2,100-entry logs, a failing insert, every table mode, the upload page, the details list with every sort, filter, page size and page number, the charts, the delete confirmation, access by user, group and no realm, and the 2.6 to 2.7 upgrade
+
 --- 2.6 ---
 
 * security: Move the slow-query views' inline event handlers to CSP-safe bindings so the pages no longer trip Cacti's Content-Security-Policy script-src-attr directive: the charts/summary/details filter selects, Go/Clear buttons, time-shift icons and per-field clear glyph are bound in each view's ready block, and the confirmation Cancel button uses the `cactiReturnTo` class
