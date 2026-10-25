@@ -326,6 +326,70 @@ function slowlog_time_expression(string $line): string {
 	return db_qstr('20' . substr($time, 0, 2) . '-' . substr($time, 2, 2) . '-' . substr($time, 4, 2) . (isset($parts[3]) ? ' ' . $parts[3] : ''));
 }
 
+// the pseudo file name of the management realm; no page has this name, the realm only exists so an
+// administrator can grant it separately from the viewing realm
+const SLOWLOG_MANAGE_FILE = 'slowlog_manage.php';
+
+/**
+ * Returns the id of the realm that allows importing and deleting logs, as Cacti numbers it for
+ * is_realm_allowed() (the plugin realm number plus 100).
+ *
+ * Called from slowlog_can_manage().
+ *
+ * @return int The realm id, or 0 when the realm is not registered.
+ */
+function slowlog_manage_realm(): int {
+	$id = db_fetch_cell_prepared('SELECT id
+		FROM plugin_realms
+		WHERE plugin = ?
+		AND file = ?',
+		['slowlog', SLOWLOG_MANAGE_FILE]);
+
+	return empty($id) ? 0 : (int) $id + 100;
+}
+
+/**
+ * Whether the current user may import and delete logs. Viewing needs the slowlog.php realm; this
+ * needs the management realm as well. It fails closed when the realm is not registered.
+ *
+ * Called from slowlog.php before an import, a delete or the import form, and to decide which
+ * controls the list shows.
+ *
+ * @return bool True when the user holds the management realm.
+ */
+function slowlog_can_manage(): bool {
+	$realm = slowlog_manage_realm();
+
+	return $realm > 0 && is_realm_allowed($realm);
+}
+
+/**
+ * Raises PHP's execution time and memory limits for the requests that need them, and only those:
+ * the import form and upload (a large file is staged and handed to the background worker) and the
+ * delete of a large log. Every other request keeps the limits the web server was configured with.
+ *
+ * Called from slowlog.php once the request's action is known.
+ *
+ * @param string $action The request's action.
+ *
+ * @return bool True when a limit was raised.
+ */
+function slowlog_apply_request_limits(string $action): bool {
+	$raised = false;
+
+	if (in_array($action, ['edit', 'save', 'import', 'actions'], true)) {
+		ini_set('max_execution_time', '0');
+
+		$raised = true;
+	}
+
+	if (in_array($action, ['edit', 'save', 'import'], true)) {
+		ini_set('memory_limit', '-1');
+	}
+
+	return $raised;
+}
+
 // the largest page the Details view will build, matching the biggest rows-per-page choice
 const SLOWLOG_MAX_PAGE_ROWS = 1000;
 

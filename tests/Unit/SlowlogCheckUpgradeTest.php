@@ -39,6 +39,8 @@ beforeAll(function () {
 beforeEach(function () {
 	slowlog_test_reset_db_mocks();
 	unset($_SERVER['PHP_SELF']);
+	// both realm lookups find a realm, as they do once api_plugin_register_realm() has run
+	slowlog_test_mock_db('db_fetch_cell_prepared', 'plugin_realms', 2);
 
 	// Sandbox base_path so the version-drift branch runs
 	// slowlog_prune_files() against a throwaway tree with no
@@ -199,4 +201,54 @@ it('records the new version only after the schema upgrade has run', function () 
 	}
 
 	expect($order)->toBe(array('schema', 'version', 'version'));
+});
+
+it('grants the management realm before it records the version when upgrading from 2.7', function () {
+	$_SERVER['PHP_SELF'] = '/cacti/plugins.php';
+	slowlog_test_mock_db('db_fetch_cell_prepared', 'plugin_config', '2.7');
+	slowlog_test_mock_db('db_table_exists', 'plugin_slowlog_details', true);
+
+	slowlog_check_upgrade();
+
+	$order = array();
+
+	foreach ($GLOBALS['__test_db_calls'] as $call) {
+		if ($call['fn'] === 'db_execute_prepared' && strpos($call['sql'], 'INSERT IGNORE INTO') === 0) {
+			$order[] = 'grant';
+		} elseif ($call['fn'] === 'db_execute_prepared' && stripos($call['sql'], 'UPDATE plugin_config') !== false) {
+			$order[] = 'version';
+		}
+	}
+
+	expect($order)->toBe(array('grant', 'grant', 'version', 'version'));
+});
+
+it('does not grant the management realm again once the install is at 2.8 or later', function ($stored) {
+	$_SERVER['PHP_SELF'] = '/cacti/plugins.php';
+	slowlog_test_mock_db('db_fetch_cell_prepared', 'plugin_config', $stored);
+	slowlog_test_mock_db('db_table_exists', 'plugin_slowlog_details', true);
+
+	slowlog_check_upgrade();
+
+	$grants = array_filter($GLOBALS['__test_db_calls'], function ($call) {
+		return $call['fn'] === 'db_execute_prepared' && strpos($call['sql'], 'INSERT IGNORE INTO') === 0;
+	});
+
+	expect($grants)->toBeEmpty();
+})->with(array('2.8', '2.9', '3.0'));
+
+it('leaves the version unchanged and logs a warning when the realm upgrade fails', function () {
+	$_SERVER['PHP_SELF'] = '/cacti/plugins.php';
+	slowlog_test_mock_db('db_fetch_cell_prepared', 'plugin_config', '2.7');
+	slowlog_test_mock_db('db_execute_prepared', 'INSERT IGNORE INTO user_auth_realm', false);
+	$GLOBALS['__test_cacti_log'] = array();
+
+	slowlog_check_upgrade();
+
+	$updates = array_filter($GLOBALS['__test_db_calls'], function ($call) {
+		return $call['fn'] === 'db_execute_prepared' && stripos($call['sql'], 'UPDATE plugin_config') !== false;
+	});
+
+	expect($updates)->toBeEmpty();
+	expect($GLOBALS['__test_cacti_log'][0])->toContain('realm upgrade did not complete');
 });

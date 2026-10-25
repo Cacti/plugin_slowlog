@@ -407,3 +407,12 @@ function slowlog_e2e_synthetic_log(string $path, int $entries, array $queries): 
 function slowlog_e2e_realm(): int {
 	return (int) db_fetch_cell_prepared('SELECT id FROM plugin_realms WHERE plugin = ? AND file = ?', ['slowlog', 'slowlog.php']) + 100;
 }
+
+/**
+ * @return int The realm id that allows importing and deleting (the plugin realm number plus 100), or 0.
+ */
+function slowlog_e2e_manage_realm(): int {
+	$id = db_fetch_cell_prepared('SELECT id FROM plugin_realms WHERE plugin = ? AND file = ?', ['slowlog', 'slowlog_manage.php']);
+
+	return $id ? (int) $id + 100 : 0;
+}

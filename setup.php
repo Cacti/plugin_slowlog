@@ -40,7 +40,8 @@ function plugin_slowlog_csp_nonce(): string {
 
 /**
  * Registers this plugin's Cacti hooks (config arrays, navigation
- * breadcrumbs, settings, tab display) and its slowlog.php realm, then
+ * breadcrumbs, settings, tab display) and its viewing and management
+ * realms, then
  * creates the plugin's database tables and seeds their reference data.
  * Invoked by the Cacti plugin framework when the plugin is
  * installed/enabled.
@@ -57,6 +58,7 @@ function plugin_slowlog_install(): void {
 	api_plugin_register_hook('slowlog', 'top_graph_header_tabs', 'slowlog_show_tab',             'setup.php');
 
 	api_plugin_register_realm('slowlog', 'slowlog.php', 'Plugin -> MySQL Slow Log Viewer', 1);
+	api_plugin_register_realm('slowlog', 'slowlog_manage.php', 'Plugin -> MySQL Slow Log Management', 1);
 
 	require_once($config['base_path'] . '/plugins/slowlog/includes/database.php');
 
@@ -209,6 +211,15 @@ function slowlog_check_upgrade(): void {
 			return;
 		}
 
+		// 2.8 splits importing and deleting off from viewing. Everyone who can view keeps the
+		// access they had; an administrator narrows it afterwards. This runs once, on the way
+		// up from an older version, so a later change to a grant is never undone.
+		if (version_compare((string) $old, '2.8', '<') && !slowlog_upgrade_realms()) {
+			cacti_log('WARNING: slowlog realm upgrade did not complete; the installed version is left unchanged so it is retried', false, 'SLOWLOG');
+
+			return;
+		}
+
 		db_execute_prepared('UPDATE plugin_config
 			SET version = ?
 			WHERE directory = ?',
@@ -223,6 +234,41 @@ function slowlog_check_upgrade(): void {
 
 		slowlog_prune_files();
 	}
+}
+
+/**
+ * Registers the management realm and grants it to every user and group that holds the viewing
+ * realm, so an upgrade does not take import and delete away from anyone. Safe to run again: the
+ * grants are INSERT IGNORE. The name contains "upgrade" because Cacti only lets plugin install and
+ * upgrade functions register realms.
+ *
+ * Called from slowlog_check_upgrade() when upgrading from a version older than 2.8.
+ *
+ * @return bool True when the realm exists and every grant was made.
+ */
+function slowlog_upgrade_realms(): bool {
+	api_plugin_register_realm('slowlog', 'slowlog_manage.php', 'Plugin -> MySQL Slow Log Management', 1);
+
+	$view   = db_fetch_cell_prepared('SELECT id FROM plugin_realms WHERE plugin = ? AND file = ?', ['slowlog', 'slowlog.php']);
+	$manage = db_fetch_cell_prepared('SELECT id FROM plugin_realms WHERE plugin = ? AND file = ?', ['slowlog', 'slowlog_manage.php']);
+
+	if (empty($view) || empty($manage)) {
+		return false;
+	}
+
+	$user_grants = db_execute_prepared('INSERT IGNORE INTO user_auth_realm (user_id, realm_id)
+		SELECT user_id, ?
+		FROM user_auth_realm
+		WHERE realm_id = ?',
+		[(int) $manage + 100, (int) $view + 100]);
+
+	$group_grants = db_execute_prepared('INSERT IGNORE INTO user_auth_group_realm (group_id, realm_id)
+		SELECT group_id, ?
+		FROM user_auth_group_realm
+		WHERE realm_id = ?',
+		[(int) $manage + 100, (int) $view + 100]);
+
+	return $user_grants !== false && $group_grants !== false;
 }
 
 /**
