@@ -38,10 +38,10 @@ describe('version upgrade against a real Cacti', function () {
 		expect(slowlog_e2e_observe('upgrade_flow.php')['driver_failed'] ?? '')->toBe('');
 	});
 
-	it('widens the old column widths and records version 2.7', function () {
+	it('widens the old column widths and records version 2.8', function () {
 		$o = slowlog_e2e_observe('upgrade_flow.php');
 
-		expect($o['version'])->toBe('2.7');
+		expect($o['version'])->toBe('2.8');
 		expect($o['widths'])->toBe([
 			'plugin_slowlog_details.user'              => 128,
 			'plugin_slowlog_details.ip_address'        => 45,

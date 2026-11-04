@@ -29,14 +29,13 @@ require_once('./lib/poller.php');
 require_once('./lib/timespan_settings.php');
 require_once('./plugins/slowlog/includes/functions.php');
 
-ini_set('max_execution_time', '0');
-ini_set('memory_limit', '-1');
-
 $actions = [
 	1 => __('Delete', 'slowlog')
 ];
 
 set_default_action('select');
+
+slowlog_apply_request_limits(get_request_var('action'));
 
 switch (get_request_var('action')) {
 	case 'save':
@@ -57,6 +56,8 @@ switch (get_request_var('action')) {
 
 		break;
 	case 'edit':
+		slowlog_require_management();
+
 		slowlog_render_with_layout('slowlog_import');
 
 		break;
@@ -86,6 +87,26 @@ switch (get_request_var('action')) {
 		break;
 }
 
+/**
+ * Sends a user who does not hold the management realm back to the list with a message. Importing and
+ * deleting need that realm in addition to the one that allows viewing.
+ *
+ * Called before the import form, an upload and a delete.
+ *
+ * @return void Returns when the user may manage; otherwise redirects and exits.
+ */
+function slowlog_require_management(): void {
+	if (slowlog_can_manage()) {
+		return;
+	}
+
+	raise_message('slowlog_manage_denied', __('ERROR: You do not have permission to import or delete Slowlog files.', 'slowlog'), MESSAGE_LEVEL_ERROR);
+
+	header('Location: slowlog.php');
+
+	exit;
+}
+
 /* --------------------------
 	The Save Function
    -------------------------- */
@@ -108,6 +129,8 @@ switch (get_request_var('action')) {
  */
 function form_save(): void {
 	global $config;
+
+	slowlog_require_management();
 
 	if (isset($_POST['save_component_slowlog'])) {
 		$logid = api_slowlog_save($_POST['logid'], $_POST['description'], $_POST['length']);
@@ -217,6 +240,8 @@ function form_save(): void {
  */
 function form_actions(): void {
 	global $config, $actions;
+
+	slowlog_require_management();
 
 	// if we are to save this form, instead of display it
 	if (isset($_POST['selected_items'])) {
@@ -1666,7 +1691,9 @@ function slowlog_view(): void {
 
 	slowlog_tabs();
 
-	html_start_box(__('MariaDB/MySQL SlowLog File Filters', 'slowlog'), '100%', false, 3, 'center', 'slowlog.php?action=edit');
+	$can_manage = slowlog_can_manage();
+
+	html_start_box(__('MariaDB/MySQL SlowLog File Filters', 'slowlog'), '100%', false, 3, 'center', $can_manage ? 'slowlog.php?action=edit' : '');
 	filter();
 	html_end_box();
 
@@ -1722,7 +1749,11 @@ function slowlog_view(): void {
 		]
 	];
 
-	html_header_sort_checkbox($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false, 'slowlog.php?action=select');
+	if ($can_manage) {
+		html_header_sort_checkbox($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false, 'slowlog.php?action=select');
+	} else {
+		html_header_sort($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), 1, 'slowlog.php?action=select');
+	}
 
 	$has_pending = false;
 
@@ -1763,7 +1794,9 @@ function slowlog_view(): void {
 			form_selectable_cell(get_daysfromtime($entry['duration']), $entry['logid'], '', 'right');
 			form_selectable_cell($entry['start_time'], $entry['logid'], '', 'right');
 			form_selectable_cell($entry['end_time'], $entry['logid'], '', 'right');
-			form_checkbox_cell($entry['description'], $entry['logid']);
+			if ($can_manage) {
+				form_checkbox_cell($entry['description'], $entry['logid']);
+			}
 
 			form_end_row();
 		}
@@ -1789,7 +1822,9 @@ function slowlog_view(): void {
 		<?php
 	}
 
-	draw_actions_dropdown($actions);
+	if ($can_manage) {
+		draw_actions_dropdown($actions);
+	}
 
 	form_end();
 }

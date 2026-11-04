@@ -34,12 +34,16 @@ if (PHP_SAPI !== 'cli' || getenv('SLOWLOG_E2E') !== '1' || !is_dir((string) gete
 
 require_once __DIR__ . '/e2e_boot.php';
 
-$realm = slowlog_e2e_realm();
-$users = [
-	'direct' => slowlog_e2e_user('e2e_acc_direct', [$realm]),
-	'group'  => slowlog_e2e_user('e2e_acc_group', [], [$realm]),
+$realm  = slowlog_e2e_realm();
+$manage = slowlog_e2e_manage_realm();
+$users  = [
+	'direct' => slowlog_e2e_user('e2e_acc_direct', [$realm, $manage]),
+	'group'  => slowlog_e2e_user('e2e_acc_group', [], [$realm, $manage]),
+	'viewer' => slowlog_e2e_user('e2e_acc_viewer', [$realm]),
 	'none'   => slowlog_e2e_user('e2e_acc_none', [7]),
 ];
+
+file_put_contents($tmp . '/upload.log', "# Time: 240115  1:02:03\n# User@Host: u[u] @ h [10.0.0.1]\n# Query_time: 1.0  Lock_time: 0.0  Rows_sent: 1  Rows_examined: 1\nSET timestamp=1705280523;\nSELECT 1 FROM host;\n# Time: 240115  1:02:09\n");
 
 db_execute_prepared('INSERT INTO plugin_slowlog (description, import_status, import_text_status) VALUES (?, 2, ?)', [$tag . '-keep', 'All Tables Processed']);
 
@@ -87,13 +91,23 @@ try {
 
 		$out['page'][$key] = e2e_visit('plugins/slowlog/slowlog.php');
 
-		if ($key === 'none') {
-			// a delete request from the user without the realm, with a token from a page the user can open
+		$list = slowlog_e2e_request($web, 'GET', 'plugins/slowlog/slowlog.php')['body'];
+
+		$out['controls'][$key] = ['add_link' => strpos($list, 'slowlog.php?action=edit') !== false, 'actions' => strpos($list, 'drp_action') !== false, 'checkboxes' => strpos($list, 'chk_' . $logid) !== false];
+
+		if ($key === 'none' || $key === 'viewer') {
+			// a delete request and an upload from a user who may not manage, with a token from a page the user can open
 			$token = slowlog_e2e_token(slowlog_e2e_request($web, 'GET', 'index.php')['body']);
 
 			slowlog_e2e_request($web, 'POST', 'plugins/slowlog/slowlog.php', ['action' => 'actions', 'drp_action' => '1', 'selected_items' => serialize([$logid]), '__csrf_magic' => $token]);
+			slowlog_e2e_request($web, 'POST', 'plugins/slowlog/slowlog.php?action=import', ['save_component_import' => '1', 'description' => $tag . '-' . $key . '-upload', 'length' => '-1', 'table_mode' => 'all', 'table_names' => '', 'import_file' => new CURLFile($tmp . '/upload.log', 'text/plain', 'upload.log'), '__csrf_magic' => $token]);
 
-			$out['kept_after_post'] = (bool) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_slowlog WHERE logid = ?', [$logid]);
+			$out['kept_after_post'][$key] = (bool) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_slowlog WHERE logid = ?', [$logid]);
+			$out['uploaded'][$key]        = (bool) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_slowlog WHERE description = ?', [$tag . '-' . $key . '-upload']);
+
+			$form = slowlog_e2e_request($web, 'GET', 'plugins/slowlog/slowlog.php?action=edit')['body'];
+
+			$out['form_denied'][$key] = strpos($form, 'import_file') === false && strpos($form, 'do not have permission to import or delete') !== false;
 		}
 
 		// the tab: looked up on the first call, taken from the session on the second
@@ -102,6 +116,34 @@ try {
 			'cached' => strpos(e2e_tab($user['id'], ['sess_slowlog_realm' => $realm]), 'tab_slowlog.gif') !== false,
 		];
 	}
+
+	// a user who holds both realms can delete, then loses the ability when the management realm is revoked
+	$web['jar'] = $tmp . '/jar-direct';
+
+	db_execute_prepared('INSERT INTO plugin_slowlog (description, import_status, import_text_status) VALUES (?, 2, ?)', [$tag . '-managed', 'All Tables Processed']);
+
+	$managed = (int) db_fetch_insert_id();
+	$token   = slowlog_e2e_token(slowlog_e2e_request($web, 'GET', 'plugins/slowlog/slowlog.php')['body']);
+
+	slowlog_e2e_request($web, 'POST', 'plugins/slowlog/slowlog.php', ['action' => 'actions', 'drp_action' => '1', 'selected_items' => serialize([$managed]), '__csrf_magic' => $token]);
+
+	$out['manager_deleted'] = !db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_slowlog WHERE logid = ?', [$managed]);
+
+	db_execute_prepared('INSERT INTO plugin_slowlog (description, import_status, import_text_status) VALUES (?, 2, ?)', [$tag . '-revoked', 'All Tables Processed']);
+
+	$revoked = (int) db_fetch_insert_id();
+
+	db_execute_prepared('DELETE FROM user_auth_realm WHERE user_id = ? AND realm_id = ?', [$users['direct']['id'], $manage]);
+	e2e_reset_perms($users['direct']['id']);
+
+	slowlog_e2e_request($web, 'POST', 'plugins/slowlog/slowlog.php', ['action' => 'actions', 'drp_action' => '1', 'selected_items' => serialize([$revoked]), '__csrf_magic' => $token]);
+
+	$out['kept_after_manage_revoked'] = (bool) db_fetch_cell_prepared('SELECT COUNT(*) FROM plugin_slowlog WHERE logid = ?', [$revoked]);
+	$out['still_views'] = e2e_visit('plugins/slowlog/slowlog.php')['shows_page'];
+
+	api_slowlog_remove($revoked);
+
+	db_execute_prepared('INSERT IGNORE INTO user_auth_realm (user_id, realm_id) VALUES (?, ?)', [$users['direct']['id'], $manage]);
 
 	// the page a slowlog URL is on uses the pressed image
 	$_SERVER['REQUEST_URI'] = '/cacti/plugins/slowlog/slowlog.php';

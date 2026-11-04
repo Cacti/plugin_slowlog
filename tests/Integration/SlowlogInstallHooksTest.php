@@ -44,8 +44,7 @@ it('registers every hook slowlog depends on, its realm, and provisions its table
 		expect($hooks[$expected]['file'])->toBe('setup.php');
 	}
 
-	expect($GLOBALS['__test_registered_realms'])->toHaveCount(1);
-	expect($GLOBALS['__test_registered_realms'][0]['file'])->toBe('slowlog.php');
+	expect(array_column($GLOBALS['__test_registered_realms'], 'file'))->toBe(array('slowlog.php', 'slowlog_manage.php'));
 
 	$createdTables = array_values(array_unique(array_map(function ($call) {
 		return $call['sql'];
