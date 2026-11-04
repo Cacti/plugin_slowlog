@@ -1,0 +1,326 @@
+{
+  "baseline": "c81fe12a401cacb6cce31282e9198a5762221919",
+  "php": "8.4.25",
+  "database": "stubbed",
+  "repetitions": 5,
+  "results": [
+    {
+      "version": "baseline",
+      "case": "stats",
+      "median_seconds": 0.498099709,
+      "peak_bytes": 31457280,
+      "runs": [
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.5258865,
+          "peak_bytes": 31457280,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.498099709,
+          "peak_bytes": 31457280,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.495398417,
+          "peak_bytes": 31457280,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.493131584,
+          "peak_bytes": 31457280,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.513453709,
+          "peak_bytes": 31457280,
+          "php": "8.4.25",
+          "database": "stubbed"
+        }
+      ]
+    },
+    {
+      "version": "refactor",
+      "case": "stats",
+      "median_seconds": 0.458813458,
+      "peak_bytes": 14680064,
+      "runs": [
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.460331333,
+          "peak_bytes": 14680064,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.455543791,
+          "peak_bytes": 14680064,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.458813458,
+          "peak_bytes": 14680064,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.452139833,
+          "peak_bytes": 14680064,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "stats",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.460223958,
+          "peak_bytes": 14680064,
+          "php": "8.4.25",
+          "database": "stubbed"
+        }
+      ]
+    },
+    {
+      "version": "baseline",
+      "case": "ingest",
+      "median_seconds": 0.42903925,
+      "peak_bytes": 2097152,
+      "runs": [
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.437912542,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.423615125,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.42903925,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.416132125,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.439437958,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        }
+      ]
+    },
+    {
+      "version": "refactor",
+      "case": "ingest",
+      "median_seconds": 0.390664625,
+      "peak_bytes": 2097152,
+      "runs": [
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.403556292,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.383948917,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.381581584,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.390762125,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "ingest",
+          "entries": 100000,
+          "groups": 64,
+          "seconds": 0.390664625,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        }
+      ]
+    },
+    {
+      "version": "baseline",
+      "case": "tables",
+      "median_seconds": 0.235515292,
+      "peak_bytes": 2097152,
+      "runs": [
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.235349375,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.234072625,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.237612417,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.235515292,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.238649792,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        }
+      ]
+    },
+    {
+      "version": "refactor",
+      "case": "tables",
+      "median_seconds": 0.237336792,
+      "peak_bytes": 2097152,
+      "runs": [
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.234339417,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.236929166,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.237336792,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.239337083,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        },
+        {
+          "case": "tables",
+          "entries": 10000,
+          "groups": 64,
+          "seconds": 0.238890583,
+          "peak_bytes": 2097152,
+          "php": "8.4.25",
+          "database": "stubbed"
+        }
+      ]
+    }
+  ]
+}

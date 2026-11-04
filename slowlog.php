@@ -292,8 +292,8 @@ function form_actions(): void {
 			<input type='hidden' name='action' value='actions'>
 			<input type='hidden' name='selected_items' value='" . (cacti_sizeof($slowlog_array) ? serialize($slowlog_array) : '') . "'>
 			<input type='hidden' name='drp_action' value='" . html_escape($drp_action) . "'>" . (strlen($save_html) ? "
-			<input type='submit' name='cancel' value='" . __esc('No', 'slowlog') . "'>
-			$save_html" : "<input type='submit' name='cancel' value='" . __esc('Return', 'slowlog') . "'>") . '
+			<input type='button' class='ui-button ui-corner-all ui-widget cactiReturnTo' value='" . __esc('No', 'slowlog') . "'>
+			$save_html" : "<input type='button' class='ui-button ui-corner-all ui-widget cactiReturnTo' value='" . __esc('Return', 'slowlog') . "'>") . '
 		</td>
 	</tr>';
 
@@ -765,118 +765,17 @@ function slowlog_view_details(): void {
 		$rows = get_request_var('rows');
 	}
 
-	$sql_params  = [];
-	$sql_where   = '';
-	$sql_orderby = get_order_string();
-	$sql_limit   = ' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows;
+	list($rows, $page) = slowlog_page_bounds($rows, get_request_var('page'));
 
-	// form the 'where' clause for our main sql query
-	if (get_request_var('filter') != '') {
-		$sql_where = 'WHERE (sld.host LIKE ? OR sld.user LIKE ? OR sld.query LIKE ? OR sld.ip_address LIKE ?)';
-
-		$sql_params[] = '%' . get_request_var('filter') . '%';
-		$sql_params[] = '%' . get_request_var('filter') . '%';
-		$sql_params[] = '%' . get_request_var('filter') . '%';
-		$sql_params[] = '%' . get_request_var('filter') . '%';
+	$filters = [];
+	foreach (['filter', 'logid', 'user', 'host', 'date1', 'date2', 'table', 'method_name', 'mmethod', 'sort_column', 'sort_direction'] as $field) {
+		$filters[$field] = get_request_var($field);
 	}
-
-	if (get_request_var('logid') != '-1') {
-		$sql_where .= ($sql_where != '' ? ' AND' : 'WHERE') . ' sld.logid = ?';
-
-		$sql_params[] = get_request_var('logid');
-	}
-
-	if (get_request_var('user') != '-1') {
-		$sql_where .= ($sql_where != '' ? ' AND' : 'WHERE') . ' sld.user = ?';
-
-		$sql_params[] = get_request_var('user');
-	}
-
-	if (get_request_var('host') != '-1') {
-		$sql_where .= ($sql_where != '' ? ' AND' : 'WHERE') . ' sld.host = ?';
-
-		$sql_params[] = get_request_var('host');
-	}
-
-	$sql_where .= ($sql_where != '' ? ' AND' : 'WHERE') . ' date BETWEEN ? AND ?';
-
-	$sql_params[] = get_request_var('date1');
-	$sql_params[] = get_request_var('date2');
-
-	// Aggregation and down-select filters
-	$agg_by_table  = false;
-	$agg_by_method = false;
-	$sql_join      = '';
-	$method        = 'sldm.method';
-	$table         = 'sldt.table_name';
-
-	if (get_request_var('table') == '-3') { // Aggregate by table
-		$agg_by_table = true;
-	} elseif (get_request_var('table') == '-2') { // Others
-		$sql_where .= ($sql_where != '' ? ' AND' : 'WHERE') . ' sldt.table_name IS NULL';
-	} elseif (get_request_var('table') != '-1') { // Not All
-		$sql_where .= ($sql_where != '' ? ' AND' : 'WHERE') . ' sldt.table_name = ?';
-
-		$sql_params[] = get_request_var('table');
-	}
-
-	// method_name (set by clicking a bar on the By Method chart) and the mmethod dropdown
-	// both filter on the method name now stored directly in
-	// plugin_slowlog_details_methods.method (sldm join below), so neither needs the old
-	// plugin_slowlog_methods dictionary join.
-	$has_method_name = (get_request_var('method_name') != '');
-
-	if ($has_method_name) {
-		$sql_where .= ($sql_where != '' ? ' AND' : 'WHERE') . ' sldm.method = ?';
-
-		$sql_params[] = get_request_var('method_name');
-	} elseif (get_request_var('mmethod') == '-2') { // Aggregate by method
-		$agg_by_method = true;
-	} elseif (get_request_var('mmethod') != '-1') {
-		$sql_where .= ($sql_where != '' ? ' AND' : 'WHERE') . ' sldm.method = ?';
-
-		$sql_params[] = get_request_var('mmethod');
-	}
-
-	if (!$agg_by_table) {
-		$sql_join = ' LEFT JOIN plugin_slowlog_details_tables AS sldt
-			ON sld.logid = sldt.logid
-			AND sld.logentry = sldt.logentry';
-	} else {
-		$table = '"N/A" AS table_name';
-	}
-
-	if (!$agg_by_method) {
-		$sql_join .= ' LEFT JOIN plugin_slowlog_details_methods AS sldm
-			ON sld.logid = sldm.logid
-			AND sld.logentry = sldm.logentry';
-	} else {
-		$method = '"N/A" AS method';
-	}
-
-	// No DISTINCT: each detail/method/table join row is already unique (the association
-	// tables' composite PKs), so it only forced a filesort/hash over the mediumtext query columns.
-	$results = db_fetch_assoc_prepared("SELECT sld.*, $method, $table
-		FROM plugin_slowlog_details AS sld
-		$sql_join
-		$sql_where
-		$sql_orderby
-		$sql_limit",
-		$sql_params);
-
-	// cacti_log(vsprintf(str_replace('?', "'%s'", "SELECT sld.*, $method, $table
-	//	FROM plugin_slowlog_details AS sld
-	//	$sql_join
-	//	$sql_where
-	//	$sql_orderby
-	//	$sql_limit"),
-	//	$sql_params));
-
-	$total_rows = db_fetch_cell_prepared("SELECT COUNT(*)
-		FROM plugin_slowlog_details AS sld
-		$sql_join
-		$sql_where",
-		$sql_params);
+	$filters['rows'] = $rows;
+	$filters['page'] = $page;
+	$data = slowlog_fetch_detail_page($filters);
+	$results = $data['results'];
+	$total_rows = $data['total_rows'];
 
 	slowlog_tabs();
 
@@ -1047,6 +946,8 @@ function slowlog_view_charts(string $method): void {
 
 	html_start_box(__('MariaDB/MySQL SlowLog Results - By %s', ucfirst($method), 'slowlog'), '100%', false, 3, 'center', '');
 
+	print '<p>' . html_escape(__('Percentiles may be estimated from bounded samples. Counts, totals, minima and maxima use all entries.', 'slowlog')) . '</p>';
+
 	print '<div style="width:100%;box-sizing:border-box;padding:8px" id="raw_count"></div>';
 
 	$rate_metrics = [
@@ -1083,7 +984,7 @@ function slowlog_view_charts(string $method): void {
 
 	$output = '';
 
-	$data = slowlog_get_chart_object($method, 'count', $scope_filter);
+	$data = slowlog_build_totals_chart($id, $method, 'count', $scope_filter, (int) get_request_var('chart_top'));
 
 	// A scope item with zero matched rows has nothing to chart - skip it rather than
 	// render an empty/misleading chart shell.
@@ -1103,7 +1004,7 @@ function slowlog_view_charts(string $method): void {
 	}
 
 	foreach ($rate_metrics as $key => $measure) {
-		$data = slowlog_get_chart_object($method, $measure, $scope_filter);
+		$data = slowlog_build_totals_chart($id, $method, $measure, $scope_filter, (int) get_request_var('chart_top'));
 
 		if (cacti_sizeof($data['categories'])) {
 			$output .= 'renderChart(' .
@@ -1120,7 +1021,7 @@ function slowlog_view_charts(string $method): void {
 				json_encode($others_bucket_key, $json_flags) . ');' . PHP_EOL;
 		}
 
-		$stats = slowlog_get_stats_chart_object($method, $measure, $scope_filter, $include_max);
+		$stats = slowlog_build_stats_chart($id, $method, $measure, $scope_filter, $include_max, (int) get_request_var('chart_top'));
 
 		if (cacti_sizeof($stats['categories'])) {
 			$output .= 'renderBoxChart(' .
@@ -1551,7 +1452,7 @@ function slowlog_charts_filter(string $method, int $id): void {
 			function applyChartsFilter() {
 				var strURL = 'slowlog.php?action=<?php print $method == 'tables' ? 'tables' : 'methods'; ?>&header=false&logid=<?php print (int) $id; ?>';
 
-				strURL += '&chart_scope=' + ($('#chart_scope').val() || []).join(',');
+				strURL += '&chart_scope=' + encodeURIComponent(($('#chart_scope').val() || []).join(','));
 				strURL += '&chart_top=' + $('#chart_top').val();
 				strURL += '&include_max=' + ($('#include_max').is(':checked') ? 'on' : '');
 
@@ -2023,7 +1924,7 @@ function filter(): void {
 			<td>
 				<script type='text/javascript' <?php print plugin_slowlog_csp_nonce(); ?>>
 				function applyFilter() {
-					var strURL = '?action=select&header=false&filter=' + $('#filter').val();
+					var strURL = '?action=select&header=false&filter=' + encodeURIComponent($('#filter').val());
 					loadPageNoHeader(strURL);
 				}
 
@@ -2138,7 +2039,7 @@ function slowlog_details_filter(): void {
 
 	if (cacti_sizeof($tables)) {
 		foreach ($tables as $t) {
-			print '<option value="' . $t['table_name'] . '"' . (get_request_var('table') == $t['table_name'] ? ' selected' : '') . '>' . html_escape($t['table_name']) . '</option>';
+			print '<option value="' . html_escape($t['table_name']) . '"' . (get_request_var('table') == $t['table_name'] ? ' selected' : '') . '>' . html_escape($t['table_name']) . '</option>';
 		}
 	}
 	?>
@@ -2307,15 +2208,15 @@ var pageTab   = <?php print json_encode(get_request_var('tab'));?>;
 				var strURL = 'slowlog.php?action=details&logid=' + logid;
 
 				strURL += '&header=false';
-				strURL += '&filter=' + $('#filter').val();
+				strURL += '&filter=' + encodeURIComponent($('#filter').val());
 				strURL += '&rows=' + $('#rows').val();
 				strURL += '&logid=' + $('#logid').val();
-				strURL += '&mmethod=' + $('#mmethod').val();
-				strURL += '&table=' + $('#table').val();
-				strURL += '&user=' + $('#myuser').val();
-				strURL += '&host=' + $('#host').val();
-				strURL += '&date1=' + $('#date1').val();
-				strURL += '&date2=' + $('#date2').val();
+				strURL += '&mmethod=' + encodeURIComponent($('#mmethod').val());
+				strURL += '&table=' + encodeURIComponent($('#table').val());
+				strURL += '&user=' + encodeURIComponent($('#myuser').val());
+				strURL += '&host=' + encodeURIComponent($('#host').val());
+				strURL += '&date1=' + encodeURIComponent($('#date1').val());
+				strURL += '&date2=' + encodeURIComponent($('#date2').val());
 
 				loadPageNoHeader(strURL);
 			}
@@ -2330,8 +2231,8 @@ var pageTab   = <?php print json_encode(get_request_var('tab'));?>;
 				var strURL = 'slowlog.php?tab='+pageTab+'&header=false&logid=' + logid;
 
 				strURL += '&shift_left=true';
-				strURL += '&date1='+$('#date1').val();
-				strURL += '&date2='+$('#date2').val();
+				strURL += '&date1='+encodeURIComponent($('#date1').val());
+				strURL += '&date2='+encodeURIComponent($('#date2').val());
 				strURL += '&predefined_timeshift='+$('#predefined_timeshift').val();
 
 				loadPageNoHeader(strURL);
@@ -2341,8 +2242,8 @@ var pageTab   = <?php print json_encode(get_request_var('tab'));?>;
 				var strURL  = 'slowlog.php?tab='+pageTab+'&header=false&logid=' + logid;
 
 				strURL += '&shift_right=true';
-				strURL += '&date1='+$('#date1').val();
-				strURL += '&date2='+$('#date2').val();
+				strURL += '&date1='+encodeURIComponent($('#date1').val());
+				strURL += '&date2='+encodeURIComponent($('#date2').val());
 				strURL += '&predefined_timeshift='+$('#predefined_timeshift').val();
 
 				loadPageNoHeader(strURL);

@@ -67,13 +67,13 @@ function slowlog_details_table_data(): array {
 	$data['columns'][] = ['name' => 'logentry', 'type' => 'bigint(20)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true];
 	$data['columns'][] = ['name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false];
 	$data['columns'][] = ['name' => 'date', 'type' => 'timestamp', 'NULL' => false, 'default' => 'CURRENT_TIMESTAMP', 'on_update' => 'CURRENT_TIMESTAMP'];
-	$data['columns'][] = ['name' => 'user', 'type' => 'varchar(20)', 'NULL' => false];
+	$data['columns'][] = ['name' => 'user', 'type' => 'varchar(128)', 'NULL' => false];
 	$data['columns'][] = ['name' => 'host', 'type' => 'varchar(255)', 'NULL' => false];
-	$data['columns'][] = ['name' => 'ip_address', 'type' => 'varchar(15)', 'NULL' => false];
+	$data['columns'][] = ['name' => 'ip_address', 'type' => 'varchar(45)', 'NULL' => false];
 	$data['columns'][] = ['name' => 'query_time', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false];
 	$data['columns'][] = ['name' => 'lock_time', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false];
 	$data['columns'][] = ['name' => 'thread_id', 'type' => 'bigint(20)', 'unsigned' => true, 'NULL' => false, 'default' => 0];
-	$data['columns'][] = ['name' => 'schema', 'type' => 'varchar(20)', 'NULL' => false, 'default' => ''];
+	$data['columns'][] = ['name' => 'schema', 'type' => 'varchar(64)', 'NULL' => false, 'default' => ''];
 	$data['columns'][] = ['name' => 'qc_hit', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'default' => 0];
 	$data['columns'][] = ['name' => 'rows_sent', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false];
 	$data['columns'][] = ['name' => 'rows_examined', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false];
@@ -145,7 +145,7 @@ function slowlog_setup_table_new(): void {
 	$data['columns'][]  = ['name' => 'import_date', 'type' => 'timestamp', 'NULL' => false, 'default' => 'CURRENT_TIMESTAMP', 'comment' => 'The date the log was uploaded'];
 	$data['columns'][]  = ['name' => 'import_lines', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'default' => 0, 'comment' => 'The number of lines in the log'];
 	$data['columns'][]  = ['name' => 'import_status', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'default' => 0, 'comment' => 'The status of the import process'];
-	$data['columns'][]  = ['name' => 'import_text_status', 'type' => 'varchar(40)', 'NULL' => false, 'default' => '', 'comment' => 'The text status of the import process'];
+	$data['columns'][]  = ['name' => 'import_text_status', 'type' => 'varchar(128)', 'NULL' => false, 'default' => '', 'comment' => 'The text status of the import process'];
 	$data['columns'][]  = ['name' => 'import_tables', 'type' => 'text', 'NULL' => false, 'default' => ''];
 	$data['columns'][]  = ['name' => 'start_time', 'type' => 'timestamp', 'NULL' => false, 'default' => '0000-00-00 00:00:00', 'comment' => 'The start time for the log'];
 	$data['columns'][]  = ['name' => 'end_time', 'type' => 'timestamp', 'NULL' => false, 'default' => '0000-00-00 00:00:00', 'comment' => 'The end time for the log'];
@@ -178,7 +178,7 @@ function slowlog_setup_table_new(): void {
 	$data['columns'][]  = ['name' => 'tableid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true];
 	$data['columns'][]  = ['name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false];
 	$data['columns'][]  = ['name' => 'logentry', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false];
-	$data['columns'][]  = ['name' => 'table_name', 'type' => 'varchar(45)', 'NULL' => false];
+	$data['columns'][]  = ['name' => 'table_name', 'type' => 'varchar(64)', 'NULL' => false];
 	$data['primary']    = ['logid', 'logentry', 'table_name'];
 	$data['keys'][]     = ['name' => 'tableid', 'columns' => ['tableid']];
 	$engine             = slowlog_get_storage_engine();
@@ -210,7 +210,7 @@ function slowlog_setup_table_new(): void {
 	// (see slowlog_sync_table_dictionary()/slowlog_classify_other_tables()).
 	$data                  = [];
 	$data['columns'][]     = ['name' => 'tableid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'auto_increment' => true];
-	$data['columns'][]     = ['name' => 'table_name', 'type' => 'varchar(45)', 'NULL' => false, 'default' => ''];
+	$data['columns'][]     = ['name' => 'table_name', 'type' => 'varchar(64)', 'NULL' => false, 'default' => ''];
 	$data['columns'][]     = ['name' => 'is_cacti_table', 'type' => 'tinyint(1)', 'unsigned' => true, 'NULL' => false, 'default' => 0];
 	$data['primary']       = 'tableid';
 	$data['unique_keys'][] = ['name' => 'table_name', 'columns' => ['table_name']];
@@ -278,7 +278,7 @@ function slowlog_setup_table_new(): void {
 	$data               = [];
 	$data['columns'][]  = ['name' => 'logid', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'comment' => 'The logid this cached summary belongs to'];
 	$data['columns'][]  = ['name' => 'scope', 'type' => 'varchar(10)', 'NULL' => false, 'comment' => 'Whether scope_key is a method name (method) or a table name (table)'];
-	$data['columns'][]  = ['name' => 'scope_key', 'type' => 'varchar(45)', 'NULL' => false, 'comment' => 'plugin_slowlog_methods.method value, or a table_name (or others)'];
+	$data['columns'][]  = ['name' => 'scope_key', 'type' => 'varchar(64)', 'NULL' => false, 'comment' => 'plugin_slowlog_methods.method value, or a table_name (or others)'];
 	$data['columns'][]  = ['name' => 'metric', 'type' => 'varchar(20)', 'NULL' => false, 'comment' => 'query_time, rows_sent, rows_examined, rows_affected, or bytes_sent'];
 	$data['columns'][]  = ['name' => 'sample_count', 'type' => 'int(10)', 'unsigned' => true, 'NULL' => false, 'default' => 0, 'comment' => 'Number of detail rows this summary was computed from'];
 	$data['columns'][]  = ['name' => 'total_value', 'type' => 'double', 'NULL' => false, 'default' => 0, 'comment' => 'SUM across all matching rows'];
@@ -306,9 +306,9 @@ function slowlog_setup_table_new(): void {
  * path, so the db_update_table() refresh only matters for existing tables.
  * Called from slowlog_check_upgrade().
  *
- * @return void
+ * @return bool True when every schema step succeeded, false if one failed.
  */
-function slowlog_upgrade_tables(): void {
+function slowlog_upgrade_tables(): bool {
 	// api_plugin_db_table_create() (used by slowlog_setup_table_new()) only creates a
 	// table when it doesn't already exist - it never retrofits schema changes (like these
 	// new composite indexes) onto one that does. Detect that case before re-running it.
@@ -317,13 +317,67 @@ function slowlog_upgrade_tables(): void {
 	// Re-running the table/column API calls is safe - they're no-ops when already applied.
 	slowlog_setup_table_new();
 
+	$success = slowlog_widen_columns();
+
 	// For a pre-existing plugin_slowlog_details table, db_update_table() diffs the current
 	// schema against this definition and issues the exact ALTER TABLE needed (columns and
 	// keys alike) in one statement - a fresh install already got the current schema,
 	// including these keys, from the create path above.
 	if ($details_table_existed) {
-		db_update_table('plugin_slowlog_details', slowlog_details_table_data());
+		if (db_update_table('plugin_slowlog_details', slowlog_details_table_data()) === false) {
+			$success = false;
+		}
 	}
+
+	return $success;
+}
+
+/**
+ * Widens columns that were too narrow for real slow log data (a user name over 20
+ * characters, a table name over 45, or a failure status longer than 40) on installs that
+ * created them with the old width. A value that does not fit is truncated, or makes the
+ * INSERT fail when the session is in strict SQL mode. Only columns still narrower than the current
+ * definition are altered, so it is a no-op once applied. The plugin_slowlog_details columns
+ * are widened by db_update_table() with the rest of that table's definition.
+ *
+ * Called from slowlog_upgrade_tables().
+ *
+ * @return bool True when every column is at the current width, false if an ALTER failed.
+ */
+function slowlog_widen_columns(): bool {
+	$columns = [
+		['plugin_slowlog', 'import_text_status', 128, "varchar(128) NOT NULL DEFAULT '' COMMENT 'The text status of the import process'"],
+		['plugin_slowlog_details_tables', 'table_name', 64, 'varchar(64) NOT NULL'],
+		['plugin_slowlog_table_names', 'table_name', 64, "varchar(64) NOT NULL DEFAULT ''"],
+		['plugin_slowlog_stats', 'scope_key', 64, "varchar(64) NOT NULL COMMENT 'plugin_slowlog_methods.method value, or a table_name (or others)'"],
+	];
+
+	$success = true;
+
+	foreach ($columns as $column) {
+		list($table, $name, $width, $definition) = $column;
+
+		if (!db_table_exists($table)) {
+			continue;
+		}
+
+		$current = (int) db_fetch_cell_prepared('SELECT CHARACTER_MAXIMUM_LENGTH
+			FROM information_schema.COLUMNS
+			WHERE TABLE_SCHEMA = DATABASE()
+			AND TABLE_NAME = ?
+			AND COLUMN_NAME = ?',
+			[$table, $name]);
+
+		if ($current >= $width) {
+			continue;
+		}
+
+		if (db_execute("ALTER TABLE `$table` MODIFY COLUMN `$name` $definition") === false) {
+			$success = false;
+		}
+	}
+
+	return $success;
 }
 
 /**

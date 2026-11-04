@@ -22,7 +22,7 @@
 describe('prepared statement usage in slowlog', function () {
 	$setup    = file_get_contents(realpath(__DIR__ . '/../../setup.php'));
 	$slowlog  = file_get_contents(realpath(__DIR__ . '/../../slowlog.php'));
-	$helpers  = file_get_contents(realpath(__DIR__ . '/../../includes/functions.php'));
+	$helpers  = slowlog_test_helper_source();
 
 	it('reads setup.php, slowlog.php, and functions.php', function () use ($setup, $slowlog, $helpers) {
 		expect($setup)->not->toBeFalse();
@@ -63,12 +63,12 @@ describe('prepared statement usage in slowlog', function () {
 	});
 
 	it('uses a prepared insert for plugin_slowlog_details_tables', function () use ($helpers) {
-		expect(preg_match('/db_execute_prepared\s*\(\s*\'INSERT INTO plugin_slowlog_details_tables/s', $helpers))->toBe(1);
+		expect(preg_match('/slowlog_import_write\s*\(\s*\'INSERT INTO plugin_slowlog_details_tables/s', $helpers))->toBe(1);
 	});
 
 	it('limits raw db_execute calls to bulk parser/classifier replay paths', function () use ($helpers) {
-		expect(preg_match_all('/\bdb_execute\s*\(/', $helpers))->toBe(2);
-		expect(preg_match_all('/db_execute\s*\(\s*\$(?:sql|method_sql)_prefix\s*\./', $helpers))->toBe(2);
+		expect(preg_match_all('/\bdb_execute\s*\(/', $helpers))->toBe(1);
+		expect(preg_match_all('/db_execute\s*\(\s*\$(?:sql|method_sql)_prefix\s*\./', $helpers))->toBe(1);
 	});
 
 	it('limits raw db_fetch_assoc calls to schema discovery helpers', function () use ($helpers) {

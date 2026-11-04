@@ -162,3 +162,41 @@ it('re-applies the schema diff via db_update_table() when plugin_slowlog_details
 
 	expect($alters)->toHaveCount(1);
 });
+
+it('leaves the installed version unchanged and logs a warning when the schema upgrade fails', function () {
+	$_SERVER['PHP_SELF'] = '/cacti/plugins.php';
+	slowlog_test_mock_db('db_fetch_cell_prepared', 'plugin_config', '0.0.0');
+	slowlog_test_mock_db('db_table_exists', 'plugin_slowlog_details', true);
+	slowlog_test_mock_db('db_update_table', 'plugin_slowlog_details', false);
+	$GLOBALS['__test_cacti_log'] = array();
+
+	slowlog_check_upgrade();
+
+	$updates = array_filter($GLOBALS['__test_db_calls'], function ($call) {
+		return $call['fn'] === 'db_execute_prepared' && stripos($call['sql'], 'UPDATE plugin_config') !== false;
+	});
+
+	expect($updates)->toBeEmpty();
+	expect($GLOBALS['__test_cacti_log'])->toHaveCount(1);
+	expect($GLOBALS['__test_cacti_log'][0])->toContain('schema upgrade did not complete');
+});
+
+it('records the new version only after the schema upgrade has run', function () {
+	$_SERVER['PHP_SELF'] = '/cacti/plugins.php';
+	slowlog_test_mock_db('db_fetch_cell_prepared', 'plugin_config', '0.0.0');
+	slowlog_test_mock_db('db_table_exists', 'plugin_slowlog_details', true);
+
+	slowlog_check_upgrade();
+
+	$order = array();
+
+	foreach ($GLOBALS['__test_db_calls'] as $call) {
+		if ($call['fn'] === 'db_update_table') {
+			$order[] = 'schema';
+		} elseif ($call['fn'] === 'db_execute_prepared' && stripos($call['sql'], 'UPDATE plugin_config') !== false) {
+			$order[] = 'version';
+		}
+	}
+
+	expect($order)->toBe(array('schema', 'version', 'version'));
+});

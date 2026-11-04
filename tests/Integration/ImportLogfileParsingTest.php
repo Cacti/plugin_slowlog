@@ -79,8 +79,8 @@ it('parses date, user, host, and ip for each entry', function () {
 
 	$sql = slowlog_test_details_insert_sql($GLOBALS['__test_db_calls']);
 
-	expect($sql)->toContain("'" . date('Y-m-d H:i:s', 1705280523) . "', 'root', 'dbhost', '10.0.0.5'");
-	expect($sql)->toContain("'" . date('Y-m-d H:i:s', 1705280590) . "', 'o\\'brien', 'webhost', '10.0.0.6'");
+	expect($sql)->toContain("FROM_UNIXTIME(1705280523), 'root', 'dbhost', '10.0.0.5'");
+	expect($sql)->toContain("FROM_UNIXTIME(1705280590), 'o\\'brien', 'webhost', '10.0.0.6'");
 });
 
 it('parses query_time, lock_time, rows_sent, and rows_examined', function () {

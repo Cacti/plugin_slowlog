@@ -147,7 +147,7 @@ it('rejects --table-mode=reference with --logfile when --table-names is missing'
 });
 
 it('forwards the reference/list table names to the background worker', function () {
-	$source = file_get_contents(realpath(__DIR__ . '/../../includes/functions.php'));
+	$source = slowlog_test_helper_source();
 
 	expect($source)->toContain("\$cmd .= trim(\$table_names) !== '' ? ' --table-names=' . cacti_escapeshellarg(trim(\$table_names)) : '';");
 });

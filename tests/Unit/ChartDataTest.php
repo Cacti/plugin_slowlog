@@ -221,3 +221,23 @@ it('falls back to the raw method/table association tables for logs with no stats
 
 	expect(slowlog_get_chart_scope_items('methods', 5))->toBe(array('SELECTS'));
 });
+
+
+it('rejects unknown metrics before querying and keeps explicit chart inputs independent of requests', function () {
+ expect(slowlog_build_stats_chart(42, 'methods', 'injected'))->toBe([]);
+ expect(slowlog_build_totals_chart(42, 'methods', 'injected'))->toBe([]);
+ expect($GLOBALS['__test_db_calls'])->toBe([]);
+ slowlog_build_totals_chart(42, 'tables', 'query_time', [], 999999);
+ $calls = $GLOBALS['__test_db_calls'];
+ expect(json_encode($calls))->toContain('LIMIT 10000');
+ expect($calls[0]['params'])->toBe([42]);
+});
+
+it('uses live table aggregates and scope choices for logs without cached statistics', function () {
+ slowlog_test_mock_db('db_fetch_cell_prepared', 'FROM plugin_slowlog_stats', false);
+ slowlog_test_mock_db('db_fetch_assoc_prepared', 'FROM plugin_slowlog_details_tables', [['value' => 'widgets']]);
+ expect(slowlog_get_chart_scope_items('tables', 42))->toContain('widgets', 'others');
+ slowlog_test_mock_db('db_fetch_assoc_prepared', 'SELECT *', [['scope_key' => 'widgets', 'value' => 1]]);
+ slowlog_build_totals_chart(42, 'tables', 'query_time');
+ expect(json_encode($GLOBALS['__test_db_calls']))->toContain('UNION ALL');
+});

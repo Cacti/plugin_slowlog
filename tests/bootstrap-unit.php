@@ -133,7 +133,10 @@ function slowlog_test_db_result($fn, $sql, $params, $default) {
 				: (strpos($sql, $fixture['match']) !== false);
 
 			if ($matched) {
-				return $fixture['result'];
+				if ($fixture['result'] instanceof Throwable) {
+					throw $fixture['result'];
+				}
+				return is_callable($fixture['result']) ? $fixture['result']($sql, $params) : $fixture['result'];
 			}
 		}
 	}
@@ -347,7 +350,9 @@ if (!function_exists('array_rekey')) {
 
 if (!function_exists('is_realm_allowed')) {
 	function is_realm_allowed($realm) {
-		return true;
+		$GLOBALS['__test_realm_checks'][] = $realm;
+
+		return isset($GLOBALS['__test_realm_allowed']) ? (bool) $GLOBALS['__test_realm_allowed'] : true;
 	}
 }
 
@@ -394,7 +399,7 @@ if (!function_exists('is_error_message')) {
 
 if (!function_exists('sql_save')) {
 	function sql_save($array, $table, $key = 'id') {
-		return isset($array['id']) ? $array['id'] : 1;
+		return $GLOBALS['__test_sql_save_result'] ?? (isset($array['id']) ? $array['id'] : 1);
 	}
 }
 
@@ -459,6 +464,45 @@ if (!defined('MESSAGE_LEVEL_INFO')) {
  *
  * @return void
  */
+/**
+ * The last bulk INSERT into plugin_slowlog_details that import_logfile() issued, from the call log.
+ *
+ * @return string The SQL text, or '' when none was issued.
+ */
+function slowlog_test_last_details_insert() {
+	$sql = '';
+
+	foreach ($GLOBALS['__test_db_calls'] as $call) {
+		if ($call['fn'] === 'db_execute' && strpos($call['sql'], 'INSERT INTO plugin_slowlog_details (') !== false) {
+			$sql = $call['sql'];
+		}
+	}
+
+	return $sql;
+}
+
+/**
+ * Writes the given lines to a temporary slow log, imports it with import_logfile() (no background
+ * worker) and returns the bulk INSERT it issued. Needs includes/functions.php to be loaded.
+ *
+ * @param array<int, string> $lines  The log, one element per line.
+ * @param int                $length The maximum query length option.
+ * @param int|null           $logid  A pre-created parent logid, or null.
+ *
+ * @return string The INSERT SQL, or '' when none was issued.
+ */
+function slowlog_test_import(array $lines, $length = -1, $logid = null) {
+	slowlog_test_mock_db('db_fetch_cell_prepared', 'COUNT(*)', 1);
+
+	$file = tempnam(sys_get_temp_dir(), 'slowlog_test_');
+
+	file_put_contents($file, implode("\n", $lines) . "\n");
+	import_logfile($file, 'test', $length, 'accounts users', false, false, null, $logid);
+	@unlink($file);
+
+	return slowlog_test_last_details_insert();
+}
+
 function slowlog_test_load($path) {
 	global $config;
 
@@ -471,4 +515,17 @@ function slowlog_test_load($path) {
 			$GLOBALS[$__name] = $__value;
 		}
 	}
+}
+
+/**
+ * Read the plugin helper modules for source-contract security assertions.
+ *
+ * @return string Combined helper source.
+ */
+function slowlog_test_helper_source(): string {
+	$source = '';
+	foreach (['functions.php', 'log_parser.php', 'sql_tables.php', 'statistics.php', 'queries.php'] as $file) {
+		$source .= file_get_contents(__DIR__ . '/../includes/' . $file) . PHP_EOL;
+	}
+	return $source;
 }

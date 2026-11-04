@@ -116,14 +116,14 @@ it('caches one row per scope/scope_key/metric combination (2 methods + 3 tables 
 	expect(slowlog_test_stats_insert_tuples())->toHaveCount((2 + 3) * 5);
 });
 
-it('inserts the stats cache with a single batched statement', function () {
+it('flushes each statistics scope in its own batched statement', function () {
 	slowlog_compute_stats(1);
 
 	$calls = array_values(array_filter($GLOBALS['__test_db_calls'], function ($call) {
 		return $call['fn'] === 'db_execute_prepared' && strpos($call['sql'], 'INSERT INTO plugin_slowlog_stats') !== false;
 	}));
 
-	expect($calls)->toHaveCount(1);
+	expect($calls)->toHaveCount(2);
 	expect($calls[0]['sql'])->toContain('ON DUPLICATE KEY UPDATE');
 });
 
@@ -152,4 +152,16 @@ it('does not drop rows when a page boundary lands inside a same-logentry group o
 	expect($values['SELECTS']['query_time'])->toBe(array(1.0));
 	expect($values['JOINS']['query_time'])->toBe(array(2.0));
 	expect($values['GROUP BY']['query_time'])->toBe(array(3.0));
+});
+
+
+it('flushes large sets of summaries in batches of at most two hundred rows', function () {
+ $rows = [];
+ for ($i = 1; $i <= 41; $i++) { $rows[] = ['id' => $i, 'scope_key' => 'method_' . $i, 'query_time' => 1, 'rows_sent' => 1, 'rows_examined' => 1, 'rows_affected' => 1, 'bytes_sent' => 1]; }
+ slowlog_test_mock_db('db_fetch_assoc_prepared', 'plugin_slowlog_details_methods', $rows);
+ slowlog_compute_stats(42);
+ $calls = array_values(array_filter($GLOBALS['__test_db_calls'], fn ($call) => strpos($call['sql'], 'INSERT INTO plugin_slowlog_stats') === 0));
+ expect(count($calls[0]['params']))->toBe(200 * 12);
+ expect(count($calls[1]['params']))->toBe(5 * 12);
+ expect(slowlog_test_stats_insert_tuples())->toHaveCount(44 * 5);
 });
