@@ -45,7 +45,9 @@ The analysis is deliberately simple.
 * MySQL or MariaDB for the Cacti database. On MariaDB the three large per-query tables use the
   Aria engine; on MySQL they use InnoDB.
 * PHP as supported by your Cacti. The code uses return and nullable type declarations, which
-  need PHP 7.1. The CI workflow checks the syntax of every file on PHP 8.2, 8.3 and 8.4.
+  need PHP 7.1. The CI workflow tests PHP 8.2 through 8.5 and includes a
+  non-blocking PHP 8.6 experimental job. Cacti may require a higher PHP version
+  than the plugin syntax alone.
 * The PHP binary that Cacti is configured to use (the `path_php_binary` setting), because uploads
   are imported by a background `php` process started with it.
 * The main Cacti server. `INFO` declares no support for remote pollers (`remote_collect:0`,
