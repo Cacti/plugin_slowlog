@@ -1,10 +1,26 @@
 # slowlog
 
-## Purpose
-
 The plugin lets a Cacti administrator import a MySQL or MariaDB slow query log into the Cacti
 database and look at it: which statements are slow, which tables and kinds of statement they
 touch, and how the time and row counts are spread.
+
+## Versions and compatibility
+
+This README describes the `main` source branch.
+
+| Code | Plugin version | Minimum Cacti declared in `INFO` |
+| --- | --- | --- |
+| [Source branch](INFO) | 2.8 | 1.2.29 |
+| [Published v2.1](https://github.com/Cacti/plugin_slowlog/releases/tag/v2.1) | 2.1 | 1.2.23 |
+
+Use the published release’s assets and tagged documentation when installing that
+package. Branch code can include later changes, even when its version number
+matches the release. Cacti’s own PHP and database requirements also apply.
+
+Install this plugin in **`<cacti-root>/plugins/slowlog`**, using the directory
+name `slowlog` rather than `plugin_slowlog`.
+
+See [CHANGELOG.md](CHANGELOG.md) for the version history.
 
 ## Features
 
@@ -45,12 +61,12 @@ php cli/plugin_manage.php --plugin=slowlog --install --enable
 ```
 
 Installation creates the tables below, loads the SQL reserved word list from
-`docs/keywords.txt`, registers one realm and gives that realm to the `admin` user. Grant the
-realm **Plugin -> MySQL Slow Log Viewer** to other users or groups under Console > Utilities >
-User Management.
+`docs/keywords.txt`, registers viewing and management realms. Grant **Plugin -> MySQL Slow Log Viewer**
+for read access and **Plugin -> MySQL Slow Log Management** as well for imports,
+uploads and deletion. Manage grants through Cacti’s user/group permissions.
 
-One realm covers viewing, uploading and deleting. A user who can open the page can also import
-and delete logs.
+On upgrade to 2.8, existing viewers and their groups receive the management realm
+once to preserve access. Administrators can narrow those grants afterward.
 
 ### Tables
 
@@ -81,7 +97,7 @@ in `manifest.json` is left in place and reported in the Cacti log.
 ## Uninstalling
 
 Disable the plugin to keep its data. Uninstalling it drops all the tables above, together with
-every imported log, and removes its realm and its grants:
+every imported log, and removes its realms and their grants:
 
 ```
 php cli/plugin_manage.php --plugin=slowlog --disable
@@ -125,7 +141,7 @@ php plugins/slowlog/import_log.php --logfile=/var/log/mysql/slow.log --descripti
 | `--table-names="t1 t2"` | the reference list; required with `--table-mode=reference` |
 | `--logid=N` | with `--logfile`, import into a record that already exists; alone, finish the processing of that log |
 | `--reprocess=N\|all` | redo the method, table and timeout detection of one log or of every log, without the original file |
-| `--delete-after` | delete the log file once the import has run, also when it was not a slow log |
+| `--delete-after` | delete the source file only after successful processing; failed inputs are retained |
 | `--version`, `--help` | show the version, or the usage |
 
 Without `--table-mode`, a `--table-names` list selects the older list mode: only the tables in
@@ -135,14 +151,11 @@ the list are searched for.
 
 The importer reads the MariaDB format and the MySQL 5.7 and 8.0 format. The time of an entry is
 taken from its `SET timestamp=` line, so keep the PHP time zone and the database time zone the
-same. Known limits of this version:
-
-* The `ip_address` column is 15 characters wide. MySQL writes `Id:` after the address, and that
-  text is stored with it, so `127.0.0.1` is stored as `127.0.0.1  Id`. An IPv6 client is not
-  stored correctly: the address is split at its first colon, so `::1` is stored empty and
-  `2001:db8::17` as `2001`.
-* User names and schema names longer than 20 characters and table names longer than 45
-  characters are cut by the database.
+same. The current parser preserves bracketed IPv4/IPv6 client addresses and
+does not include MySQL’s trailing `Id:` field in the address. Current schema
+widths are 45 characters for an IP address, 128 for a user name, and 64 for
+schema/table names; upgrades widen older columns. Longer values remain subject
+to those database limits.
 
 ### Pages
 
@@ -155,21 +168,21 @@ same. Known limits of this version:
 
 ### Performance and memory
 
-The upload form and every page of the plugin run with PHP's execution time and memory limits set
-to unlimited, so that a large file or page is not cut off by PHP. A web server or proxy in front
-of PHP can still end a long request.
+The plugin raises PHP’s execution-time and memory limits for the import form,
+uploads and deletion. Ordinary viewing requests retain the web-server limits;
+a proxy or web server can also end a long request independently of PHP.
 
-The import itself runs as a command line process. It reads the log line by line and inserts the
-rows in batches of 1000, but table detection in the modes other than the list mode reads the
-detail rows of the whole log into memory. A log of 200,000 entries (75 MB) needed about 480 MB
-of PHP memory in a test. The details page loads as many rows as its page size asks for, and
-that value is not limited.
+The CLI importer reads input incrementally and writes batches of 1000 records.
+Statistics retain bounded samples for percentile estimates; counts, totals,
+minima and maxima use all entries. The Details view caps pages at 1000 rows.
+These bounds do not establish a fixed memory requirement for every log.
 
 ## Translations
 
 The plugin ships translations for 21 languages in `locales/po` (source) and
 `locales/LC_MESSAGES` (compiled). Run `locales/build_gettext.sh` from the plugin directory to
-rebuild them after a string changes; it needs GNU gettext (`xgettext`, `msgmerge`, `msgfmt`)
+rebuild the POT template after a string changes; per-language catalogs remain
+Weblate-managed. The script needs GNU gettext (`xgettext`, `msgmerge`, `msgfmt`)
 and `realpath`.
 
 ## Development
