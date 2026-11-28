@@ -1,0 +1,590 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR The Cacti Group
+# This file is distributed under the same license as the Cacti package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Cacti\n"
+"Report-Msgid-Bugs-To: developers@cacti.net\n"
+"POT-Creation-Date: 2026-10-24 04:06-0600\n"
+"PO-Revision-Date: 2026-11-27 18:00-0800\n"
+"Last-Translator: The Cacti Group <developers@cacti.net>\n"
+"Language-Team: Kinyarwanda <developers@cacti.net>\n"
+"Language: rw_RW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: import_log.php
+#, php-format
+msgid "ERROR: Invalid --logid value '%s', must be a positive integer"
+msgstr "IKOSA: Agaciro ka --logid '%s' ntikemewe, kagomba kuba umubare wuzuye urenga zeru"
+
+#: includes/functions.php
+msgid "ERROR: Unable to remove the imported Slowlog file."
+msgstr "IKOSA: Ntibishobotse gukuraho dosiye ya Slowlog yinjijwe."
+
+#: includes/functions.php
+msgid "Import Failed - Row Insert Error"
+msgstr "Kwinjiza Byanze - Ikosa ryo Kongeramo Umurongo"
+
+#: slowlog.php
+msgid "ERROR: You do not have permission to import or delete Slowlog files."
+msgstr "IKOSA: Nta burenganzira ufite bwo kwinjiza cyangwa gusiba amadosiye ya Slowlog."
+
+#: includes/functions.php
+msgid "Read Error - Import Aborted, Log May Be Truncated"
+msgstr "Ikosa ryo Gusoma - Kwinjiza Byahagaze, Inyandiko Ishobora Kuba Yacitse"
+
+#: includes/functions.php
+msgid "Import Failed - Database Error"
+msgstr "Kwinjiza Byanze - Ikosa ry'Ububikoshingiro"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Open File"
+msgstr "Kwinjiza Byanze - Ntibishobotse Gufungura Dosiye"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Create Parent Record"
+msgstr "Kwinjiza Byanze - Ntibishobotse Guhanga Inyandiko Nkuru"
+
+#: includes/functions.php
+msgid "Bad File Format - No Slow Query Log Entries Found"
+msgstr "Imiterere ya Dosiye Itari Yo - Nta Byinjijwe mu Nyandiko y'Amabaza Atinda Byabonetse"
+
+#: includes/functions.php
+msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
+msgstr "Slowlog y'ibanze yinjijwe.  Itunganya rya nyuma rizakorwa inyuma.  Ushobora gutangira gusesengura Ibisobanuro birambuye igihe imiterere irangiye"
+
+#: includes/functions.php
+msgid "Post Processing Failed - Database Error"
+msgstr "Itunganya rya Nyuma Ryanze - Ikosa ry'Ububikoshingiro"
+
+#: includes/functions.php
+#, php-format
+msgid "max_execution_time is %d seconds (not unlimited) for this request - a large import could be killed mid-run. Some web servers/proxies (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) enforce their own independent cutoff that this setting cannot override."
+msgstr "max_execution_time ni amasegonda %d (ifite umupaka) kuri iki gisabwa - kwinjiza dosiye nini bishobora guhagarikwa bitararangira. Zimwe muri seriveri z'urubuga/proxy (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) zishyiraho umupaka wazo wigenga iri genamiterere ridashobora guhindura."
+
+#: includes/functions.php
+#, php-format
+msgid "memory_limit is %s (not unlimited) for this request - a very large slow query log can exceed this while it is being read/imported."
+msgstr "memory_limit ni %s (ifite umupaka) kuri iki gisabwa - inyandiko nini cyane y'amabaza atinda ishobora kurenza uyu mupaka mu gihe isomwa cyangwa yinjizwa."
+
+#: includes/functions.php
+#, php-format
+msgid "post_max_size (%s) is smaller than upload_max_filesize (%s) - uploads up to the advertised limit will still be rejected."
+msgstr "post_max_size (%s) ni ntoya kuri upload_max_filesize (%s) - amadosiye yoherejwe agera ku mupaka utangajwe azakomeza kwangwa."
+
+#: includes/functions.php
+#, php-format
+msgid "upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB."
+msgstr "upload_max_filesize (%s) ni ntoya ku nyandiko y'amabaza atinda ya MySQL/MariaDB, ishobora kugera mu majana ya MB bitagoranye."
+
+#: includes/functions.php
+msgid "ERROR: The uploaded Slowlog file exceeds the server's maximum upload filesize."
+msgstr "IKOSA: Dosiye ya Slowlog yoherejwe irarenze ingano ntarengwa ya seriveri yo kohereza dosiye."
+
+#: includes/functions.php
+msgid "ERROR: The Slowlog file upload was interrupted before it finished - please try again."
+msgstr "IKOSA: Kohereza dosiye ya Slowlog byacikiye hagati bitararangira - nyamuneka ongera ugerageze."
+
+#: includes/functions.php
+msgid "ERROR: The server has no temporary folder configured to receive the uploaded Slowlog file."
+msgstr "IKOSA: Seriveri nta bubiko bw'agateganyo yageneye kwakira dosiye ya Slowlog yoherejwe."
+
+#: includes/functions.php
+msgid "ERROR: The server failed to write the uploaded Slowlog file to disk."
+msgstr "IKOSA: Seriveri yananiwe kwandika dosiye ya Slowlog yoherejwe ku bubiko."
+
+#: includes/functions.php
+msgid "ERROR: A server extension blocked the Slowlog file upload."
+msgstr "IKOSA: Umugereka wa seriveri wahagaritse kohereza dosiye ya Slowlog."
+
+#: includes/functions.php
+#, php-format
+msgid "ERROR: The Slowlog file upload failed (error code %d)."
+msgstr "IKOSA: Kohereza dosiye ya Slowlog byanze (kode y'ikosa %d)."
+
+#: includes/functions.php
+msgid "Queries"
+msgstr "Amabaza"
+
+#: includes/functions.php
+msgid "Total Queries"
+msgstr "Amabaza Yose"
+
+#: includes/functions.php slowlog.php
+msgid "Rows"
+msgstr "Imirongo"
+
+#: includes/functions.php
+msgid "Rows Returned"
+msgstr "Imirongo Yagaruwe"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Examined"
+msgstr "Imirongo Yasuzumwe"
+
+#: includes/functions.php slowlog.php
+msgid "Seconds"
+msgstr "Amasegonda"
+
+#: includes/functions.php
+msgid "Lock Seconds"
+msgstr "Amasegonda yo Gufungwa"
+
+#: includes/functions.php
+msgid "Query Seconds"
+msgstr "Amasegonda y'Ibaza"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Affected"
+msgstr "Imirongo Yagizweho Ingaruka"
+
+#: includes/functions.php
+msgid "Bytes"
+msgstr "Bayite"
+
+#: includes/functions.php slowlog.php
+msgid "Bytes Sent"
+msgstr "Bayite Zoherejwe"
+
+#: includes/functions.php
+msgid "Clear this filter"
+msgstr "Siba iyi muyunguruzi"
+
+#: slowlog.php
+msgid "Delete"
+msgstr "Siba"
+
+#: slowlog.php
+msgid "ERROR: 'Detect all tables; group ... as OTHER TABLES' requires a list of Tables of Interest."
+msgstr "IKOSA: 'Tahura imbonerahamwe zose; shyira ... muri OTHER TABLES' bisaba urutonde rw'Imbonerahamwe Zirebwa."
+
+#: slowlog.php
+msgid "ERROR: Unable to stage the uploaded Slowlog file for import."
+msgstr "IKOSA: Ntibishobotse gutegura dosiye ya Slowlog yoherejwe ngo yinjizwe."
+
+#: slowlog.php
+msgid "ERROR: Unable to create the Slowlog import record."
+msgstr "IKOSA: Ntibishobotse guhanga inyandiko yo kwinjiza Slowlog."
+
+#: slowlog.php
+msgid "The Slowlog has been queued and will be imported in the background. Refresh this page to track progress."
+msgstr "Slowlog yashyizwe ku murongo kandi izinjizwa inyuma. Vugurura iyi paji kugira ngo ukurikirane aho bigeze."
+
+#: slowlog.php
+msgid "You must select at least one Slowlog record."
+msgstr "Ugomba guhitamo byibura inyandiko imwe ya Slowlog."
+
+#: slowlog.php
+msgid "Yes"
+msgstr "Yego"
+
+#: slowlog.php
+msgid "No"
+msgstr "Oya"
+
+#: slowlog.php
+msgid "Return"
+msgstr "Subira inyuma"
+
+#: slowlog.php
+msgid "Import Template from Local File"
+msgstr "Kwinjiza inyandikorugero uvanye muri dosiye yo ku mashini"
+
+#: slowlog.php
+msgid "If the XML file containing template data is located on your local machine, select it here."
+msgstr "Niba dosiye ya XML irimo amakuru y'inyandikorugero ibitse ku mashini yawe, yihitemo hano."
+
+#: slowlog.php
+msgid "LogFile Description"
+msgstr "Ibisobanuro bya Dosiye y'Inyandiko"
+
+#: slowlog.php
+msgid "Please provide a description for this MySQL Slowlog file to be imported."
+msgstr "Nyamuneka tanga ibisobanuro kuri iyi dosiye ya MySQL Slowlog igiye kwinjizwa."
+
+#: slowlog.php
+msgid "New Slow Log"
+msgstr "Inyandiko Nshya y'Amabaza Atinda"
+
+#: slowlog.php
+msgid "Max Query Length"
+msgstr "Uburebure Ntarengwa bw'Ibaza"
+
+#: slowlog.php
+msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
+msgstr "Injiza gusa inyuguti X za mbere z'Ibaza rya SQL zivuye mu nyandiko ya MySQL Slow Query."
+
+#: slowlog.php
+msgid "All"
+msgstr "Byose"
+
+#: slowlog.php
+#, php-format
+msgid "%d Chars"
+msgstr "Inyuguti %d"
+
+#: slowlog.php
+msgid "Slowlog Table Names [ optional ]"
+msgstr "Amazina y'Imbonerahamwe za Slowlog [ si itegeko ]"
+
+#: slowlog.php
+msgid "Leave Blank for Auto Detection which runs must faster."
+msgstr "Hasige Harimo Ubusa kugira ngo bitahurwe ku buryo bwikora byihuta cyane."
+
+#: slowlog.php
+msgid "Cacti Table Detection"
+msgstr "Itahura ry'Imbonerahamwe za Cacti"
+
+#: slowlog.php
+msgid "How to tell Cacti-native tables apart from other tables referenced in the slow query log. Defaults to detecting every table with no grouping."
+msgstr "Uburyo bwo gutandukanya imbonerahamwe za Cacti n'izindi mbonerahamwe zagaragaye mu nyandiko y'amabaza atinda. Mburabuzi itahura buri mbonerahamwe nta gushyira mu matsinda."
+
+#: slowlog.php
+msgid "Detect all tables (no 'OTHER TABLES' grouping)"
+msgstr "Tahura imbonerahamwe zose (nta gushyira mu itsinda rya 'OTHER TABLES')"
+
+#: slowlog.php
+msgid "Use this Cacti Database; group other tables as 'OTHER TABLES'"
+msgstr "Koresha ubu Bubikoshingiro bwa Cacti; shyira izindi mbonerahamwe muri 'OTHER TABLES'"
+
+#: slowlog.php
+msgid "Detect all tables; group tables not in the list below as 'OTHER TABLES'"
+msgstr "Tahura imbonerahamwe zose; shyira imbonerahamwe zitari mu rutonde ruri hasi muri 'OTHER TABLES'"
+
+#: slowlog.php
+msgid "Tables of Interest"
+msgstr "Imbonerahamwe Zirebwa"
+
+#: slowlog.php
+msgid "Only used by the 'Detect all tables; group ... as OTHER TABLES' option above. Please provide a space delimited list of known tables to compare against. In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
+msgstr "Bikoreshwa gusa n'ihitamo rya 'Tahura imbonerahamwe zose; shyira ... muri OTHER TABLES' riri haruguru. Nyamuneka tanga urutonde rw'imbonerahamwe zizwi zitandukanyijwe n'umwanya wo kugereranya. Muri Linux/UNIX, ushobora kubona urutonde rw'imbonerahamwe ukoresheje iri tegeko:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>Agaciro ka '<i><b>user</b></i>', '<i><b>password</b></i>', na '<i><b>database</b></i>' gasimbuzwa agaciro kawe."
+
+#: slowlog.php
+msgid "Upload Limits"
+msgstr "Imipaka yo Kohereza Amadosiye"
+
+#: slowlog.php
+msgid "File Size upload limits in Cacti."
+msgstr "Imipaka y'ingano ya dosiye zoherezwa muri Cacti."
+
+#: slowlog.php
+msgid "Max Upload Filesize"
+msgstr "Ingano Ntarengwa ya Dosiye Yoherezwa"
+
+#: slowlog.php
+msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
+msgstr "Ingano ntarengwa ya dosiye seriveri yawe ya Apache yemera ko yoherezwa igaragazwa iburyo.  Kuri ubu, ntushobora kohereza dosiye iruta iyi.  Niba ufite inyandiko za MySQL Slow ziruta iyi ngano, ugomba guhindura dosiye ya <i>php.ini</i> ikorana na Apache, ugashaka agaciro ka <b><i>upload_max_filesize</i></b> ukakongera.  Nyuma y'ibyo ugomba kongera gutangiza Apache."
+
+#: slowlog.php
+msgid "Max Post Size"
+msgstr "Ingano Ntarengwa ya Post"
+
+#: slowlog.php
+msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
+msgstr "Ingano ntarengwa ushobora kohereza kuri seriveri ya Apache igaragazwa iburyo.  Niba ufite inyandiko za MySQL Slow ziruta iyi ngano, ugomba guhindura dosiye ya <i>php.ini</i> ikorana na Apache, ugashaka agaciro ka <b><i>post_max_size</i></b> ukakongera.  Nyuma y'ibyo ugomba kongera gutangiza Apache."
+
+#: slowlog.php
+msgid "Max Execution Time"
+msgstr "Igihe Ntarengwa cyo Gukora"
+
+#: slowlog.php
+msgid "How long (in seconds) this request is allowed to run for; 0 means unlimited. This plugin already raises it to unlimited for its own requests, but a web server or reverse proxy in front of PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) can still cut the request off independently - that cannot be detected or overridden from here."
+msgstr "Igihe (mu masegonda) iki gisabwa cyemerewe kumara gikora; 0 bisobanura nta mupaka. Uyu mugereka usanzwe ucyongera ukagira nta mupaka ku bisabwa byawo, ariko seriveri y'urubuga cyangwa reverse proxy iri imbere ya PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) irashobora guhagarika igisabwa ku giti cyayo - ibyo ntibishobora gutahurwa cyangwa guhindurwa uvuye hano."
+
+#: slowlog.php
+msgid "Unlimited"
+msgstr "Nta mupaka"
+
+#: slowlog.php
+msgid "Memory Limit"
+msgstr "Umupaka w'Ububiko bw'Igihe Gito"
+
+#: slowlog.php
+msgid "How much memory this request is allowed to use; -1 means unlimited. This plugin already raises it to unlimited for its own requests. A very large slow query log being read/imported in a single request can exceed a limited value."
+msgstr "Ingano y'ububiko bw'igihe gito iki gisabwa cyemerewe gukoresha; -1 bisobanura nta mupaka. Uyu mugereka usanzwe ubyongera ukagira nta mupaka ku bisabwa byawo. Inyandiko nini cyane y'amabaza atinda isomwa cyangwa yinjizwa mu gisabwa kimwe ishobora kurenza agaciro gafite umupaka."
+
+#: slowlog.php
+msgid "The current server configuration may cause a large import to fail:"
+msgstr "Igenamiterere rya seriveri ririho rishobora gutuma kwinjiza dosiye nini binanirana:"
+
+#: slowlog.php
+msgid "WARNING"
+msgstr "UMUBURO"
+
+#: slowlog.php
+msgid "Import MariaDB/MySQL Slowlog"
+msgstr "Injiza MariaDB/MySQL Slowlog"
+
+#: slowlog.php
+msgid "Uploaded"
+msgstr "Yoherejwe"
+
+#: slowlog.php
+msgid "Processing, please wait..."
+msgstr "Birimo gutunganywa, nyamuneka tegereza..."
+
+#: slowlog.php
+msgid "Upload failed - please try again."
+msgstr "Kohereza byanze - nyamuneka ongera ugerageze."
+
+#: slowlog.php
+msgid "Actions"
+msgstr "Ibikorwa"
+
+#: slowlog.php
+msgid "Table Name"
+msgstr "Izina ry'Imbonerahamwe"
+
+#: slowlog.php
+msgid "Method"
+msgstr "Uburyo"
+
+#: slowlog.php
+msgid "Date"
+msgstr "Itariki"
+
+#: slowlog.php
+msgid "User"
+msgstr "Umukoresha"
+
+#: slowlog.php
+msgid "Host"
+msgstr "Mwakirizi"
+
+#: slowlog.php
+msgid "Query Time"
+msgstr "Igihe cy'Ibaza"
+
+#: slowlog.php
+msgid "Lock Time"
+msgstr "Igihe cyo Gufungwa"
+
+#: slowlog.php
+msgid "Sent"
+msgstr "Byoherejwe"
+
+#: slowlog.php
+msgid "Examined"
+msgstr "Byasuzumwe"
+
+#: slowlog.php
+msgid "Affected"
+msgstr "Byagizweho Ingaruka"
+
+#: slowlog.php
+msgid "Log Entries"
+msgstr "Ibyinjijwe mu nyandiko y'ibikorwa"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Details"
+msgstr "Ibisobanuro Birambuye bya MariaDB/MySQL SlowLog"
+
+#: slowlog.php
+msgid "View Details"
+msgstr "Reba Ibisobanuro Birambuye"
+
+#: slowlog.php
+msgid "Chart Filters"
+msgstr "Muyunguruzi z'Imbonerahamwe"
+
+#: slowlog.php
+#, php-format
+msgid "MariaDB/MySQL SlowLog Results - By %s"
+msgstr "Ibisubizo bya MariaDB/MySQL SlowLog - Hakurikijwe %s"
+
+#: slowlog.php
+msgid "Percentiles may be estimated from bounded samples. Counts, totals, minima and maxima use all entries."
+msgstr "Ijanisha ry'ibipimo rishobora kugereranywa hifashishijwe ingero zifite umupaka. Imibare, igiteranyo, agaciro gato n'akanini bikoresha ibyinjijwe byose."
+
+#: slowlog.php
+msgid "Select Method"
+msgstr "Hitamo Uburyo"
+
+#: slowlog.php
+msgid "Select Table"
+msgstr "Hitamo Imbonerahamwe"
+
+#: slowlog.php
+msgid "Selected"
+msgstr "Byahiswemo"
+
+#: slowlog.php
+msgid "Others"
+msgstr "Ibindi"
+
+#: slowlog.php
+msgid "Top"
+msgstr "Hejuru"
+
+#: slowlog.php
+msgid "Include Max"
+msgstr "Shiramo Agaciro Kanini"
+
+#: slowlog.php
+msgid "Go"
+msgstr "Komeza"
+
+#: slowlog.php
+msgid "Clear"
+msgstr "Siba"
+
+#: slowlog.php
+msgid "None"
+msgstr "Nta na kimwe"
+
+#: slowlog.php
+msgid "Search"
+msgstr "Shakisha"
+
+#: slowlog.php
+msgid "Enter keyword"
+msgstr "Andika ijambo ry'ibanze"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Query Details"
+msgstr "Ibisobanuro Birambuye by'Ibaza rya MariaDB/MySQL SlowLog"
+
+#: slowlog.php
+msgid "IP"
+msgstr "IP"
+
+#: slowlog.php
+msgid "Rows Sent"
+msgstr "Imirongo Yoherejwe"
+
+#: slowlog.php
+msgid "Original Query"
+msgstr "Ibaza ry'Umwimerere"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog File Filters"
+msgstr "Muyunguruzi z'Amadosiye ya MariaDB/MySQL SlowLog"
+
+#: slowlog.php
+msgid "Description"
+msgstr "Ibisobanuro"
+
+#: slowlog.php
+msgid "Import Status"
+msgstr "Imiterere yo Kwinjiza"
+
+#: slowlog.php
+msgid "Status String"
+msgstr "Inyandiko y'Imiterere"
+
+#: slowlog.php
+msgid "ID"
+msgstr "ID"
+
+#: slowlog.php
+msgid "Imported"
+msgstr "winjijwe"
+
+#: slowlog.php
+msgid "Lines"
+msgstr "Imirongo"
+
+#: slowlog.php
+msgid "Duration"
+msgstr "Igihe byamaze"
+
+#: slowlog.php
+msgid "Start Date"
+msgstr "Itariki yo gutangira"
+
+#: slowlog.php
+msgid "End Date"
+msgstr "Itariki yo kurangiza"
+
+#: slowlog.php
+msgid "Pre-Processing"
+msgstr "Itunganya ry'Ibanze"
+
+#: slowlog.php
+msgid "Post-Processing"
+msgstr "Itunganya rya Nyuma"
+
+#: slowlog.php
+msgid "Complete"
+msgstr "Byarangiye"
+
+#: slowlog.php
+msgid "Bad File Format"
+msgstr "Imiterere ya Dosiye Itari Yo"
+
+#: slowlog.php
+msgid "Unknown"
+msgstr "Ntibizwi"
+
+#: slowlog.php
+msgid "Save"
+msgstr "Bika"
+
+#: slowlog.php
+msgid "Cancel"
+msgstr "Hagarika"
+
+#: slowlog.php
+msgid "Import"
+msgstr "Injiza"
+
+#: slowlog.php
+msgid "Create"
+msgstr "Hanga"
+
+#: slowlog.php
+msgid "LogFile"
+msgstr "Dosiye y'Inyandiko"
+
+#: slowlog.php
+msgid "Any"
+msgstr "Icyo ari cyo cyose"
+
+#: slowlog.php
+msgid "N/A"
+msgstr "Ntibihari"
+
+#: slowlog.php
+msgid "Tables"
+msgstr "Imbonerahamwe"
+
+#: slowlog.php
+msgid "Default"
+msgstr "Mburabuzi"
+
+#: slowlog.php
+msgid "From"
+msgstr "Kuva"
+
+#: slowlog.php
+msgid "Start Date Selector"
+msgstr "Guhitamo itariki itangira"
+
+#: slowlog.php
+msgid "To"
+msgstr "Kugeza"
+
+#: slowlog.php
+msgid "End Date Selector"
+msgstr "Guhitamo itariki irangira"
+
+#: slowlog.php
+msgid "Shift Time Backward"
+msgstr "Subiza igihe inyuma"
+
+#: slowlog.php
+msgid "Define Shifting Interval"
+msgstr "Shyiraho intera yo kwimura igihe"
+
+#: slowlog.php
+msgid "Shift Time Forward"
+msgstr "Imura igihe imbere"
+
+#: slowlog.php
+msgid "Custom"
+msgstr "Byihariye"

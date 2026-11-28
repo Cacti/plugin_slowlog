@@ -1,0 +1,590 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR The Cacti Group
+# This file is distributed under the same license as the Cacti package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Cacti\n"
+"Report-Msgid-Bugs-To: developers@cacti.net\n"
+"POT-Creation-Date: 2026-10-24 04:06-0600\n"
+"PO-Revision-Date: 2026-11-27 18:00-0800\n"
+"Last-Translator: The Cacti Group <developers@cacti.net>\n"
+"Language-Team: Serbian <developers@cacti.net>\n"
+"Language: sr-RS\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+
+#: import_log.php
+#, php-format
+msgid "ERROR: Invalid --logid value '%s', must be a positive integer"
+msgstr "ГРЕШКА: Неисправна вредност --logid '%s', мора бити позитиван цео број"
+
+#: includes/functions.php
+msgid "ERROR: Unable to remove the imported Slowlog file."
+msgstr "ГРЕШКА: Није могуће уклонити увезену датотеку дневника спорих упита."
+
+#: includes/functions.php
+msgid "Import Failed - Row Insert Error"
+msgstr "Увоз није успео - грешка при уметању реда"
+
+#: slowlog.php
+msgid "ERROR: You do not have permission to import or delete Slowlog files."
+msgstr "ГРЕШКА: Немате дозволу за увоз или брисање датотека дневника спорих упита."
+
+#: includes/functions.php
+msgid "Read Error - Import Aborted, Log May Be Truncated"
+msgstr "Грешка при читању - увоз је прекинут, дневник је можда скраћен"
+
+#: includes/functions.php
+msgid "Import Failed - Database Error"
+msgstr "Увоз није успео - грешка базе података"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Open File"
+msgstr "Увоз није успео - није могуће отворити датотеку"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Create Parent Record"
+msgstr "Увоз није успео - није могуће креирати надређени запис"
+
+#: includes/functions.php
+msgid "Bad File Format - No Slow Query Log Entries Found"
+msgstr "Неисправан формат датотеке - нису пронађене ставке дневника спорих упита"
+
+#: includes/functions.php
+msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
+msgstr "Почетни дневник спорих упита је учитан. Накнадна обрада ће се одвијати у позадини. Можете почети анализу детаља када статус буде завршен"
+
+#: includes/functions.php
+msgid "Post Processing Failed - Database Error"
+msgstr "Накнадна обрада није успела - грешка базе података"
+
+#: includes/functions.php
+#, php-format
+msgid "max_execution_time is %d seconds (not unlimited) for this request - a large import could be killed mid-run. Some web servers/proxies (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) enforce their own independent cutoff that this setting cannot override."
+msgstr "max_execution_time износи %d секунди (није неограничено) за овај захтев - велики увоз може бити прекинут усред извршавања. Неки веб-сервери/проксији (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) примењују сопствено независно ограничење које ово подешавање не може да заобиђе."
+
+#: includes/functions.php
+#, php-format
+msgid "memory_limit is %s (not unlimited) for this request - a very large slow query log can exceed this while it is being read/imported."
+msgstr "memory_limit износи %s (није неограничено) за овај захтев - веома велики дневник спорих упита може премашити ово ограничење током читања/увоза."
+
+#: includes/functions.php
+#, php-format
+msgid "post_max_size (%s) is smaller than upload_max_filesize (%s) - uploads up to the advertised limit will still be rejected."
+msgstr "post_max_size (%s) је мањи од upload_max_filesize (%s) - отпремања до објављеног ограничења ће ипак бити одбијена."
+
+#: includes/functions.php
+#, php-format
+msgid "upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB."
+msgstr "upload_max_filesize (%s) је мали за MySQL/MariaDB дневник спорих упита, који лако може имати стотине MB."
+
+#: includes/functions.php
+msgid "ERROR: The uploaded Slowlog file exceeds the server's maximum upload filesize."
+msgstr "ГРЕШКА: Отпремљена датотека дневника спорих упита премашује максималну дозвољену величину отпремања на серверу."
+
+#: includes/functions.php
+msgid "ERROR: The Slowlog file upload was interrupted before it finished - please try again."
+msgstr "ГРЕШКА: Отпремање датотеке дневника спорих упита је прекинуто пре завршетка - покушајте поново."
+
+#: includes/functions.php
+msgid "ERROR: The server has no temporary folder configured to receive the uploaded Slowlog file."
+msgstr "ГРЕШКА: На серверу није конфигурисана привремена фасцикла за пријем отпремљене датотеке дневника спорих упита."
+
+#: includes/functions.php
+msgid "ERROR: The server failed to write the uploaded Slowlog file to disk."
+msgstr "ГРЕШКА: Сервер није успео да упише отпремљену датотеку дневника спорих упита на диск."
+
+#: includes/functions.php
+msgid "ERROR: A server extension blocked the Slowlog file upload."
+msgstr "ГРЕШКА: Серверско проширење је блокирало отпремање датотеке дневника спорих упита."
+
+#: includes/functions.php
+#, php-format
+msgid "ERROR: The Slowlog file upload failed (error code %d)."
+msgstr "ГРЕШКА: Отпремање датотеке дневника спорих упита није успело (код грешке %d)."
+
+#: includes/functions.php
+msgid "Queries"
+msgstr "Упити"
+
+#: includes/functions.php
+msgid "Total Queries"
+msgstr "Укупно упита"
+
+#: includes/functions.php slowlog.php
+msgid "Rows"
+msgstr "Редови"
+
+#: includes/functions.php
+msgid "Rows Returned"
+msgstr "Враћени редови"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Examined"
+msgstr "Прегледани редови"
+
+#: includes/functions.php slowlog.php
+msgid "Seconds"
+msgstr "Секунде"
+
+#: includes/functions.php
+msgid "Lock Seconds"
+msgstr "Секунде закључавања"
+
+#: includes/functions.php
+msgid "Query Seconds"
+msgstr "Секунде упита"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Affected"
+msgstr "Погођени редови"
+
+#: includes/functions.php
+msgid "Bytes"
+msgstr "Бајтови"
+
+#: includes/functions.php slowlog.php
+msgid "Bytes Sent"
+msgstr "Послати бајтови"
+
+#: includes/functions.php
+msgid "Clear this filter"
+msgstr "Очисти овај филтер"
+
+#: slowlog.php
+msgid "Delete"
+msgstr "Обриши"
+
+#: slowlog.php
+msgid "ERROR: 'Detect all tables; group ... as OTHER TABLES' requires a list of Tables of Interest."
+msgstr "ГРЕШКА: Опција 'Откриј све табеле; групиши ... као OTHER TABLES' захтева листу табела од интереса."
+
+#: slowlog.php
+msgid "ERROR: Unable to stage the uploaded Slowlog file for import."
+msgstr "ГРЕШКА: Није могуће припремити отпремљену датотеку дневника спорих упита за увоз."
+
+#: slowlog.php
+msgid "ERROR: Unable to create the Slowlog import record."
+msgstr "ГРЕШКА: Није могуће креирати запис увоза дневника спорих упита."
+
+#: slowlog.php
+msgid "The Slowlog has been queued and will be imported in the background. Refresh this page to track progress."
+msgstr "Дневник спорих упита је стављен у ред и биће увезен у позадини. Освежите ову страницу да пратите напредак."
+
+#: slowlog.php
+msgid "You must select at least one Slowlog record."
+msgstr "Морате изабрати бар један запис дневника спорих упита."
+
+#: slowlog.php
+msgid "Yes"
+msgstr "Да"
+
+#: slowlog.php
+msgid "No"
+msgstr "Не"
+
+#: slowlog.php
+msgid "Return"
+msgstr "Повратак"
+
+#: slowlog.php
+msgid "Import Template from Local File"
+msgstr "Увези шаблон из локалне датотеке"
+
+#: slowlog.php
+msgid "If the XML file containing template data is located on your local machine, select it here."
+msgstr "Ако се XML датотека која садржи податке шаблона налази на вашем локалном рачунару, изаберите је овде."
+
+#: slowlog.php
+msgid "LogFile Description"
+msgstr "Опис датотеке дневника"
+
+#: slowlog.php
+msgid "Please provide a description for this MySQL Slowlog file to be imported."
+msgstr "Унесите опис за ову MySQL датотеку дневника спорих упита која се увози."
+
+#: slowlog.php
+msgid "New Slow Log"
+msgstr "Нови дневник спорих упита"
+
+#: slowlog.php
+msgid "Max Query Length"
+msgstr "Максимална дужина упита"
+
+#: slowlog.php
+msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
+msgstr "Увези само првих X знакова SQL упита из MySQL дневника спорих упита."
+
+#: slowlog.php
+msgid "All"
+msgstr "Све"
+
+#: slowlog.php
+#, php-format
+msgid "%d Chars"
+msgstr "%d знакова"
+
+#: slowlog.php
+msgid "Slowlog Table Names [ optional ]"
+msgstr "Називи табела дневника спорих упита [ опционо ]"
+
+#: slowlog.php
+msgid "Leave Blank for Auto Detection which runs must faster."
+msgstr "Оставите празно за аутоматско откривање које ради много брже."
+
+#: slowlog.php
+msgid "Cacti Table Detection"
+msgstr "Откривање Cacti табела"
+
+#: slowlog.php
+msgid "How to tell Cacti-native tables apart from other tables referenced in the slow query log. Defaults to detecting every table with no grouping."
+msgstr "Начин разликовања изворних Cacti табела од других табела поменутих у дневнику спорих упита. Подразумевано се открива свака табела без груписања."
+
+#: slowlog.php
+msgid "Detect all tables (no 'OTHER TABLES' grouping)"
+msgstr "Откриј све табеле (без груписања у 'OTHER TABLES')"
+
+#: slowlog.php
+msgid "Use this Cacti Database; group other tables as 'OTHER TABLES'"
+msgstr "Користи ову Cacti базу података; групиши остале табеле као 'OTHER TABLES'"
+
+#: slowlog.php
+msgid "Detect all tables; group tables not in the list below as 'OTHER TABLES'"
+msgstr "Откриј све табеле; групиши табеле које нису на листи испод као 'OTHER TABLES'"
+
+#: slowlog.php
+msgid "Tables of Interest"
+msgstr "Табеле од интереса"
+
+#: slowlog.php
+msgid "Only used by the 'Detect all tables; group ... as OTHER TABLES' option above. Please provide a space delimited list of known tables to compare against. In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
+msgstr "Користи се само уз опцију 'Откриј све табеле; групиши ... као OTHER TABLES' изнад. Наведите листу познатих табела раздвојених размаком за поређење. У Linux/UNIX окружењу листу табела можете добити помоћу следеће команде:<br><br> print `mysql -u<i><b>корисник</b></i> -p<i><b>лозинка</b></i> -e \"show tables\" <i><b>база_података</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>Замените вредности '<i><b>корисник</b></i>', '<i><b>лозинка</b></i>' и '<i><b>база_података</b></i>' својим вредностима."
+
+#: slowlog.php
+msgid "Upload Limits"
+msgstr "Ограничења отпремања"
+
+#: slowlog.php
+msgid "File Size upload limits in Cacti."
+msgstr "Ограничења величине датотека за отпремање у Cacti."
+
+#: slowlog.php
+msgid "Max Upload Filesize"
+msgstr "Максимална величина отпремања"
+
+#: slowlog.php
+msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
+msgstr "Максимална величина датотеке коју ваш Apache сервер дозвољава за отпремање постављена је на вредност десно. Тренутно не можете отпремити датотеку већу од ове. Ако имате MySQL дневнике спорих упита веће од овога, морате изменити датотеку <i>php.ini</i> повезану са сервером Apache, пронаћи променљиву <b><i>upload_max_filesize</i></b> и повећати вредност. Након тога морате поново покренути Apache."
+
+#: slowlog.php
+msgid "Max Post Size"
+msgstr "Максимална величина POST захтева"
+
+#: slowlog.php
+msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
+msgstr "Максимална величина података коју можете послати на Apache сервер постављена је на вредност десно. Ако имате MySQL дневнике спорих упита веће од ове вредности, морате изменити датотеку <i>php.ini</i> повезану са сервером Apache, пронаћи променљиву <b><i>post_max_size</i></b> и повећати њену вредност. Након тога морате поново покренути Apache."
+
+#: slowlog.php
+msgid "Max Execution Time"
+msgstr "Максимално време извршавања"
+
+#: slowlog.php
+msgid "How long (in seconds) this request is allowed to run for; 0 means unlimited. This plugin already raises it to unlimited for its own requests, but a web server or reverse proxy in front of PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) can still cut the request off independently - that cannot be detected or overridden from here."
+msgstr "Колико дуго (у секундама) је овом захтеву дозвољено да се извршава; 0 значи неограничено. Овај додатак га већ подиже на неограничено за сопствене захтеве, али веб-сервер или обрнути прокси испред PHP-а (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) и даље може независно прекинути захтев - то се одавде не може открити нити заобићи."
+
+#: slowlog.php
+msgid "Unlimited"
+msgstr "Неограничено"
+
+#: slowlog.php
+msgid "Memory Limit"
+msgstr "Ограничење меморије"
+
+#: slowlog.php
+msgid "How much memory this request is allowed to use; -1 means unlimited. This plugin already raises it to unlimited for its own requests. A very large slow query log being read/imported in a single request can exceed a limited value."
+msgstr "Колико меморије је овом захтеву дозвољено да користи; -1 значи неограничено. Овај додатак га већ подиже на неограничено за сопствене захтеве. Веома велики дневник спорих упита који се чита/увози у једном захтеву може премашити ограничену вредност."
+
+#: slowlog.php
+msgid "The current server configuration may cause a large import to fail:"
+msgstr "Тренутна конфигурација сервера може довести до неуспеха великог увоза:"
+
+#: slowlog.php
+msgid "WARNING"
+msgstr "УПОЗОРЕЊЕ"
+
+#: slowlog.php
+msgid "Import MariaDB/MySQL Slowlog"
+msgstr "Увези MariaDB/MySQL дневник спорих упита"
+
+#: slowlog.php
+msgid "Uploaded"
+msgstr "Отпремљено"
+
+#: slowlog.php
+msgid "Processing, please wait..."
+msgstr "Обрада у току, сачекајте..."
+
+#: slowlog.php
+msgid "Upload failed - please try again."
+msgstr "Отпремање није успело - покушајте поново."
+
+#: slowlog.php
+msgid "Actions"
+msgstr "Радње"
+
+#: slowlog.php
+msgid "Table Name"
+msgstr "Назив табеле"
+
+#: slowlog.php
+msgid "Method"
+msgstr "Метод"
+
+#: slowlog.php
+msgid "Date"
+msgstr "Датум"
+
+#: slowlog.php
+msgid "User"
+msgstr "Корисник"
+
+#: slowlog.php
+msgid "Host"
+msgstr "Домаћин"
+
+#: slowlog.php
+msgid "Query Time"
+msgstr "Време упита"
+
+#: slowlog.php
+msgid "Lock Time"
+msgstr "Време закључавања"
+
+#: slowlog.php
+msgid "Sent"
+msgstr "Послато"
+
+#: slowlog.php
+msgid "Examined"
+msgstr "Прегледано"
+
+#: slowlog.php
+msgid "Affected"
+msgstr "Погођено"
+
+#: slowlog.php
+msgid "Log Entries"
+msgstr "Ставке дневника"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Details"
+msgstr "Детаљи MariaDB/MySQL дневника спорих упита"
+
+#: slowlog.php
+msgid "View Details"
+msgstr "Прикажи детаље"
+
+#: slowlog.php
+msgid "Chart Filters"
+msgstr "Филтери графикона"
+
+#: slowlog.php
+#, php-format
+msgid "MariaDB/MySQL SlowLog Results - By %s"
+msgstr "Резултати MariaDB/MySQL дневника спорих упита - по %s"
+
+#: slowlog.php
+msgid "Percentiles may be estimated from bounded samples. Counts, totals, minima and maxima use all entries."
+msgstr "Перцентили могу бити процењени на основу ограничених узорака. Бројеви, укупне вредности, минимуми и максимуми користе све ставке."
+
+#: slowlog.php
+msgid "Select Method"
+msgstr "Изабери метод"
+
+#: slowlog.php
+msgid "Select Table"
+msgstr "Изабери табелу"
+
+#: slowlog.php
+msgid "Selected"
+msgstr "Изабрано"
+
+#: slowlog.php
+msgid "Others"
+msgstr "Остали"
+
+#: slowlog.php
+msgid "Top"
+msgstr "Врх"
+
+#: slowlog.php
+msgid "Include Max"
+msgstr "Укључи максимум"
+
+#: slowlog.php
+msgid "Go"
+msgstr "Иди"
+
+#: slowlog.php
+msgid "Clear"
+msgstr "Очисти"
+
+#: slowlog.php
+msgid "None"
+msgstr "Ниједан"
+
+#: slowlog.php
+msgid "Search"
+msgstr "Претражи"
+
+#: slowlog.php
+msgid "Enter keyword"
+msgstr "Унесите кључну реч"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Query Details"
+msgstr "Детаљи упита MariaDB/MySQL дневника спорих упита"
+
+#: slowlog.php
+msgid "IP"
+msgstr "IP"
+
+#: slowlog.php
+msgid "Rows Sent"
+msgstr "Послати редови"
+
+#: slowlog.php
+msgid "Original Query"
+msgstr "Изворни упит"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog File Filters"
+msgstr "Филтери датотека MariaDB/MySQL дневника спорих упита"
+
+#: slowlog.php
+msgid "Description"
+msgstr "Опис"
+
+#: slowlog.php
+msgid "Import Status"
+msgstr "Статус увоза"
+
+#: slowlog.php
+msgid "Status String"
+msgstr "Текстуални статус"
+
+#: slowlog.php
+msgid "ID"
+msgstr "ID"
+
+#: slowlog.php
+msgid "Imported"
+msgstr "Увезен"
+
+#: slowlog.php
+msgid "Lines"
+msgstr "Редова"
+
+#: slowlog.php
+msgid "Duration"
+msgstr "Трајање"
+
+#: slowlog.php
+msgid "Start Date"
+msgstr "Датум почетка"
+
+#: slowlog.php
+msgid "End Date"
+msgstr "Датум завршетка"
+
+#: slowlog.php
+msgid "Pre-Processing"
+msgstr "Претходна обрада"
+
+#: slowlog.php
+msgid "Post-Processing"
+msgstr "Накнадна обрада"
+
+#: slowlog.php
+msgid "Complete"
+msgstr "Завршено"
+
+#: slowlog.php
+msgid "Bad File Format"
+msgstr "Неисправан формат датотеке"
+
+#: slowlog.php
+msgid "Unknown"
+msgstr "Непознато"
+
+#: slowlog.php
+msgid "Save"
+msgstr "Сачувај"
+
+#: slowlog.php
+msgid "Cancel"
+msgstr "Откажи"
+
+#: slowlog.php
+msgid "Import"
+msgstr "Увези"
+
+#: slowlog.php
+msgid "Create"
+msgstr "Креирај"
+
+#: slowlog.php
+msgid "LogFile"
+msgstr "Датотека дневника"
+
+#: slowlog.php
+msgid "Any"
+msgstr "Било који"
+
+#: slowlog.php
+msgid "N/A"
+msgstr "Н/Д"
+
+#: slowlog.php
+msgid "Tables"
+msgstr "Табеле"
+
+#: slowlog.php
+msgid "Default"
+msgstr "Подразумевано"
+
+#: slowlog.php
+msgid "From"
+msgstr "Од"
+
+#: slowlog.php
+msgid "Start Date Selector"
+msgstr "Бирач почетног датума"
+
+#: slowlog.php
+msgid "To"
+msgstr "До"
+
+#: slowlog.php
+msgid "End Date Selector"
+msgstr "Бирач крајњег датума"
+
+#: slowlog.php
+msgid "Shift Time Backward"
+msgstr "Помери време уназад"
+
+#: slowlog.php
+msgid "Define Shifting Interval"
+msgstr "Дефиниши интервал померања"
+
+#: slowlog.php
+msgid "Shift Time Forward"
+msgstr "Помери време унапред"
+
+#: slowlog.php
+msgid "Custom"
+msgstr "Прилагођено"

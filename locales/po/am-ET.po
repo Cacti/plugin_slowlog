@@ -1,0 +1,590 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR The Cacti Group
+# This file is distributed under the same license as the Cacti package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Cacti\n"
+"Report-Msgid-Bugs-To: developers@cacti.net\n"
+"POT-Creation-Date: 2026-10-24 04:06-0600\n"
+"PO-Revision-Date: 2026-11-27 18:00-0800\n"
+"Last-Translator: The Cacti Group <developers@cacti.net>\n"
+"Language-Team: Amharic <developers@cacti.net>\n"
+"Language: am_ET\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: import_log.php
+#, php-format
+msgid "ERROR: Invalid --logid value '%s', must be a positive integer"
+msgstr "ስህተት፦ ልክ ያልሆነ --logid እሴት '%s'፣ አዎንታዊ ሙሉ ቁጥር መሆን አለበት"
+
+#: includes/functions.php
+msgid "ERROR: Unable to remove the imported Slowlog file."
+msgstr "ስህተት፦ የገባውን Slowlog ፋይል ማስወገድ አልተቻለም።"
+
+#: includes/functions.php
+msgid "Import Failed - Row Insert Error"
+msgstr "ማስመጣት አልተሳካም - የረድፍ ማስገባት ስህተት"
+
+#: slowlog.php
+msgid "ERROR: You do not have permission to import or delete Slowlog files."
+msgstr "ስህተት፦ የSlowlog ፋይሎችን የማስመጣት ወይም የመሰረዝ ፈቃድ የለዎትም።"
+
+#: includes/functions.php
+msgid "Read Error - Import Aborted, Log May Be Truncated"
+msgstr "የንባብ ስህተት - ማስመጣት ተቋርጧል፣ ምዝግብ ማስታወሻው የተቆረጠ ሊሆን ይችላል"
+
+#: includes/functions.php
+msgid "Import Failed - Database Error"
+msgstr "ማስመጣት አልተሳካም - የዳታቤዝ ስህተት"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Open File"
+msgstr "ማስመጣት አልተሳካም - ፋይሉን መክፈት አልተቻለም"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Create Parent Record"
+msgstr "ማስመጣት አልተሳካም - ወላጅ መዝገብ መፍጠር አልተቻለም"
+
+#: includes/functions.php
+msgid "Bad File Format - No Slow Query Log Entries Found"
+msgstr "የተበላሸ የፋይል ቅርጸት - ምንም የዘገምተኛ መጠይቅ ምዝግብ ማስታወሻ ግቤቶች አልተገኙም"
+
+#: includes/functions.php
+msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
+msgstr "የመጀመሪያው Slowlog ገብቷል። ድህረ-ሂደት ከበስተጀርባ ይከናወናል። ሁኔታው ሲጠናቀቅ ዝርዝሮቹን መተንተን መጀመር ይችላሉ"
+
+#: includes/functions.php
+msgid "Post Processing Failed - Database Error"
+msgstr "ድህረ-ሂደት አልተሳካም - የዳታቤዝ ስህተት"
+
+#: includes/functions.php
+#, php-format
+msgid "max_execution_time is %d seconds (not unlimited) for this request - a large import could be killed mid-run. Some web servers/proxies (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) enforce their own independent cutoff that this setting cannot override."
+msgstr "max_execution_time ለዚህ ጥያቄ %d ሰከንዶች ነው (ያልተገደበ አይደለም) - ትልቅ ማስመጣት በሂደት ላይ ሊቋረጥ ይችላል። አንዳንድ የድር አገልጋዮች/ፕሮክሲዎች (Apache Timeout፣ Nginx fastcgi_read_timeout/proxy_read_timeout፣ PHP-FPM request_terminate_timeout) ይህ ቅንብር መሻር የማይችለውን የራሳቸውን ነጻ የጊዜ ገደብ ያስፈጽማሉ።"
+
+#: includes/functions.php
+#, php-format
+msgid "memory_limit is %s (not unlimited) for this request - a very large slow query log can exceed this while it is being read/imported."
+msgstr "memory_limit ለዚህ ጥያቄ %s ነው (ያልተገደበ አይደለም) - በጣም ትልቅ የዘገምተኛ መጠይቅ ምዝግብ ማስታወሻ በሚነበብበት/በሚገባበት ጊዜ ከዚህ ሊበልጥ ይችላል።"
+
+#: includes/functions.php
+#, php-format
+msgid "post_max_size (%s) is smaller than upload_max_filesize (%s) - uploads up to the advertised limit will still be rejected."
+msgstr "post_max_size (%s) ከupload_max_filesize (%s) ያነሰ ነው - እስከ ተገለጸው ገደብ ድረስ ያሉ ሰቀላዎች አሁንም ውድቅ ይደረጋሉ።"
+
+#: includes/functions.php
+#, php-format
+msgid "upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB."
+msgstr "upload_max_filesize (%s) በቀላሉ በመቶዎች የሚቆጠሩ MB ሊሆን ለሚችል የMySQL/MariaDB ዘገምተኛ መጠይቅ ምዝግብ ማስታወሻ ትንሽ ነው።"
+
+#: includes/functions.php
+msgid "ERROR: The uploaded Slowlog file exceeds the server's maximum upload filesize."
+msgstr "ስህተት፦ የተሰቀለው Slowlog ፋይል ከአገልጋዩ ከፍተኛው የሰቀላ ፋይል መጠን ይበልጣል።"
+
+#: includes/functions.php
+msgid "ERROR: The Slowlog file upload was interrupted before it finished - please try again."
+msgstr "ስህተት፦ የSlowlog ፋይል ሰቀላ ከመጠናቀቁ በፊት ተቋርጧል - እባክዎ እንደገና ይሞክሩ።"
+
+#: includes/functions.php
+msgid "ERROR: The server has no temporary folder configured to receive the uploaded Slowlog file."
+msgstr "ስህተት፦ አገልጋዩ የተሰቀለውን Slowlog ፋይል ለመቀበል የተዋቀረ ጊዜያዊ አቃፊ የለውም።"
+
+#: includes/functions.php
+msgid "ERROR: The server failed to write the uploaded Slowlog file to disk."
+msgstr "ስህተት፦ አገልጋዩ የተሰቀለውን Slowlog ፋይል ወደ ዲስክ መጻፍ አልቻለም።"
+
+#: includes/functions.php
+msgid "ERROR: A server extension blocked the Slowlog file upload."
+msgstr "ስህተት፦ አንድ የአገልጋይ ቅጥያ የSlowlog ፋይል ሰቀላውን አግዶታል።"
+
+#: includes/functions.php
+#, php-format
+msgid "ERROR: The Slowlog file upload failed (error code %d)."
+msgstr "ስህተት፦ የSlowlog ፋይል ሰቀላ አልተሳካም (የስህተት ኮድ %d)።"
+
+#: includes/functions.php
+msgid "Queries"
+msgstr "መጠይቆች"
+
+#: includes/functions.php
+msgid "Total Queries"
+msgstr "ጠቅላላ መጠይቆች"
+
+#: includes/functions.php slowlog.php
+msgid "Rows"
+msgstr "ረድፎች"
+
+#: includes/functions.php
+msgid "Rows Returned"
+msgstr "የተመለሱ ረድፎች"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Examined"
+msgstr "የተመረመሩ ረድፎች"
+
+#: includes/functions.php slowlog.php
+msgid "Seconds"
+msgstr "ሰከንዶች"
+
+#: includes/functions.php
+msgid "Lock Seconds"
+msgstr "የመቆለፊያ ሰከንዶች"
+
+#: includes/functions.php
+msgid "Query Seconds"
+msgstr "የመጠይቅ ሰከንዶች"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Affected"
+msgstr "ተጽዕኖ የደረሰባቸው ረድፎች"
+
+#: includes/functions.php
+msgid "Bytes"
+msgstr "ባይቶች"
+
+#: includes/functions.php slowlog.php
+msgid "Bytes Sent"
+msgstr "የተላኩ ባይቶች"
+
+#: includes/functions.php
+msgid "Clear this filter"
+msgstr "ይህን ማጣሪያ አጽዳ"
+
+#: slowlog.php
+msgid "Delete"
+msgstr "ሰርዝ"
+
+#: slowlog.php
+msgid "ERROR: 'Detect all tables; group ... as OTHER TABLES' requires a list of Tables of Interest."
+msgstr "ስህተት፦ 'ሁሉንም ሰንጠረዦች ፈልግ፤ ... እንደ OTHER TABLES መድብ' የሚለው የፍላጎት ሰንጠረዦች ዝርዝር ይፈልጋል።"
+
+#: slowlog.php
+msgid "ERROR: Unable to stage the uploaded Slowlog file for import."
+msgstr "ስህተት፦ የተሰቀለውን Slowlog ፋይል ለማስመጣት ማዘጋጀት አልተቻለም።"
+
+#: slowlog.php
+msgid "ERROR: Unable to create the Slowlog import record."
+msgstr "ስህተት፦ የSlowlog ማስመጫ መዝገብ መፍጠር አልተቻለም።"
+
+#: slowlog.php
+msgid "The Slowlog has been queued and will be imported in the background. Refresh this page to track progress."
+msgstr "Slowlog በወረፋ ላይ ገብቷል እና ከበስተጀርባ ይገባል። ሂደቱን ለመከታተል ይህን ገጽ ያድሱ።"
+
+#: slowlog.php
+msgid "You must select at least one Slowlog record."
+msgstr "ቢያንስ አንድ የSlowlog መዝገብ መምረጥ አለብዎት።"
+
+#: slowlog.php
+msgid "Yes"
+msgstr "አዎ"
+
+#: slowlog.php
+msgid "No"
+msgstr "አይ"
+
+#: slowlog.php
+msgid "Return"
+msgstr "ተመለስ"
+
+#: slowlog.php
+msgid "Import Template from Local File"
+msgstr "አብነትን ከአካባቢያዊ ፋይል አስመጣ"
+
+#: slowlog.php
+msgid "If the XML file containing template data is located on your local machine, select it here."
+msgstr "የአብነት ውሂብ የያዘው የXML ፋይል በአካባቢያዊ ማሽንዎ ላይ የሚገኝ ከሆነ እዚህ ይምረጡት."
+
+#: slowlog.php
+msgid "LogFile Description"
+msgstr "የምዝግብ ማስታወሻ ፋይል መግለጫ"
+
+#: slowlog.php
+msgid "Please provide a description for this MySQL Slowlog file to be imported."
+msgstr "እባክዎ ለሚገባው የMySQL Slowlog ፋይል መግለጫ ያቅርቡ።"
+
+#: slowlog.php
+msgid "New Slow Log"
+msgstr "አዲስ ዘገምተኛ ምዝግብ ማስታወሻ"
+
+#: slowlog.php
+msgid "Max Query Length"
+msgstr "ከፍተኛ የመጠይቅ ርዝመት"
+
+#: slowlog.php
+msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
+msgstr "ከMySQL ዘገምተኛ መጠይቅ ምዝግብ ማስታወሻ ውስጥ የSQL መጠይቁን የመጀመሪያ X ቁምፊዎች ብቻ አስመጣ።"
+
+#: slowlog.php
+msgid "All"
+msgstr "ሁሉም"
+
+#: slowlog.php
+#, php-format
+msgid "%d Chars"
+msgstr "%d ቁምፊዎች"
+
+#: slowlog.php
+msgid "Slowlog Table Names [ optional ]"
+msgstr "የSlowlog ሰንጠረዥ ስሞች [ አማራጭ ]"
+
+#: slowlog.php
+msgid "Leave Blank for Auto Detection which runs must faster."
+msgstr "በጣም በፍጥነት ለሚሰራ ራስ-ሰር ፍለጋ ባዶ ይተዉት።"
+
+#: slowlog.php
+msgid "Cacti Table Detection"
+msgstr "የCacti ሰንጠረዥ ፍለጋ"
+
+#: slowlog.php
+msgid "How to tell Cacti-native tables apart from other tables referenced in the slow query log. Defaults to detecting every table with no grouping."
+msgstr "የCacti ተወላጅ ሰንጠረዦችን በዘገምተኛ መጠይቅ ምዝግብ ማስታወሻ ውስጥ ከተጠቀሱ ሌሎች ሰንጠረዦች እንዴት መለየት እንደሚቻል። በነባሪነት ያለ ምንም ምደባ ሁሉንም ሰንጠረዦች ይፈልጋል።"
+
+#: slowlog.php
+msgid "Detect all tables (no 'OTHER TABLES' grouping)"
+msgstr "ሁሉንም ሰንጠረዦች ፈልግ (ያለ 'OTHER TABLES' ምደባ)"
+
+#: slowlog.php
+msgid "Use this Cacti Database; group other tables as 'OTHER TABLES'"
+msgstr "ይህን የCacti ዳታቤዝ ተጠቀም፤ ሌሎች ሰንጠረዦችን እንደ 'OTHER TABLES' መድብ"
+
+#: slowlog.php
+msgid "Detect all tables; group tables not in the list below as 'OTHER TABLES'"
+msgstr "ሁሉንም ሰንጠረዦች ፈልግ፤ ከታች ባለው ዝርዝር ውስጥ የሌሉትን እንደ 'OTHER TABLES' መድብ"
+
+#: slowlog.php
+msgid "Tables of Interest"
+msgstr "የፍላጎት ሰንጠረዦች"
+
+#: slowlog.php
+msgid "Only used by the 'Detect all tables; group ... as OTHER TABLES' option above. Please provide a space delimited list of known tables to compare against. In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
+msgstr "ከላይ ባለው 'ሁሉንም ሰንጠረዦች ፈልግ፤ ... እንደ OTHER TABLES መድብ' አማራጭ ብቻ ጥቅም ላይ ይውላል። እባክዎ ለማነጻጸር በክፍተት የተለየ የታወቁ ሰንጠረዦች ዝርዝር ያቅርቡ። በLinux/UNIX ውስጥ የሚከተለውን ትዕዛዝ በመጠቀም የሰንጠረዦችን ዝርዝር ማግኘት ይችላሉ፦<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>የ'<i><b>user</b></i>'፣ '<i><b>password</b></i>' እና '<i><b>database</b></i>' እሴቶች በእርስዎ እሴቶች ይተካሉ።"
+
+#: slowlog.php
+msgid "Upload Limits"
+msgstr "የሰቀላ ገደቦች"
+
+#: slowlog.php
+msgid "File Size upload limits in Cacti."
+msgstr "በCacti ውስጥ የፋይል መጠን ሰቀላ ገደቦች።"
+
+#: slowlog.php
+msgid "Max Upload Filesize"
+msgstr "ከፍተኛ የሰቀላ ፋይል መጠን"
+
+#: slowlog.php
+msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
+msgstr "የእርስዎ Apache አገልጋይ እንዲሰቀል የሚፈቅደው ከፍተኛው የፋይል መጠን በቀኝ በኩል ባለው እሴት ላይ ተቀምጧል። በአሁኑ ጊዜ ከዚህ የሚበልጥ ፋይል መስቀል አይችሉም። ከዚህ የሚበልጡ የMySQL ዘገምተኛ ምዝግብ ማስታወሻዎች ካሉዎት፣ ከApache ጋር የተያያዘውን <i>php.ini</i> ፋይል ማሻሻል፣ <b><i>upload_max_filesize</i></b> የሚለውን ተለዋዋጭ ማግኘት እና እሴቱን መጨመር አለብዎት። ከዚያ በኋላ Apache ን እንደገና ማስጀመር አለብዎት።"
+
+#: slowlog.php
+msgid "Max Post Size"
+msgstr "ከፍተኛ የPOST መጠን"
+
+#: slowlog.php
+msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
+msgstr "ወደ Apache አገልጋይ መላክ የሚችሉት ከፍተኛው መጠን በቀኝ በኩል ባለው እሴት ላይ ተቀምጧል። ከዚህ እሴት የሚበልጡ የMySQL ዘገምተኛ ምዝግብ ማስታወሻዎች ካሉዎት፣ ከApache ጋር የተያያዘውን <i>php.ini</i> ፋይል ማሻሻል፣ <b><i>post_max_size</i></b> የሚለውን ተለዋዋጭ ማግኘት እና እሴቱን መጨመር አለብዎት። ከዚያ በኋላ Apache ን እንደገና ማስጀመር አለብዎት።"
+
+#: slowlog.php
+msgid "Max Execution Time"
+msgstr "ከፍተኛ የማስፈጸሚያ ጊዜ"
+
+#: slowlog.php
+msgid "How long (in seconds) this request is allowed to run for; 0 means unlimited. This plugin already raises it to unlimited for its own requests, but a web server or reverse proxy in front of PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) can still cut the request off independently - that cannot be detected or overridden from here."
+msgstr "ይህ ጥያቄ ለምን ያህል ጊዜ (በሰከንዶች) እንዲሰራ እንደተፈቀደለት፤ 0 ማለት ያልተገደበ ነው። ይህ ተሰኪ ለራሱ ጥያቄዎች ቀድሞውኑ ወደ ያልተገደበ ከፍ ያደርገዋል፣ ነገር ግን ከPHP ፊት ያለ የድር አገልጋይ ወይም ተገላቢጦሽ ፕሮክሲ (Apache Timeout፣ Nginx fastcgi_read_timeout/proxy_read_timeout፣ PHP-FPM request_terminate_timeout) አሁንም ጥያቄውን በራሱ ሊያቋርጠው ይችላል - ያ ከዚህ ሊታወቅ ወይም ሊሻር አይችልም።"
+
+#: slowlog.php
+msgid "Unlimited"
+msgstr "ያልተገደበ"
+
+#: slowlog.php
+msgid "Memory Limit"
+msgstr "የማህደረ ትውስታ ገደብ"
+
+#: slowlog.php
+msgid "How much memory this request is allowed to use; -1 means unlimited. This plugin already raises it to unlimited for its own requests. A very large slow query log being read/imported in a single request can exceed a limited value."
+msgstr "ይህ ጥያቄ ምን ያህል ማህደረ ትውስታ እንዲጠቀም እንደተፈቀደለት፤ -1 ማለት ያልተገደበ ነው። ይህ ተሰኪ ለራሱ ጥያቄዎች ቀድሞውኑ ወደ ያልተገደበ ከፍ ያደርገዋል። በአንድ ጥያቄ ውስጥ የሚነበብ/የሚገባ በጣም ትልቅ የዘገምተኛ መጠይቅ ምዝግብ ማስታወሻ የተገደበ እሴትን ሊያልፍ ይችላል።"
+
+#: slowlog.php
+msgid "The current server configuration may cause a large import to fail:"
+msgstr "የአሁኑ የአገልጋይ ውቅር ትልቅ ማስመጣት እንዳይሳካ ሊያደርግ ይችላል፦"
+
+#: slowlog.php
+msgid "WARNING"
+msgstr "ማስጠንቀቂያ"
+
+#: slowlog.php
+msgid "Import MariaDB/MySQL Slowlog"
+msgstr "MariaDB/MySQL Slowlog አስመጣ"
+
+#: slowlog.php
+msgid "Uploaded"
+msgstr "ተሰቅሏል"
+
+#: slowlog.php
+msgid "Processing, please wait..."
+msgstr "በማስኬድ ላይ፣ እባክዎ ይጠብቁ..."
+
+#: slowlog.php
+msgid "Upload failed - please try again."
+msgstr "ሰቀላ አልተሳካም - እባክዎ እንደገና ይሞክሩ።"
+
+#: slowlog.php
+msgid "Actions"
+msgstr "ድርጊቶች"
+
+#: slowlog.php
+msgid "Table Name"
+msgstr "የሰንጠረዥ ስም"
+
+#: slowlog.php
+msgid "Method"
+msgstr "ዘዴ"
+
+#: slowlog.php
+msgid "Date"
+msgstr "ቀን"
+
+#: slowlog.php
+msgid "User"
+msgstr "ተጠቃሚ"
+
+#: slowlog.php
+msgid "Host"
+msgstr "አስተናጋጅ"
+
+#: slowlog.php
+msgid "Query Time"
+msgstr "የመጠይቅ ጊዜ"
+
+#: slowlog.php
+msgid "Lock Time"
+msgstr "የመቆለፊያ ጊዜ"
+
+#: slowlog.php
+msgid "Sent"
+msgstr "የተላከ"
+
+#: slowlog.php
+msgid "Examined"
+msgstr "የተመረመረ"
+
+#: slowlog.php
+msgid "Affected"
+msgstr "ተጽዕኖ የደረሰበት"
+
+#: slowlog.php
+msgid "Log Entries"
+msgstr "የምዝግብ ማስታወሻ ግቤቶች"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Details"
+msgstr "የMariaDB/MySQL SlowLog ዝርዝሮች"
+
+#: slowlog.php
+msgid "View Details"
+msgstr "ዝርዝሮችን ይመልከቱ"
+
+#: slowlog.php
+msgid "Chart Filters"
+msgstr "የገበታ ማጣሪያዎች"
+
+#: slowlog.php
+#, php-format
+msgid "MariaDB/MySQL SlowLog Results - By %s"
+msgstr "የMariaDB/MySQL SlowLog ውጤቶች - በ%s"
+
+#: slowlog.php
+msgid "Percentiles may be estimated from bounded samples. Counts, totals, minima and maxima use all entries."
+msgstr "መቶኛዎች ከተገደቡ ናሙናዎች ሊገመቱ ይችላሉ። ቆጠራዎች፣ ድምሮች፣ ዝቅተኛ እና ከፍተኛ እሴቶች ሁሉንም ግቤቶች ይጠቀማሉ።"
+
+#: slowlog.php
+msgid "Select Method"
+msgstr "ዘዴ ይምረጡ"
+
+#: slowlog.php
+msgid "Select Table"
+msgstr "ሰንጠረዥ ይምረጡ"
+
+#: slowlog.php
+msgid "Selected"
+msgstr "የተመረጡ"
+
+#: slowlog.php
+msgid "Others"
+msgstr "ሌሎች"
+
+#: slowlog.php
+msgid "Top"
+msgstr "ከፍተኛ"
+
+#: slowlog.php
+msgid "Include Max"
+msgstr "ከፍተኛውን አካትት"
+
+#: slowlog.php
+msgid "Go"
+msgstr "ሂድ"
+
+#: slowlog.php
+msgid "Clear"
+msgstr "አጽዳ"
+
+#: slowlog.php
+msgid "None"
+msgstr "ምንም"
+
+#: slowlog.php
+msgid "Search"
+msgstr "ፈልግ"
+
+#: slowlog.php
+msgid "Enter keyword"
+msgstr "ቁልፍ ቃል ያስገቡ"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Query Details"
+msgstr "የMariaDB/MySQL SlowLog መጠይቅ ዝርዝሮች"
+
+#: slowlog.php
+msgid "IP"
+msgstr "IP"
+
+#: slowlog.php
+msgid "Rows Sent"
+msgstr "የተላኩ ረድፎች"
+
+#: slowlog.php
+msgid "Original Query"
+msgstr "ዋናው መጠይቅ"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog File Filters"
+msgstr "የMariaDB/MySQL SlowLog ፋይል ማጣሪያዎች"
+
+#: slowlog.php
+msgid "Description"
+msgstr "መግለጫ"
+
+#: slowlog.php
+msgid "Import Status"
+msgstr "የማስመጣት ሁኔታ"
+
+#: slowlog.php
+msgid "Status String"
+msgstr "የሁኔታ ጽሑፍ"
+
+#: slowlog.php
+msgid "ID"
+msgstr "መለያ"
+
+#: slowlog.php
+msgid "Imported"
+msgstr "ገብቷል"
+
+#: slowlog.php
+msgid "Lines"
+msgstr "መስመሮች"
+
+#: slowlog.php
+msgid "Duration"
+msgstr "የቆይታ ጊዜ"
+
+#: slowlog.php
+msgid "Start Date"
+msgstr "የመጀመሪያ ቀን"
+
+#: slowlog.php
+msgid "End Date"
+msgstr "የመጨረሻ ቀን"
+
+#: slowlog.php
+msgid "Pre-Processing"
+msgstr "ቅድመ-ሂደት"
+
+#: slowlog.php
+msgid "Post-Processing"
+msgstr "ድህረ-ሂደት"
+
+#: slowlog.php
+msgid "Complete"
+msgstr "ተጠናቋል"
+
+#: slowlog.php
+msgid "Bad File Format"
+msgstr "የተበላሸ የፋይል ቅርጸት"
+
+#: slowlog.php
+msgid "Unknown"
+msgstr "ያልታወቀ"
+
+#: slowlog.php
+msgid "Save"
+msgstr "አስቀምጥ"
+
+#: slowlog.php
+msgid "Cancel"
+msgstr "ይቅር"
+
+#: slowlog.php
+msgid "Import"
+msgstr "አስመጣ"
+
+#: slowlog.php
+msgid "Create"
+msgstr "ፍጠር"
+
+#: slowlog.php
+msgid "LogFile"
+msgstr "የምዝግብ ማስታወሻ ፋይል"
+
+#: slowlog.php
+msgid "Any"
+msgstr "ማንኛውም"
+
+#: slowlog.php
+msgid "N/A"
+msgstr "አይመለከትም"
+
+#: slowlog.php
+msgid "Tables"
+msgstr "ሰንጠረዦች"
+
+#: slowlog.php
+msgid "Default"
+msgstr "ነባሪ"
+
+#: slowlog.php
+msgid "From"
+msgstr "ከ"
+
+#: slowlog.php
+msgid "Start Date Selector"
+msgstr "የመጀመሪያ ቀን መምረጫ"
+
+#: slowlog.php
+msgid "To"
+msgstr "እስከ"
+
+#: slowlog.php
+msgid "End Date Selector"
+msgstr "የመጨረሻ ቀን መምረጫ"
+
+#: slowlog.php
+msgid "Shift Time Backward"
+msgstr "ጊዜን ወደ ኋላ አሸጋግር"
+
+#: slowlog.php
+msgid "Define Shifting Interval"
+msgstr "የማሸጋገሪያ ክፍተት ግለጽ"
+
+#: slowlog.php
+msgid "Shift Time Forward"
+msgstr "ጊዜን ወደ ፊት አሸጋግር"
+
+#: slowlog.php
+msgid "Custom"
+msgstr "ብጁ"

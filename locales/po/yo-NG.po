@@ -1,0 +1,590 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR The Cacti Group
+# This file is distributed under the same license as the Cacti package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Cacti\n"
+"Report-Msgid-Bugs-To: developers@cacti.net\n"
+"POT-Creation-Date: 2026-10-24 04:06-0600\n"
+"PO-Revision-Date: 2026-11-27 18:00-0800\n"
+"Last-Translator: The Cacti Group <developers@cacti.net>\n"
+"Language-Team: Yoruba <developers@cacti.net>\n"
+"Language: yo_NG\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: import_log.php
+#, php-format
+msgid "ERROR: Invalid --logid value '%s', must be a positive integer"
+msgstr "ÀṢÌṢE: Iye --logid '%s' kò tọ́, ó gbọ́dọ̀ jẹ́ nọ́ńbà odidi tó ju òdo lọ"
+
+#: includes/functions.php
+msgid "ERROR: Unable to remove the imported Slowlog file."
+msgstr "ÀṢÌṢE: A kò lè yọ fáìlì Slowlog tí a kó wọlé kúrò."
+
+#: includes/functions.php
+msgid "Import Failed - Row Insert Error"
+msgstr "Ìkówọlé Kùnà - Àṣìṣe Fífi Ìlà Kún Un"
+
+#: slowlog.php
+msgid "ERROR: You do not have permission to import or delete Slowlog files."
+msgstr "ÀṢÌṢE: O kò ní ìyọ̀ǹda láti kó wọlé tàbí pa àwọn fáìlì Slowlog rẹ́."
+
+#: includes/functions.php
+msgid "Read Error - Import Aborted, Log May Be Truncated"
+msgstr "Àṣìṣe Kíkà - A Dá Ìkówọlé Dúró, Àkọsílẹ̀ Lè Ti Gé Kúrú"
+
+#: includes/functions.php
+msgid "Import Failed - Database Error"
+msgstr "Ìkówọlé Kùnà - Àṣìṣe Dátábéèsì"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Open File"
+msgstr "Ìkówọlé Kùnà - A Kò Lè Ṣí Fáìlì"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Create Parent Record"
+msgstr "Ìkówọlé Kùnà - A Kò Lè Ṣẹ̀dá Àkọsílẹ̀ Òbí"
+
+#: includes/functions.php
+msgid "Bad File Format - No Slow Query Log Entries Found"
+msgstr "Ìrísí Fáìlì Kò Dára - A Kò Rí Àwọn Àkọsílẹ̀ Ìbéèrè Fífàlẹ̀ Kankan"
+
+#: includes/functions.php
+msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
+msgstr "A ti gba Slowlog àkọ́kọ́ wọlé. Ìṣiṣẹ́ Lẹ́yìn-ìkówọlé yóò wáyé ní abẹ́lẹ̀. O lè bẹ̀rẹ̀ sí í ṣe àtúpalẹ̀ Àwọn Àlàyé nígbà tí ipò bá ti parí"
+
+#: includes/functions.php
+msgid "Post Processing Failed - Database Error"
+msgstr "Ìṣiṣẹ́ Lẹ́yìn-ìkówọlé Kùnà - Àṣìṣe Dátábéèsì"
+
+#: includes/functions.php
+#, php-format
+msgid "max_execution_time is %d seconds (not unlimited) for this request - a large import could be killed mid-run. Some web servers/proxies (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) enforce their own independent cutoff that this setting cannot override."
+msgstr "max_execution_time jẹ́ ìṣẹ́jú-àáyá %d (kì í ṣe aláìlópin) fún ìbéèrè yìí - a lè pa ìkówọlé ńlá láàárín ìṣiṣẹ́. Àwọn sáfà wẹ́ẹ̀bù/pírọ́ksì kan (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) ní òpin àkókò tiwọn lọ́tọ̀ tí ètò yìí kò lè borí."
+
+#: includes/functions.php
+#, php-format
+msgid "memory_limit is %s (not unlimited) for this request - a very large slow query log can exceed this while it is being read/imported."
+msgstr "memory_limit jẹ́ %s (kì í ṣe aláìlópin) fún ìbéèrè yìí - àkọsílẹ̀ ìbéèrè fífàlẹ̀ tó tóbi púpọ̀ lè rékọjá èyí nígbà tí a bá ń kà á/kó o wọlé."
+
+#: includes/functions.php
+#, php-format
+msgid "post_max_size (%s) is smaller than upload_max_filesize (%s) - uploads up to the advertised limit will still be rejected."
+msgstr "post_max_size (%s) kéré ju upload_max_filesize (%s) lọ - àwọn ìgbékalẹ̀ tó dé òpin tí a kéde ṣì máa kọ̀."
+
+#: includes/functions.php
+#, php-format
+msgid "upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB."
+msgstr "upload_max_filesize (%s) kéré fún àkọsílẹ̀ ìbéèrè fífàlẹ̀ MySQL/MariaDB, tó lè tó ọgọ́rọ̀ọ̀rún MB ní rọọrun."
+
+#: includes/functions.php
+msgid "ERROR: The uploaded Slowlog file exceeds the server's maximum upload filesize."
+msgstr "ÀṢÌṢE: Fáìlì Slowlog tí a gbé sókè rékọjá ìwọ̀n fáìlì tó pọ̀ jùlọ tí sáfà ń gbà."
+
+#: includes/functions.php
+msgid "ERROR: The Slowlog file upload was interrupted before it finished - please try again."
+msgstr "ÀṢÌṢE: Ìgbésókè fáìlì Slowlog dúró ṣáájú kí ó tó parí - jọ̀wọ́ gbìyànjú lẹ́ẹ̀kan sí i."
+
+#: includes/functions.php
+msgid "ERROR: The server has no temporary folder configured to receive the uploaded Slowlog file."
+msgstr "ÀṢÌṢE: Sáfà kò ní fọ́ódà ìgbàdíẹ̀ tí a ṣètò láti gba fáìlì Slowlog tí a gbé sókè."
+
+#: includes/functions.php
+msgid "ERROR: The server failed to write the uploaded Slowlog file to disk."
+msgstr "ÀṢÌṢE: Sáfà kùnà láti kọ fáìlì Slowlog tí a gbé sókè sórí díìskì."
+
+#: includes/functions.php
+msgid "ERROR: A server extension blocked the Slowlog file upload."
+msgstr "ÀṢÌṢE: Àfikún sáfà kan dí ìgbésókè fáìlì Slowlog lọ́wọ́."
+
+#: includes/functions.php
+#, php-format
+msgid "ERROR: The Slowlog file upload failed (error code %d)."
+msgstr "ÀṢÌṢE: Ìgbésókè fáìlì Slowlog kùnà (kóòdù àṣìṣe %d)."
+
+#: includes/functions.php
+msgid "Queries"
+msgstr "Àwọn Ìbéèrè"
+
+#: includes/functions.php
+msgid "Total Queries"
+msgstr "Àpapọ̀ Àwọn Ìbéèrè"
+
+#: includes/functions.php slowlog.php
+msgid "Rows"
+msgstr "Àwọn Ìlà"
+
+#: includes/functions.php
+msgid "Rows Returned"
+msgstr "Àwọn Ìlà Tí A Dá Padà"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Examined"
+msgstr "Àwọn Ìlà Tí A Ṣàyẹ̀wò"
+
+#: includes/functions.php slowlog.php
+msgid "Seconds"
+msgstr "Àwọn Ìṣẹ́jú-àáyá"
+
+#: includes/functions.php
+msgid "Lock Seconds"
+msgstr "Àwọn Ìṣẹ́jú-àáyá Títìpa"
+
+#: includes/functions.php
+msgid "Query Seconds"
+msgstr "Àwọn Ìṣẹ́jú-àáyá Ìbéèrè"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Affected"
+msgstr "Àwọn Ìlà Tí Ó Nípa Lórí"
+
+#: includes/functions.php
+msgid "Bytes"
+msgstr "Àwọn Báìtì"
+
+#: includes/functions.php slowlog.php
+msgid "Bytes Sent"
+msgstr "Àwọn Báìtì Tí A Fíránṣẹ́"
+
+#: includes/functions.php
+msgid "Clear this filter"
+msgstr "Nu àlẹ̀mọ́ yìí kúrò"
+
+#: slowlog.php
+msgid "Delete"
+msgstr "Pa rẹ́"
+
+#: slowlog.php
+msgid "ERROR: 'Detect all tables; group ... as OTHER TABLES' requires a list of Tables of Interest."
+msgstr "ÀṢÌṢE: 'Ṣàwárí gbogbo àwọn tábìlì; pín ... sí ẹgbẹ́ gẹ́gẹ́ bí ÀWỌN TÁBÌLÌ MÍRÀN' nílò àtòjọ Àwọn Tábìlì Tí A Nífẹ̀ẹ́ Sí."
+
+#: slowlog.php
+msgid "ERROR: Unable to stage the uploaded Slowlog file for import."
+msgstr "ÀṢÌṢE: A kò lè ṣètò fáìlì Slowlog tí a gbé sókè fún ìkówọlé."
+
+#: slowlog.php
+msgid "ERROR: Unable to create the Slowlog import record."
+msgstr "ÀṢÌṢE: A kò lè ṣẹ̀dá àkọsílẹ̀ ìkówọlé Slowlog."
+
+#: slowlog.php
+msgid "The Slowlog has been queued and will be imported in the background. Refresh this page to track progress."
+msgstr "A ti fi Slowlog sí ìlà a ó sì kó o wọlé ní abẹ́lẹ̀. Sọ ojú-ewé yìí dọ̀tun láti tọpinpin ìlọsíwájú."
+
+#: slowlog.php
+msgid "You must select at least one Slowlog record."
+msgstr "O gbọ́dọ̀ yan ó kéré jù àkọsílẹ̀ Slowlog kan."
+
+#: slowlog.php
+msgid "Yes"
+msgstr "Bẹ́ẹ̀ Ni"
+
+#: slowlog.php
+msgid "No"
+msgstr "Rárá"
+
+#: slowlog.php
+msgid "Return"
+msgstr "Padà"
+
+#: slowlog.php
+msgid "Import Template from Local File"
+msgstr "Gba Àdàkọ Wọlé láti Fáìlì Abẹ́lé"
+
+#: slowlog.php
+msgid "If the XML file containing template data is located on your local machine, select it here."
+msgstr "Tí fáìlì XML tó ní dátà àdàkọ bá wà lórí ẹ̀rọ abẹ́lé rẹ, yàn án níbí."
+
+#: slowlog.php
+msgid "LogFile Description"
+msgstr "Àpèjúwe Fáìlì Àkọsílẹ̀"
+
+#: slowlog.php
+msgid "Please provide a description for this MySQL Slowlog file to be imported."
+msgstr "Jọ̀wọ́ pèsè àpèjúwe fún fáìlì MySQL Slowlog yìí tí a fẹ́ kó wọlé."
+
+#: slowlog.php
+msgid "New Slow Log"
+msgstr "Àkọsílẹ̀ Fífàlẹ̀ Tuntun"
+
+#: slowlog.php
+msgid "Max Query Length"
+msgstr "Gígùn Ìbéèrè Tó Pọ̀ Jùlọ"
+
+#: slowlog.php
+msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
+msgstr "Kó àwọn àmì-ọ̀rọ̀ X àkọ́kọ́ nìkan wọlé láti inú Ìbéèrè SQL nínú àkọsílẹ̀ Ìbéèrè Fífàlẹ̀ MySQL."
+
+#: slowlog.php
+msgid "All"
+msgstr "Gbogbo"
+
+#: slowlog.php
+#, php-format
+msgid "%d Chars"
+msgstr "Àwọn Àmì-ọ̀rọ̀ %d"
+
+#: slowlog.php
+msgid "Slowlog Table Names [ optional ]"
+msgstr "Àwọn Orúkọ Tábìlì Slowlog [ àṣàyàn ]"
+
+#: slowlog.php
+msgid "Leave Blank for Auto Detection which runs must faster."
+msgstr "Fi Sí Òfo fún Ìṣàwárí Aládàáṣe tó ń ṣiṣẹ́ ní kíákíá jù."
+
+#: slowlog.php
+msgid "Cacti Table Detection"
+msgstr "Ìṣàwárí Tábìlì Cacti"
+
+#: slowlog.php
+msgid "How to tell Cacti-native tables apart from other tables referenced in the slow query log. Defaults to detecting every table with no grouping."
+msgstr "Bí a ṣe ń ya àwọn tábìlì ìbílẹ̀ Cacti sọ́tọ̀ kúrò lára àwọn tábìlì míràn tí a tọ́ka sí nínú àkọsílẹ̀ ìbéèrè fífàlẹ̀. Àìyípadà ni ṣíṣàwárí gbogbo tábìlì láìsí ìpínsíẹgbẹ́."
+
+#: slowlog.php
+msgid "Detect all tables (no 'OTHER TABLES' grouping)"
+msgstr "Ṣàwárí gbogbo àwọn tábìlì (kò sí ìpínsíẹgbẹ́ 'ÀWỌN TÁBÌLÌ MÍRÀN')"
+
+#: slowlog.php
+msgid "Use this Cacti Database; group other tables as 'OTHER TABLES'"
+msgstr "Lo Dátábéèsì Cacti yìí; pín àwọn tábìlì míràn sí ẹgbẹ́ gẹ́gẹ́ bí 'ÀWỌN TÁBÌLÌ MÍRÀN'"
+
+#: slowlog.php
+msgid "Detect all tables; group tables not in the list below as 'OTHER TABLES'"
+msgstr "Ṣàwárí gbogbo àwọn tábìlì; pín àwọn tábìlì tí kò sí nínú àtòjọ ìsàlẹ̀ sí ẹgbẹ́ gẹ́gẹ́ bí 'ÀWỌN TÁBÌLÌ MÍRÀN'"
+
+#: slowlog.php
+msgid "Tables of Interest"
+msgstr "Àwọn Tábìlì Tí A Nífẹ̀ẹ́ Sí"
+
+#: slowlog.php
+msgid "Only used by the 'Detect all tables; group ... as OTHER TABLES' option above. Please provide a space delimited list of known tables to compare against. In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
+msgstr "A lò ó nìkan fún àṣàyàn 'Ṣàwárí gbogbo àwọn tábìlì; pín ... sí ẹgbẹ́ gẹ́gẹ́ bí ÀWỌN TÁBÌLÌ MÍRÀN' lókè. Jọ̀wọ́ pèsè àtòjọ àwọn tábìlì tí a mọ̀ tí a fi ààyè pín láti fi wéra. Ní Linux/UNIX, o lè rí àtòjọ àwọn tábìlì gbà nípa lílo àṣẹ yìí:<br><br> print `mysql -u<i><b>olùlò</b></i> -p<i><b>ọ̀rọ̀-ìgbaniwọlé</b></i> -e \"show tables\" <i><b>dátábéèsì</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>A fi àwọn iye tìrẹ rọ́pò àwọn iye '<i><b>olùlò</b></i>', '<i><b>ọ̀rọ̀-ìgbaniwọlé</b></i>', àti '<i><b>dátábéèsì</b></i>'."
+
+#: slowlog.php
+msgid "Upload Limits"
+msgstr "Àwọn Òpin Ìgbésókè"
+
+#: slowlog.php
+msgid "File Size upload limits in Cacti."
+msgstr "Àwọn òpin ìwọ̀n fáìlì ìgbésókè ní Cacti."
+
+#: slowlog.php
+msgid "Max Upload Filesize"
+msgstr "Ìwọ̀n Fáìlì Ìgbésókè Tó Pọ̀ Jùlọ"
+
+#: slowlog.php
+msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
+msgstr "Ìwọ̀n fáìlì tó pọ̀ jùlọ tí sáfà Apache rẹ yóò gbà láti gbé sókè ni a ṣètò sí iye tó wà ní ọ̀tún. Lọ́wọ́lọ́wọ́, o kò lè gbé fáìlì tó tóbi ju èyí lọ sókè. Tí o bá ní àwọn àkọsílẹ̀ fífàlẹ̀ MySQL tó tóbi ju èyí lọ, o gbọ́dọ̀ yí fáìlì <i>php.ini</i> tó so mọ́ Apache padà, wá oníyípadà <b><i>upload_max_filesize</i></b> kí o sì mú iye rẹ̀ pọ̀ sí i. Lẹ́yìn èyí o gbọ́dọ̀ tún Apache bẹ̀rẹ̀."
+
+#: slowlog.php
+msgid "Max Post Size"
+msgstr "Ìwọ̀n Ìfìránṣẹ́ Tó Pọ̀ Jùlọ"
+
+#: slowlog.php
+msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
+msgstr "Ìwọ̀n tó pọ̀ jùlọ tí o lè fi ránṣẹ́ sí sáfà Apache ni a ṣètò sí iye tó wà ní ọ̀tún. Tí o bá ní àwọn àkọsílẹ̀ fífàlẹ̀ MySQL tó tóbi ju iye yìí lọ, o gbọ́dọ̀ yí fáìlì <i>php.ini</i> tó so mọ́ Apache padà, wá oníyípadà <b><i>post_max_size</i></b> kí o sì mú iye rẹ̀ pọ̀ sí i. Lẹ́yìn èyí o gbọ́dọ̀ tún Apache bẹ̀rẹ̀."
+
+#: slowlog.php
+msgid "Max Execution Time"
+msgstr "Àkókò Ìṣiṣẹ́ Tó Pọ̀ Jùlọ"
+
+#: slowlog.php
+msgid "How long (in seconds) this request is allowed to run for; 0 means unlimited. This plugin already raises it to unlimited for its own requests, but a web server or reverse proxy in front of PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) can still cut the request off independently - that cannot be detected or overridden from here."
+msgstr "Bí ìbéèrè yìí ṣe pẹ́ tó (ní ìṣẹ́jú-àáyá) tí a gbà á láàyè láti ṣiṣẹ́; 0 túmọ̀ sí aláìlópin. Àfikún yìí ti gbé e sókè sí aláìlópin fún àwọn ìbéèrè tirẹ̀, ṣùgbọ́n sáfà wẹ́ẹ̀bù tàbí pírọ́ksì yíyípadà níwájú PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) ṣì lè gé ìbéèrè náà kúrú lọ́tọ̀ - a kò lè ṣàwárí tàbí borí èyí láti ibí."
+
+#: slowlog.php
+msgid "Unlimited"
+msgstr "Aláìlópin"
+
+#: slowlog.php
+msgid "Memory Limit"
+msgstr "Òpin Ìrántí"
+
+#: slowlog.php
+msgid "How much memory this request is allowed to use; -1 means unlimited. This plugin already raises it to unlimited for its own requests. A very large slow query log being read/imported in a single request can exceed a limited value."
+msgstr "Bí ìrántí ṣe pọ̀ tó tí a gba ìbéèrè yìí láàyè láti lò; -1 túmọ̀ sí aláìlópin. Àfikún yìí ti gbé e sókè sí aláìlópin fún àwọn ìbéèrè tirẹ̀. Àkọsílẹ̀ ìbéèrè fífàlẹ̀ tó tóbi púpọ̀ tí a ń kà/kó wọlé nínú ìbéèrè kan ṣoṣo lè rékọjá iye tó ní òpin."
+
+#: slowlog.php
+msgid "The current server configuration may cause a large import to fail:"
+msgstr "Ìṣètò sáfà lọ́wọ́lọ́wọ́ lè fa kí ìkówọlé ńlá kùnà:"
+
+#: slowlog.php
+msgid "WARNING"
+msgstr "ÌKÌLỌ̀"
+
+#: slowlog.php
+msgid "Import MariaDB/MySQL Slowlog"
+msgstr "Kó MariaDB/MySQL Slowlog Wọlé"
+
+#: slowlog.php
+msgid "Uploaded"
+msgstr "Ti Gbé Sókè"
+
+#: slowlog.php
+msgid "Processing, please wait..."
+msgstr "Ó ń ṣiṣẹ́, jọ̀wọ́ dúró..."
+
+#: slowlog.php
+msgid "Upload failed - please try again."
+msgstr "Ìgbésókè kùnà - jọ̀wọ́ gbìyànjú lẹ́ẹ̀kan sí i."
+
+#: slowlog.php
+msgid "Actions"
+msgstr "Àwọn Ìgbésẹ̀"
+
+#: slowlog.php
+msgid "Table Name"
+msgstr "Orúkọ Tábìlì"
+
+#: slowlog.php
+msgid "Method"
+msgstr "Ọ̀nà"
+
+#: slowlog.php
+msgid "Date"
+msgstr "Ọjọ́"
+
+#: slowlog.php
+msgid "User"
+msgstr "Olùlò"
+
+#: slowlog.php
+msgid "Host"
+msgstr "Olùgbàlejò"
+
+#: slowlog.php
+msgid "Query Time"
+msgstr "Àkókò Ìbéèrè"
+
+#: slowlog.php
+msgid "Lock Time"
+msgstr "Àkókò Títìpa"
+
+#: slowlog.php
+msgid "Sent"
+msgstr "Tí A Fíránṣẹ́"
+
+#: slowlog.php
+msgid "Examined"
+msgstr "Tí A Ṣàyẹ̀wò"
+
+#: slowlog.php
+msgid "Affected"
+msgstr "Tí Ó Nípa Lórí"
+
+#: slowlog.php
+msgid "Log Entries"
+msgstr "Àwọn Àkọsílẹ̀"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Details"
+msgstr "Àwọn Àlàyé MariaDB/MySQL SlowLog"
+
+#: slowlog.php
+msgid "View Details"
+msgstr "Wo Àwọn Àlàyé"
+
+#: slowlog.php
+msgid "Chart Filters"
+msgstr "Àwọn Àlẹ̀mọ́ Àtẹ"
+
+#: slowlog.php
+#, php-format
+msgid "MariaDB/MySQL SlowLog Results - By %s"
+msgstr "Àwọn Àbájáde MariaDB/MySQL SlowLog - Nípa %s"
+
+#: slowlog.php
+msgid "Percentiles may be estimated from bounded samples. Counts, totals, minima and maxima use all entries."
+msgstr "A lè ṣe ìṣirò àwọn ìpín-ọgọ́rùn-ún láti inú àwọn àpẹẹrẹ tó ní òpin. Àwọn ìkà, àpapọ̀, ìwọ̀n tó kéré jùlọ àti tó pọ̀ jùlọ ń lo gbogbo àwọn àkọsílẹ̀."
+
+#: slowlog.php
+msgid "Select Method"
+msgstr "Yan Ọ̀nà"
+
+#: slowlog.php
+msgid "Select Table"
+msgstr "Yan Tábìlì"
+
+#: slowlog.php
+msgid "Selected"
+msgstr "Èyí Tí A Yàn"
+
+#: slowlog.php
+msgid "Others"
+msgstr "Àwọn Míràn"
+
+#: slowlog.php
+msgid "Top"
+msgstr "Òkè"
+
+#: slowlog.php
+msgid "Include Max"
+msgstr "Fi Tó Pọ̀ Jùlọ Kún Un"
+
+#: slowlog.php
+msgid "Go"
+msgstr "Lọ"
+
+#: slowlog.php
+msgid "Clear"
+msgstr "Nu Kúrò"
+
+#: slowlog.php
+msgid "None"
+msgstr "Kò Sí"
+
+#: slowlog.php
+msgid "Search"
+msgstr "Ṣàwárí"
+
+#: slowlog.php
+msgid "Enter keyword"
+msgstr "Tẹ ọ̀rọ̀-kókó"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Query Details"
+msgstr "Àwọn Àlàyé Ìbéèrè MariaDB/MySQL SlowLog"
+
+#: slowlog.php
+msgid "IP"
+msgstr "IP"
+
+#: slowlog.php
+msgid "Rows Sent"
+msgstr "Àwọn Ìlà Tí A Fíránṣẹ́"
+
+#: slowlog.php
+msgid "Original Query"
+msgstr "Ìbéèrè Àkọ́kọ́"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog File Filters"
+msgstr "Àwọn Àlẹ̀mọ́ Fáìlì MariaDB/MySQL SlowLog"
+
+#: slowlog.php
+msgid "Description"
+msgstr "Àpèjúwe"
+
+#: slowlog.php
+msgid "Import Status"
+msgstr "Ipò Ìkówọlé"
+
+#: slowlog.php
+msgid "Status String"
+msgstr "Ọ̀rọ̀ Ipò"
+
+#: slowlog.php
+msgid "ID"
+msgstr "ID"
+
+#: slowlog.php
+msgid "Imported"
+msgstr "Ti gbé wọlé"
+
+#: slowlog.php
+msgid "Lines"
+msgstr "Àwọn Ìlà"
+
+#: slowlog.php
+msgid "Duration"
+msgstr "Àkókò Tó Gbà"
+
+#: slowlog.php
+msgid "Start Date"
+msgstr "Ọjọ́ Ìbẹ̀rẹ̀"
+
+#: slowlog.php
+msgid "End Date"
+msgstr "Ọjọ́ Ìparí"
+
+#: slowlog.php
+msgid "Pre-Processing"
+msgstr "Ìṣiṣẹ́ Ṣáájú"
+
+#: slowlog.php
+msgid "Post-Processing"
+msgstr "Ìṣiṣẹ́ Lẹ́yìn"
+
+#: slowlog.php
+msgid "Complete"
+msgstr "Ti Parí"
+
+#: slowlog.php
+msgid "Bad File Format"
+msgstr "Ìrísí Fáìlì Kò Dára"
+
+#: slowlog.php
+msgid "Unknown"
+msgstr "Àìmọ̀"
+
+#: slowlog.php
+msgid "Save"
+msgstr "Fipamọ́"
+
+#: slowlog.php
+msgid "Cancel"
+msgstr "Fagilé"
+
+#: slowlog.php
+msgid "Import"
+msgstr "Kó Wọlé"
+
+#: slowlog.php
+msgid "Create"
+msgstr "Ṣẹ̀dá"
+
+#: slowlog.php
+msgid "LogFile"
+msgstr "Fáìlì Àkọsílẹ̀"
+
+#: slowlog.php
+msgid "Any"
+msgstr "Èyíkéyìí"
+
+#: slowlog.php
+msgid "N/A"
+msgstr "Kò Sí"
+
+#: slowlog.php
+msgid "Tables"
+msgstr "Àwọn Tábìlì"
+
+#: slowlog.php
+msgid "Default"
+msgstr "Àìyípadà"
+
+#: slowlog.php
+msgid "From"
+msgstr "Láti"
+
+#: slowlog.php
+msgid "Start Date Selector"
+msgstr "Olùyàn Ọjọ́ Ìbẹ̀rẹ̀"
+
+#: slowlog.php
+msgid "To"
+msgstr "Sí"
+
+#: slowlog.php
+msgid "End Date Selector"
+msgstr "Olùyàn Ọjọ́ Ìparí"
+
+#: slowlog.php
+msgid "Shift Time Backward"
+msgstr "Sún Àkókò Sẹ́yìn"
+
+#: slowlog.php
+msgid "Define Shifting Interval"
+msgstr "Ṣàlàyé Àlàfo Ìsúnkún"
+
+#: slowlog.php
+msgid "Shift Time Forward"
+msgstr "Sún Àkókò Síwájú"
+
+#: slowlog.php
+msgid "Custom"
+msgstr "Àdáni"

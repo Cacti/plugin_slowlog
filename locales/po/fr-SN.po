@@ -1,0 +1,590 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR The Cacti Group
+# This file is distributed under the same license as the Cacti package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Cacti\n"
+"Report-Msgid-Bugs-To: developers@cacti.net\n"
+"POT-Creation-Date: 2026-10-24 04:06-0600\n"
+"PO-Revision-Date: 2026-11-27 18:00-0800\n"
+"Last-Translator: The Cacti Group <developers@cacti.net>\n"
+"Language-Team: French (Senegal) <developers@cacti.net>\n"
+"Language: fr_SN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: import_log.php
+#, php-format
+msgid "ERROR: Invalid --logid value '%s', must be a positive integer"
+msgstr "ERREUR : valeur --logid invalide « %s », doit être un entier positif"
+
+#: includes/functions.php
+msgid "ERROR: Unable to remove the imported Slowlog file."
+msgstr "ERREUR : impossible de supprimer le fichier Slowlog importé."
+
+#: includes/functions.php
+msgid "Import Failed - Row Insert Error"
+msgstr "Échec de l'importation - Erreur d'insertion de ligne"
+
+#: slowlog.php
+msgid "ERROR: You do not have permission to import or delete Slowlog files."
+msgstr "ERREUR : vous n'avez pas l'autorisation d'importer ou de supprimer des fichiers Slowlog."
+
+#: includes/functions.php
+msgid "Read Error - Import Aborted, Log May Be Truncated"
+msgstr "Erreur de lecture - Importation interrompue, le journal est peut-être tronqué"
+
+#: includes/functions.php
+msgid "Import Failed - Database Error"
+msgstr "Échec de l'importation - Erreur de base de données"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Open File"
+msgstr "Échec de l'importation - Impossible d'ouvrir le fichier"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Create Parent Record"
+msgstr "Échec de l'importation - Impossible de créer l'enregistrement parent"
+
+#: includes/functions.php
+msgid "Bad File Format - No Slow Query Log Entries Found"
+msgstr "Format de fichier invalide - Aucune entrée de journal des requêtes lentes trouvée"
+
+#: includes/functions.php
+msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
+msgstr "Le Slowlog initial a été ingéré.  Le post-traitement aura lieu en arrière-plan.  Vous pouvez commencer à analyser les détails une fois que l’état est terminé"
+
+#: includes/functions.php
+msgid "Post Processing Failed - Database Error"
+msgstr "Échec du post-traitement - Erreur de base de données"
+
+#: includes/functions.php
+#, php-format
+msgid "max_execution_time is %d seconds (not unlimited) for this request - a large import could be killed mid-run. Some web servers/proxies (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) enforce their own independent cutoff that this setting cannot override."
+msgstr "max_execution_time est défini à %d secondes (non illimité) pour cette requête - une importation volumineuse pourrait être interrompue en cours d'exécution. Certains serveurs web ou proxys (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) appliquent leur propre délai limite indépendant que ce paramètre ne peut pas remplacer."
+
+#: includes/functions.php
+#, php-format
+msgid "memory_limit is %s (not unlimited) for this request - a very large slow query log can exceed this while it is being read/imported."
+msgstr "memory_limit est défini à %s (non illimité) pour cette requête - un journal des requêtes lentes très volumineux peut dépasser cette limite lors de sa lecture ou de son importation."
+
+#: includes/functions.php
+#, php-format
+msgid "post_max_size (%s) is smaller than upload_max_filesize (%s) - uploads up to the advertised limit will still be rejected."
+msgstr "post_max_size (%s) est inférieur à upload_max_filesize (%s) - les téléversements atteignant la limite annoncée seront tout de même rejetés."
+
+#: includes/functions.php
+#, php-format
+msgid "upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB."
+msgstr "upload_max_filesize (%s) est faible pour un journal des requêtes lentes MySQL/MariaDB, qui peut facilement atteindre plusieurs centaines de Mo."
+
+#: includes/functions.php
+msgid "ERROR: The uploaded Slowlog file exceeds the server's maximum upload filesize."
+msgstr "ERREUR : le fichier Slowlog téléversé dépasse la taille maximale de téléversement du serveur."
+
+#: includes/functions.php
+msgid "ERROR: The Slowlog file upload was interrupted before it finished - please try again."
+msgstr "ERREUR : le téléversement du fichier Slowlog a été interrompu avant la fin - veuillez réessayer."
+
+#: includes/functions.php
+msgid "ERROR: The server has no temporary folder configured to receive the uploaded Slowlog file."
+msgstr "ERREUR : aucun dossier temporaire n'est configuré sur le serveur pour recevoir le fichier Slowlog téléversé."
+
+#: includes/functions.php
+msgid "ERROR: The server failed to write the uploaded Slowlog file to disk."
+msgstr "ERREUR : le serveur n'a pas pu écrire le fichier Slowlog téléversé sur le disque."
+
+#: includes/functions.php
+msgid "ERROR: A server extension blocked the Slowlog file upload."
+msgstr "ERREUR : une extension du serveur a bloqué le téléversement du fichier Slowlog."
+
+#: includes/functions.php
+#, php-format
+msgid "ERROR: The Slowlog file upload failed (error code %d)."
+msgstr "ERREUR : le téléversement du fichier Slowlog a échoué (code d'erreur %d)."
+
+#: includes/functions.php
+msgid "Queries"
+msgstr "Requêtes"
+
+#: includes/functions.php
+msgid "Total Queries"
+msgstr "Nombre total de requêtes"
+
+#: includes/functions.php slowlog.php
+msgid "Rows"
+msgstr "Lignes"
+
+#: includes/functions.php
+msgid "Rows Returned"
+msgstr "Rangées renvoyées"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Examined"
+msgstr "Rangées examinées"
+
+#: includes/functions.php slowlog.php
+msgid "Seconds"
+msgstr "Secondes"
+
+#: includes/functions.php
+msgid "Lock Seconds"
+msgstr "Verrouiller les secondes"
+
+#: includes/functions.php
+msgid "Query Seconds"
+msgstr "Secondes de requête"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Affected"
+msgstr "Rangées touchées"
+
+#: includes/functions.php
+msgid "Bytes"
+msgstr "Bytes"
+
+#: includes/functions.php slowlog.php
+msgid "Bytes Sent"
+msgstr "Octets envoyés"
+
+#: includes/functions.php
+msgid "Clear this filter"
+msgstr "Effacer ce filtre"
+
+#: slowlog.php
+msgid "Delete"
+msgstr "Supprimer"
+
+#: slowlog.php
+msgid "ERROR: 'Detect all tables; group ... as OTHER TABLES' requires a list of Tables of Interest."
+msgstr "ERREUR : l'option « Détecter toutes les tables ; regrouper ... comme AUTRES TABLES » nécessite une liste de tables d'intérêt."
+
+#: slowlog.php
+msgid "ERROR: Unable to stage the uploaded Slowlog file for import."
+msgstr "ERREUR : impossible de préparer le fichier Slowlog téléversé pour l'importation."
+
+#: slowlog.php
+msgid "ERROR: Unable to create the Slowlog import record."
+msgstr "ERREUR : impossible de créer l'enregistrement d'importation Slowlog."
+
+#: slowlog.php
+msgid "The Slowlog has been queued and will be imported in the background. Refresh this page to track progress."
+msgstr "Le Slowlog a été mis en file d'attente et sera importé en arrière-plan. Actualisez cette page pour suivre la progression."
+
+#: slowlog.php
+msgid "You must select at least one Slowlog record."
+msgstr "Vous devez sélectionner au moins un enregistrement Slowlog."
+
+#: slowlog.php
+msgid "Yes"
+msgstr "Oui"
+
+#: slowlog.php
+msgid "No"
+msgstr "Non"
+
+#: slowlog.php
+msgid "Return"
+msgstr "Retour"
+
+#: slowlog.php
+msgid "Import Template from Local File"
+msgstr "Importer un modèle à partir d'un fichier local"
+
+#: slowlog.php
+msgid "If the XML file containing template data is located on your local machine, select it here."
+msgstr "Si le fichier XML contenant le modèle de donnée est sur votre machine, sélectionnez le ici."
+
+#: slowlog.php
+msgid "LogFile Description"
+msgstr "Description du fichier journal"
+
+#: slowlog.php
+msgid "Please provide a description for this MySQL Slowlog file to be imported."
+msgstr "Veuillez fournir une description pour ce fichier MySQL Slowlog à importer."
+
+#: slowlog.php
+msgid "New Slow Log"
+msgstr "Nouveau journal lent"
+
+#: slowlog.php
+msgid "Max Query Length"
+msgstr "Longueur maximale de la requête"
+
+#: slowlog.php
+msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
+msgstr "Importez uniquement les X premiers caractères de la requête SQL à partir du journal des requêtes lentes MySQL."
+
+#: slowlog.php
+msgid "All"
+msgstr "Tout"
+
+#: slowlog.php
+#, php-format
+msgid "%d Chars"
+msgstr "%d caractères"
+
+#: slowlog.php
+msgid "Slowlog Table Names [ optional ]"
+msgstr "Noms des tables Slowlog [ facultatif ]"
+
+#: slowlog.php
+msgid "Leave Blank for Auto Detection which runs must faster."
+msgstr "Laissez vide pour la détection automatique qui s’exécute plus rapidement."
+
+#: slowlog.php
+msgid "Cacti Table Detection"
+msgstr "Détection des tables Cacti"
+
+#: slowlog.php
+msgid "How to tell Cacti-native tables apart from other tables referenced in the slow query log. Defaults to detecting every table with no grouping."
+msgstr "Méthode permettant de distinguer les tables natives de Cacti des autres tables référencées dans le journal des requêtes lentes. Par défaut, toutes les tables sont détectées sans regroupement."
+
+#: slowlog.php
+msgid "Detect all tables (no 'OTHER TABLES' grouping)"
+msgstr "Détecter toutes les tables (sans regroupement « AUTRES TABLES »)"
+
+#: slowlog.php
+msgid "Use this Cacti Database; group other tables as 'OTHER TABLES'"
+msgstr "Utiliser cette base de données Cacti ; regrouper les autres tables sous « AUTRES TABLES »"
+
+#: slowlog.php
+msgid "Detect all tables; group tables not in the list below as 'OTHER TABLES'"
+msgstr "Détecter toutes les tables ; regrouper les tables absentes de la liste ci-dessous sous « AUTRES TABLES »"
+
+#: slowlog.php
+msgid "Tables of Interest"
+msgstr "Tableaux d’intérêt"
+
+#: slowlog.php
+msgid "Only used by the 'Detect all tables; group ... as OTHER TABLES' option above. Please provide a space delimited list of known tables to compare against. In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
+msgstr "Utilisé uniquement par l'option « Détecter toutes les tables ; regrouper ... comme AUTRES TABLES » ci-dessus. Veuillez fournir une liste de tables connues séparées par des espaces à comparer. Sous Linux/UNIX, vous pouvez obtenir la liste des tables avec la commande suivante :<br><br> print `mysql -u<i><b>utilisateur</b></i> -p<i><b>mot_de_passe</b></i> -e \"show tables\" <i><b>base_de_donnees</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>Les valeurs de « <i><b>utilisateur</b></i> », « <i><b>mot_de_passe</b></i> » et « <i><b>base_de_donnees</b></i> » doivent être remplacées par vos propres valeurs."
+
+#: slowlog.php
+msgid "Upload Limits"
+msgstr "Limites de téléchargement"
+
+#: slowlog.php
+msgid "File Size upload limits in Cacti."
+msgstr "Limites de téléchargement de la taille des fichiers dans Cacti."
+
+#: slowlog.php
+msgid "Max Upload Filesize"
+msgstr "Taille maximale du fichier de téléchargement"
+
+#: slowlog.php
+msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
+msgstr "La taille maximale de fichier que votre serveur Apache autorisera à télécharger est définie sur la valeur de droite.  Actuellement, vous ne pouvez pas télécharger un fichier plus volumineux.  Si vous avez des journaux MySQL Slow plus volumineux, vous devez modifier le fichier <i>php.ini</i> associé à Apache, rechercher la variable <b><i>upload_max_filesize</i></b> et augmenter la valeur.  Après quoi, vous devez redémarrer Apache."
+
+#: slowlog.php
+msgid "Max Post Size"
+msgstr "Taille maximum de poteau"
+
+#: slowlog.php
+msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
+msgstr "La taille maximale que vous pouvez publier sur le serveur Apache est définie sur la valeur de droite.  Si vous avez des journaux MySQL lents supérieurs à cette valeur, vous devez modifier le fichier <i>php.ini</i> associé à Apache, rechercher la variable <b><i>post_max_size</i></b> et augmenter sa valeur.  Après quoi, vous devez redémarrer Apache."
+
+#: slowlog.php
+msgid "Max Execution Time"
+msgstr "Temps d'exécution maximal"
+
+#: slowlog.php
+msgid "How long (in seconds) this request is allowed to run for; 0 means unlimited. This plugin already raises it to unlimited for its own requests, but a web server or reverse proxy in front of PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) can still cut the request off independently - that cannot be detected or overridden from here."
+msgstr "Durée maximale (en secondes) d'exécution autorisée pour cette requête ; 0 signifie illimité. Ce plugin définit déjà cette limite sur illimitée pour ses propres requêtes, mais un serveur web ou un proxy inverse placé devant PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) peut tout de même interrompre la requête de manière indépendante, ce qui ne peut être ni détecté ni modifié d'ici."
+
+#: slowlog.php
+msgid "Unlimited"
+msgstr "Illimité"
+
+#: slowlog.php
+msgid "Memory Limit"
+msgstr "Limite de mémoire"
+
+#: slowlog.php
+msgid "How much memory this request is allowed to use; -1 means unlimited. This plugin already raises it to unlimited for its own requests. A very large slow query log being read/imported in a single request can exceed a limited value."
+msgstr "Quantité de mémoire autorisée pour cette requête ; -1 signifie illimité. Ce plugin définit déjà cette limite sur illimitée pour ses propres requêtes. Un journal des requêtes lentes très volumineux lu ou importé en une seule requête peut dépasser une limite restreinte."
+
+#: slowlog.php
+msgid "The current server configuration may cause a large import to fail:"
+msgstr "La configuration actuelle du serveur risque de faire échouer une importation volumineuse :"
+
+#: slowlog.php
+msgid "WARNING"
+msgstr "AVERTISSEMENT"
+
+#: slowlog.php
+msgid "Import MariaDB/MySQL Slowlog"
+msgstr "Importer MariaDB/MySQL Slowlog"
+
+#: slowlog.php
+msgid "Uploaded"
+msgstr "Téléversé"
+
+#: slowlog.php
+msgid "Processing, please wait..."
+msgstr "Traitement en cours, veuillez patienter..."
+
+#: slowlog.php
+msgid "Upload failed - please try again."
+msgstr "Échec du téléversement - veuillez réessayer."
+
+#: slowlog.php
+msgid "Actions"
+msgstr "Actions"
+
+#: slowlog.php
+msgid "Table Name"
+msgstr "Nom de la table"
+
+#: slowlog.php
+msgid "Method"
+msgstr "Méthode"
+
+#: slowlog.php
+msgid "Date"
+msgstr "Date"
+
+#: slowlog.php
+msgid "User"
+msgstr "Utilisateur"
+
+#: slowlog.php
+msgid "Host"
+msgstr "Hôte"
+
+#: slowlog.php
+msgid "Query Time"
+msgstr "Temps de requête"
+
+#: slowlog.php
+msgid "Lock Time"
+msgstr "Date & heure du verrou"
+
+#: slowlog.php
+msgid "Sent"
+msgstr "Envoyé"
+
+#: slowlog.php
+msgid "Examined"
+msgstr "Examiné"
+
+#: slowlog.php
+msgid "Affected"
+msgstr "Règles affectées"
+
+#: slowlog.php
+msgid "Log Entries"
+msgstr "Entrées du journal"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Details"
+msgstr "Détails de MariaDB/MySQL SlowLog"
+
+#: slowlog.php
+msgid "View Details"
+msgstr "Voir les détails"
+
+#: slowlog.php
+msgid "Chart Filters"
+msgstr "Filtres du graphique"
+
+#: slowlog.php
+#, php-format
+msgid "MariaDB/MySQL SlowLog Results - By %s"
+msgstr "Résultats MariaDB/MySQL SlowLog - Par %s"
+
+#: slowlog.php
+msgid "Percentiles may be estimated from bounded samples. Counts, totals, minima and maxima use all entries."
+msgstr "Les centiles peuvent être estimés à partir d'échantillons bornés. Les décomptes, totaux, minimums et maximums utilisent toutes les entrées."
+
+#: slowlog.php
+msgid "Select Method"
+msgstr "Sélectionner la méthode"
+
+#: slowlog.php
+msgid "Select Table"
+msgstr "Sélectionner la table"
+
+#: slowlog.php
+msgid "Selected"
+msgstr "Sélectionné"
+
+#: slowlog.php
+msgid "Others"
+msgstr "Autres"
+
+#: slowlog.php
+msgid "Top"
+msgstr "Haut"
+
+#: slowlog.php
+msgid "Include Max"
+msgstr "Inclure le maximum"
+
+#: slowlog.php
+msgid "Go"
+msgstr "Go"
+
+#: slowlog.php
+msgid "Clear"
+msgstr "Effacer"
+
+#: slowlog.php
+msgid "None"
+msgstr "Aucun"
+
+#: slowlog.php
+msgid "Search"
+msgstr "Rechercher"
+
+#: slowlog.php
+msgid "Enter keyword"
+msgstr "Entrez un mot clé"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Query Details"
+msgstr "Détails de la requête MariaDB/MySQL SlowLog"
+
+#: slowlog.php
+msgid "IP"
+msgstr "IP"
+
+#: slowlog.php
+msgid "Rows Sent"
+msgstr "Lignes envoyées"
+
+#: slowlog.php
+msgid "Original Query"
+msgstr "Requête d’origine"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog File Filters"
+msgstr "Filtres de fichiers MariaDB/MySQL SlowLog"
+
+#: slowlog.php
+msgid "Description"
+msgstr "Description"
+
+#: slowlog.php
+msgid "Import Status"
+msgstr "État de l’import"
+
+#: slowlog.php
+msgid "Status String"
+msgstr "Chaîne d’état"
+
+#: slowlog.php
+msgid "ID"
+msgstr "ID"
+
+#: slowlog.php
+msgid "Imported"
+msgstr "Importé"
+
+#: slowlog.php
+msgid "Lines"
+msgstr "Lignes"
+
+#: slowlog.php
+msgid "Duration"
+msgstr "Durée"
+
+#: slowlog.php
+msgid "Start Date"
+msgstr "Date de début"
+
+#: slowlog.php
+msgid "End Date"
+msgstr "Date de fin"
+
+#: slowlog.php
+msgid "Pre-Processing"
+msgstr "Pré-traitement"
+
+#: slowlog.php
+msgid "Post-Processing"
+msgstr "POST-TRAITEMENT"
+
+#: slowlog.php
+msgid "Complete"
+msgstr "Terminé"
+
+#: slowlog.php
+msgid "Bad File Format"
+msgstr "Format de fichier invalide"
+
+#: slowlog.php
+msgid "Unknown"
+msgstr "Inconnu"
+
+#: slowlog.php
+msgid "Save"
+msgstr "Sauvegarder"
+
+#: slowlog.php
+msgid "Cancel"
+msgstr "Annuler"
+
+#: slowlog.php
+msgid "Import"
+msgstr "Importer"
+
+#: slowlog.php
+msgid "Create"
+msgstr "Créer"
+
+#: slowlog.php
+msgid "LogFile"
+msgstr "Fichier journal"
+
+#: slowlog.php
+msgid "Any"
+msgstr "N'importe lequel"
+
+#: slowlog.php
+msgid "N/A"
+msgstr "N/A"
+
+#: slowlog.php
+msgid "Tables"
+msgstr "Tableaux"
+
+#: slowlog.php
+msgid "Default"
+msgstr "Défaut"
+
+#: slowlog.php
+msgid "From"
+msgstr "De"
+
+#: slowlog.php
+msgid "Start Date Selector"
+msgstr "Sélecteur de date de début"
+
+#: slowlog.php
+msgid "To"
+msgstr "À"
+
+#: slowlog.php
+msgid "End Date Selector"
+msgstr "Sélecteur de date de fin"
+
+#: slowlog.php
+msgid "Shift Time Backward"
+msgstr "Reculer dans le temps"
+
+#: slowlog.php
+msgid "Define Shifting Interval"
+msgstr "Définir l'intervalle de temps"
+
+#: slowlog.php
+msgid "Shift Time Forward"
+msgstr "Avancer dans le temps"
+
+#: slowlog.php
+msgid "Custom"
+msgstr "Personnalisé"

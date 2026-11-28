@@ -1,0 +1,590 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR The Cacti Group
+# This file is distributed under the same license as the Cacti package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Cacti\n"
+"Report-Msgid-Bugs-To: developers@cacti.net\n"
+"POT-Creation-Date: 2026-10-24 04:06-0600\n"
+"PO-Revision-Date: 2026-11-27 18:00-0800\n"
+"Last-Translator: The Cacti Group <developers@cacti.net>\n"
+"Language-Team: Afrikaans <developers@cacti.net>\n"
+"Language: af_ZA\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: import_log.php
+#, php-format
+msgid "ERROR: Invalid --logid value '%s', must be a positive integer"
+msgstr "FOUT: Ongeldige --logid-waarde '%s', moet 'n positiewe heelgetal wees"
+
+#: includes/functions.php
+msgid "ERROR: Unable to remove the imported Slowlog file."
+msgstr "FOUT: Kon nie die ingevoerde Slowlog-lêer verwyder nie."
+
+#: includes/functions.php
+msgid "Import Failed - Row Insert Error"
+msgstr "Invoer het misluk - ry-invoegfout"
+
+#: slowlog.php
+msgid "ERROR: You do not have permission to import or delete Slowlog files."
+msgstr "FOUT: Jy het nie toestemming om Slowlog-lêers in te voer of te skrap nie."
+
+#: includes/functions.php
+msgid "Read Error - Import Aborted, Log May Be Truncated"
+msgstr "Leesfout - invoer gestaak, logboek is dalk afgeknot"
+
+#: includes/functions.php
+msgid "Import Failed - Database Error"
+msgstr "Invoer het misluk - databasisfout"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Open File"
+msgstr "Invoer het misluk - kon nie lêer oopmaak nie"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Create Parent Record"
+msgstr "Invoer het misluk - kon nie ouerrekord skep nie"
+
+#: includes/functions.php
+msgid "Bad File Format - No Slow Query Log Entries Found"
+msgstr "Slegte lêerformaat - geen stadige navraag-logboekinskrywings gevind nie"
+
+#: includes/functions.php
+msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
+msgstr "Die aanvanklike Slowlog is ingeneem. Naverwerking sal in die agtergrond plaasvind. Jy kan die besonderhede begin ontleed sodra die status voltooi is"
+
+#: includes/functions.php
+msgid "Post Processing Failed - Database Error"
+msgstr "Naverwerking het misluk - databasisfout"
+
+#: includes/functions.php
+#, php-format
+msgid "max_execution_time is %d seconds (not unlimited) for this request - a large import could be killed mid-run. Some web servers/proxies (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) enforce their own independent cutoff that this setting cannot override."
+msgstr "max_execution_time is %d sekondes (nie onbeperk nie) vir hierdie versoek - 'n groot invoer kan halfpad gestop word. Sommige webbedieners/instaanbedieners (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) dwing hul eie onafhanklike afsnytyd af wat hierdie instelling nie kan oorheers nie."
+
+#: includes/functions.php
+#, php-format
+msgid "memory_limit is %s (not unlimited) for this request - a very large slow query log can exceed this while it is being read/imported."
+msgstr "memory_limit is %s (nie onbeperk nie) vir hierdie versoek - 'n baie groot stadige navraag-logboek kan dit oorskry terwyl dit gelees/ingevoer word."
+
+#: includes/functions.php
+#, php-format
+msgid "post_max_size (%s) is smaller than upload_max_filesize (%s) - uploads up to the advertised limit will still be rejected."
+msgstr "post_max_size (%s) is kleiner as upload_max_filesize (%s) - oplaaie tot by die geadverteerde perk sal steeds verwerp word."
+
+#: includes/functions.php
+#, php-format
+msgid "upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB."
+msgstr "upload_max_filesize (%s) is klein vir 'n MySQL/MariaDB stadige navraag-logboek, wat maklik honderde MB groot kan wees."
+
+#: includes/functions.php
+msgid "ERROR: The uploaded Slowlog file exceeds the server's maximum upload filesize."
+msgstr "FOUT: Die opgelaaide Slowlog-lêer oorskry die bediener se maksimum oplaailêergrootte."
+
+#: includes/functions.php
+msgid "ERROR: The Slowlog file upload was interrupted before it finished - please try again."
+msgstr "FOUT: Die Slowlog-lêeroplaai is onderbreek voordat dit voltooi is - probeer asseblief weer."
+
+#: includes/functions.php
+msgid "ERROR: The server has no temporary folder configured to receive the uploaded Slowlog file."
+msgstr "FOUT: Die bediener het geen tydelike gids opgestel om die opgelaaide Slowlog-lêer te ontvang nie."
+
+#: includes/functions.php
+msgid "ERROR: The server failed to write the uploaded Slowlog file to disk."
+msgstr "FOUT: Die bediener kon nie die opgelaaide Slowlog-lêer na skyf skryf nie."
+
+#: includes/functions.php
+msgid "ERROR: A server extension blocked the Slowlog file upload."
+msgstr "FOUT: 'n Bedieneruitbreiding het die Slowlog-lêeroplaai geblokkeer."
+
+#: includes/functions.php
+#, php-format
+msgid "ERROR: The Slowlog file upload failed (error code %d)."
+msgstr "FOUT: Die Slowlog-lêeroplaai het misluk (foutkode %d)."
+
+#: includes/functions.php
+msgid "Queries"
+msgstr "Navrae"
+
+#: includes/functions.php
+msgid "Total Queries"
+msgstr "Totale navrae"
+
+#: includes/functions.php slowlog.php
+msgid "Rows"
+msgstr "Rye"
+
+#: includes/functions.php
+msgid "Rows Returned"
+msgstr "Rye teruggestuur"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Examined"
+msgstr "Rye ondersoek"
+
+#: includes/functions.php slowlog.php
+msgid "Seconds"
+msgstr "Sekondes"
+
+#: includes/functions.php
+msgid "Lock Seconds"
+msgstr "Sluitsekondes"
+
+#: includes/functions.php
+msgid "Query Seconds"
+msgstr "Navraagsekondes"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Affected"
+msgstr "Rye geraak"
+
+#: includes/functions.php
+msgid "Bytes"
+msgstr "Grepe"
+
+#: includes/functions.php slowlog.php
+msgid "Bytes Sent"
+msgstr "Grepe gestuur"
+
+#: includes/functions.php
+msgid "Clear this filter"
+msgstr "Maak hierdie filter skoon"
+
+#: slowlog.php
+msgid "Delete"
+msgstr "Skrap"
+
+#: slowlog.php
+msgid "ERROR: 'Detect all tables; group ... as OTHER TABLES' requires a list of Tables of Interest."
+msgstr "FOUT: 'Bespeur alle tabelle; groepeer ... as ANDER TABELLE' vereis 'n lys van tabelle van belang."
+
+#: slowlog.php
+msgid "ERROR: Unable to stage the uploaded Slowlog file for import."
+msgstr "FOUT: Kon nie die opgelaaide Slowlog-lêer vir invoer gereedkry nie."
+
+#: slowlog.php
+msgid "ERROR: Unable to create the Slowlog import record."
+msgstr "FOUT: Kon nie die Slowlog-invoerrekord skep nie."
+
+#: slowlog.php
+msgid "The Slowlog has been queued and will be imported in the background. Refresh this page to track progress."
+msgstr "Die Slowlog is in die tou geplaas en sal in die agtergrond ingevoer word. Verfris hierdie bladsy om vordering te volg."
+
+#: slowlog.php
+msgid "You must select at least one Slowlog record."
+msgstr "Jy moet minstens een Slowlog-rekord kies."
+
+#: slowlog.php
+msgid "Yes"
+msgstr "Ja"
+
+#: slowlog.php
+msgid "No"
+msgstr "Nee"
+
+#: slowlog.php
+msgid "Return"
+msgstr "Keer terug"
+
+#: slowlog.php
+msgid "Import Template from Local File"
+msgstr "Voer sjabloon vanaf plaaslike lêer in"
+
+#: slowlog.php
+msgid "If the XML file containing template data is located on your local machine, select it here."
+msgstr "As die XML-lêer wat sjabloondata bevat op jou plaaslike masjien geleë is, kies dit hier."
+
+#: slowlog.php
+msgid "LogFile Description"
+msgstr "Loglêerbeskrywing"
+
+#: slowlog.php
+msgid "Please provide a description for this MySQL Slowlog file to be imported."
+msgstr "Verskaf asseblief 'n beskrywing vir hierdie MySQL Slowlog-lêer wat ingevoer gaan word."
+
+#: slowlog.php
+msgid "New Slow Log"
+msgstr "Nuwe stadige logboek"
+
+#: slowlog.php
+msgid "Max Query Length"
+msgstr "Maks. navraaglengte"
+
+#: slowlog.php
+msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
+msgstr "Voer slegs die eerste X karakters van die SQL-navraag uit die MySQL stadige navraag-logboek in."
+
+#: slowlog.php
+msgid "All"
+msgstr "Almal"
+
+#: slowlog.php
+#, php-format
+msgid "%d Chars"
+msgstr "%d Karakters"
+
+#: slowlog.php
+msgid "Slowlog Table Names [ optional ]"
+msgstr "Slowlog-tabelname [ opsioneel ]"
+
+#: slowlog.php
+msgid "Leave Blank for Auto Detection which runs must faster."
+msgstr "Laat leeg vir outomatiese bespeuring wat baie vinniger werk."
+
+#: slowlog.php
+msgid "Cacti Table Detection"
+msgstr "Cacti-tabelbespeuring"
+
+#: slowlog.php
+msgid "How to tell Cacti-native tables apart from other tables referenced in the slow query log. Defaults to detecting every table with no grouping."
+msgstr "Hoe om Cacti-eie tabelle te onderskei van ander tabelle waarna in die stadige navraag-logboek verwys word. Verstek is om elke tabel sonder groepering te bespeur."
+
+#: slowlog.php
+msgid "Detect all tables (no 'OTHER TABLES' grouping)"
+msgstr "Bespeur alle tabelle (geen 'ANDER TABELLE'-groepering nie)"
+
+#: slowlog.php
+msgid "Use this Cacti Database; group other tables as 'OTHER TABLES'"
+msgstr "Gebruik hierdie Cacti-databasis; groepeer ander tabelle as 'ANDER TABELLE'"
+
+#: slowlog.php
+msgid "Detect all tables; group tables not in the list below as 'OTHER TABLES'"
+msgstr "Bespeur alle tabelle; groepeer tabelle nie in die lys hieronder nie as 'ANDER TABELLE'"
+
+#: slowlog.php
+msgid "Tables of Interest"
+msgstr "Tabelle van belang"
+
+#: slowlog.php
+msgid "Only used by the 'Detect all tables; group ... as OTHER TABLES' option above. Please provide a space delimited list of known tables to compare against. In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
+msgstr "Slegs gebruik deur die 'Bespeur alle tabelle; groepeer ... as ANDER TABELLE'-opsie hierbo. Verskaf asseblief 'n spasie-geskeide lys van bekende tabelle om mee te vergelyk. In Linux/UNIX kan jy 'n lys tabelle verkry met die volgende opdrag:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>Die waardes van '<i><b>user</b></i>', '<i><b>password</b></i>', en '<i><b>database</b></i>' word met jou eie waardes vervang."
+
+#: slowlog.php
+msgid "Upload Limits"
+msgstr "Oplaaiperke"
+
+#: slowlog.php
+msgid "File Size upload limits in Cacti."
+msgstr "Lêergrootte-oplaaiperke in Cacti."
+
+#: slowlog.php
+msgid "Max Upload Filesize"
+msgstr "Maks. oplaailêergrootte"
+
+#: slowlog.php
+msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
+msgstr "Die maksimum lêergrootte wat jou Apache-bediener toelaat om op te laai, is gestel op die waarde regs. Tans kan jy nie 'n lêer groter as dit oplaai nie. As jy MySQL stadige logboeke het wat groter is as dit, moet jy die <i>php.ini</i>-lêer wat met Apache geassosieer word wysig, die veranderlike <b><i>upload_max_filesize</i></b> vind en die waarde verhoog. Daarna moet jy Apache herbegin."
+
+#: slowlog.php
+msgid "Max Post Size"
+msgstr "Maks. POST-grootte"
+
+#: slowlog.php
+msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
+msgstr "Die maksimum grootte wat jy na die Apache-bediener kan pos, is gestel op die waarde regs. As jy MySQL stadige logboeke het wat groter is as hierdie waarde, moet jy die <i>php.ini</i>-lêer wat met Apache geassosieer word wysig, die veranderlike <b><i>post_max_size</i></b> vind en die waarde verhoog. Daarna moet jy Apache herbegin."
+
+#: slowlog.php
+msgid "Max Execution Time"
+msgstr "Maks. uitvoertyd"
+
+#: slowlog.php
+msgid "How long (in seconds) this request is allowed to run for; 0 means unlimited. This plugin already raises it to unlimited for its own requests, but a web server or reverse proxy in front of PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) can still cut the request off independently - that cannot be detected or overridden from here."
+msgstr "Hoe lank (in sekondes) hierdie versoek toegelaat word om te loop; 0 beteken onbeperk. Hierdie inprop verhoog dit reeds na onbeperk vir sy eie versoeke, maar 'n webbediener of omgekeerde instaanbediener voor PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) kan steeds die versoek onafhanklik afsny - dit kan nie van hier af bespeur of oorheers word nie."
+
+#: slowlog.php
+msgid "Unlimited"
+msgstr "Onbeperk"
+
+#: slowlog.php
+msgid "Memory Limit"
+msgstr "Geheueperk"
+
+#: slowlog.php
+msgid "How much memory this request is allowed to use; -1 means unlimited. This plugin already raises it to unlimited for its own requests. A very large slow query log being read/imported in a single request can exceed a limited value."
+msgstr "Hoeveel geheue hierdie versoek toegelaat word om te gebruik; -1 beteken onbeperk. Hierdie inprop verhoog dit reeds na onbeperk vir sy eie versoeke. 'n Baie groot stadige navraag-logboek wat in 'n enkele versoek gelees/ingevoer word, kan 'n beperkte waarde oorskry."
+
+#: slowlog.php
+msgid "The current server configuration may cause a large import to fail:"
+msgstr "Die huidige bedienerkonfigurasie kan veroorsaak dat 'n groot invoer misluk:"
+
+#: slowlog.php
+msgid "WARNING"
+msgstr "WAARSKUWING"
+
+#: slowlog.php
+msgid "Import MariaDB/MySQL Slowlog"
+msgstr "Voer MariaDB/MySQL Slowlog in"
+
+#: slowlog.php
+msgid "Uploaded"
+msgstr "Opgelaai"
+
+#: slowlog.php
+msgid "Processing, please wait..."
+msgstr "Verwerk tans, wag asseblief..."
+
+#: slowlog.php
+msgid "Upload failed - please try again."
+msgstr "Oplaai het misluk - probeer asseblief weer."
+
+#: slowlog.php
+msgid "Actions"
+msgstr "Aksies"
+
+#: slowlog.php
+msgid "Table Name"
+msgstr "Tabelnaam"
+
+#: slowlog.php
+msgid "Method"
+msgstr "Metode"
+
+#: slowlog.php
+msgid "Date"
+msgstr "Datum"
+
+#: slowlog.php
+msgid "User"
+msgstr "Gebruiker"
+
+#: slowlog.php
+msgid "Host"
+msgstr "Gasheer"
+
+#: slowlog.php
+msgid "Query Time"
+msgstr "Navraagtyd"
+
+#: slowlog.php
+msgid "Lock Time"
+msgstr "Sluittyd"
+
+#: slowlog.php
+msgid "Sent"
+msgstr "Gestuur"
+
+#: slowlog.php
+msgid "Examined"
+msgstr "Ondersoek"
+
+#: slowlog.php
+msgid "Affected"
+msgstr "Geraak"
+
+#: slowlog.php
+msgid "Log Entries"
+msgstr "Logboekinskrywings"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Details"
+msgstr "MariaDB/MySQL SlowLog-besonderhede"
+
+#: slowlog.php
+msgid "View Details"
+msgstr "Bekyk besonderhede"
+
+#: slowlog.php
+msgid "Chart Filters"
+msgstr "Grafiekfilters"
+
+#: slowlog.php
+#, php-format
+msgid "MariaDB/MySQL SlowLog Results - By %s"
+msgstr "MariaDB/MySQL SlowLog-resultate - Volgens %s"
+
+#: slowlog.php
+msgid "Percentiles may be estimated from bounded samples. Counts, totals, minima and maxima use all entries."
+msgstr "Persentiele kan vanuit begrensde monsters beraam word. Tellings, totale, minima en maksima gebruik alle inskrywings."
+
+#: slowlog.php
+msgid "Select Method"
+msgstr "Kies metode"
+
+#: slowlog.php
+msgid "Select Table"
+msgstr "Kies tabel"
+
+#: slowlog.php
+msgid "Selected"
+msgstr "Gekies"
+
+#: slowlog.php
+msgid "Others"
+msgstr "Ander"
+
+#: slowlog.php
+msgid "Top"
+msgstr "Top"
+
+#: slowlog.php
+msgid "Include Max"
+msgstr "Sluit maks. in"
+
+#: slowlog.php
+msgid "Go"
+msgstr "Gaan"
+
+#: slowlog.php
+msgid "Clear"
+msgstr "Maak skoon"
+
+#: slowlog.php
+msgid "None"
+msgstr "Geen"
+
+#: slowlog.php
+msgid "Search"
+msgstr "Soek"
+
+#: slowlog.php
+msgid "Enter keyword"
+msgstr "Voer sleutelwoord in"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Query Details"
+msgstr "MariaDB/MySQL SlowLog-navraagbesonderhede"
+
+#: slowlog.php
+msgid "IP"
+msgstr "IP"
+
+#: slowlog.php
+msgid "Rows Sent"
+msgstr "Rye gestuur"
+
+#: slowlog.php
+msgid "Original Query"
+msgstr "Oorspronklike navraag"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog File Filters"
+msgstr "MariaDB/MySQL SlowLog-lêerfilters"
+
+#: slowlog.php
+msgid "Description"
+msgstr "Beskrywing"
+
+#: slowlog.php
+msgid "Import Status"
+msgstr "Invoerstatus"
+
+#: slowlog.php
+msgid "Status String"
+msgstr "Statusteks"
+
+#: slowlog.php
+msgid "ID"
+msgstr "ID"
+
+#: slowlog.php
+msgid "Imported"
+msgstr "Ingevoer"
+
+#: slowlog.php
+msgid "Lines"
+msgstr "Reëls"
+
+#: slowlog.php
+msgid "Duration"
+msgstr "Duur"
+
+#: slowlog.php
+msgid "Start Date"
+msgstr "Begindatum"
+
+#: slowlog.php
+msgid "End Date"
+msgstr "Einddatum"
+
+#: slowlog.php
+msgid "Pre-Processing"
+msgstr "Voorverwerking"
+
+#: slowlog.php
+msgid "Post-Processing"
+msgstr "Naverwerking"
+
+#: slowlog.php
+msgid "Complete"
+msgstr "Voltooi"
+
+#: slowlog.php
+msgid "Bad File Format"
+msgstr "Slegte lêerformaat"
+
+#: slowlog.php
+msgid "Unknown"
+msgstr "Onbekend"
+
+#: slowlog.php
+msgid "Save"
+msgstr "Stoor"
+
+#: slowlog.php
+msgid "Cancel"
+msgstr "Kanselleer"
+
+#: slowlog.php
+msgid "Import"
+msgstr "Voer in"
+
+#: slowlog.php
+msgid "Create"
+msgstr "Skep"
+
+#: slowlog.php
+msgid "LogFile"
+msgstr "Loglêer"
+
+#: slowlog.php
+msgid "Any"
+msgstr "Enige"
+
+#: slowlog.php
+msgid "N/A"
+msgstr "N.v.t"
+
+#: slowlog.php
+msgid "Tables"
+msgstr "Tabelle"
+
+#: slowlog.php
+msgid "Default"
+msgstr "Verstek"
+
+#: slowlog.php
+msgid "From"
+msgstr "Vanaf"
+
+#: slowlog.php
+msgid "Start Date Selector"
+msgstr "Begindatumkieser"
+
+#: slowlog.php
+msgid "To"
+msgstr "Tot"
+
+#: slowlog.php
+msgid "End Date Selector"
+msgstr "Einddatumkieser"
+
+#: slowlog.php
+msgid "Shift Time Backward"
+msgstr "Skuif tyd terug"
+
+#: slowlog.php
+msgid "Define Shifting Interval"
+msgstr "Definieer skuifinterval"
+
+#: slowlog.php
+msgid "Shift Time Forward"
+msgstr "Skuif tyd vorentoe"
+
+#: slowlog.php
+msgid "Custom"
+msgstr "Pasgemaak"

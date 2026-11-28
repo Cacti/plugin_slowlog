@@ -1,0 +1,590 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR The Cacti Group
+# This file is distributed under the same license as the Cacti package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Cacti\n"
+"Report-Msgid-Bugs-To: developers@cacti.net\n"
+"POT-Creation-Date: 2026-10-24 04:06-0600\n"
+"PO-Revision-Date: 2026-11-27 18:00-0800\n"
+"Last-Translator: The Cacti Group <developers@cacti.net>\n"
+"Language-Team: Swahili <developers@cacti.net>\n"
+"Language: sw_KE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: import_log.php
+#, php-format
+msgid "ERROR: Invalid --logid value '%s', must be a positive integer"
+msgstr "HITILAFU: Thamani batili ya --logid '%s', lazima iwe nambari kamili chanya"
+
+#: includes/functions.php
+msgid "ERROR: Unable to remove the imported Slowlog file."
+msgstr "HITILAFU: Imeshindwa kuondoa faili ya Slowlog iliyoingizwa."
+
+#: includes/functions.php
+msgid "Import Failed - Row Insert Error"
+msgstr "Uingizaji Umeshindwa - Hitilafu ya Kuingiza Safu Mlalo"
+
+#: slowlog.php
+msgid "ERROR: You do not have permission to import or delete Slowlog files."
+msgstr "HITILAFU: Huna ruhusa ya kuingiza au kufuta faili za Slowlog."
+
+#: includes/functions.php
+msgid "Read Error - Import Aborted, Log May Be Truncated"
+msgstr "Hitilafu ya Kusoma - Uingizaji Umesitishwa, Kumbukumbu Huenda Imekatwa"
+
+#: includes/functions.php
+msgid "Import Failed - Database Error"
+msgstr "Uingizaji Umeshindwa - Hitilafu ya Hifadhidata"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Open File"
+msgstr "Uingizaji Umeshindwa - Imeshindwa Kufungua Faili"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Create Parent Record"
+msgstr "Uingizaji Umeshindwa - Imeshindwa Kuunda Rekodi Kuu"
+
+#: includes/functions.php
+msgid "Bad File Format - No Slow Query Log Entries Found"
+msgstr "Umbizo Mbaya la Faili - Hakuna Maingizo ya Kumbukumbu ya Hoja za Polepole Yaliyopatikana"
+
+#: includes/functions.php
+msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
+msgstr "Slowlog ya awali imepokelewa. Uchakataji wa Baadaye utafanyika chinichini. Unaweza kuanza kuchanganua Maelezo mara tu hali itakapokamilika"
+
+#: includes/functions.php
+msgid "Post Processing Failed - Database Error"
+msgstr "Uchakataji wa Baadaye Umeshindwa - Hitilafu ya Hifadhidata"
+
+#: includes/functions.php
+#, php-format
+msgid "max_execution_time is %d seconds (not unlimited) for this request - a large import could be killed mid-run. Some web servers/proxies (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) enforce their own independent cutoff that this setting cannot override."
+msgstr "max_execution_time ni sekunde %d (si bila kikomo) kwa ombi hili - uingizaji mkubwa unaweza kusitishwa katikati. Baadhi ya seva za wavuti/proksi (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) hutekeleza kikomo chao huru ambacho mpangilio huu hauwezi kukibatilisha."
+
+#: includes/functions.php
+#, php-format
+msgid "memory_limit is %s (not unlimited) for this request - a very large slow query log can exceed this while it is being read/imported."
+msgstr "memory_limit ni %s (si bila kikomo) kwa ombi hili - kumbukumbu kubwa sana ya hoja za polepole inaweza kuzidi kiwango hiki wakati inasomwa/inaingizwa."
+
+#: includes/functions.php
+#, php-format
+msgid "post_max_size (%s) is smaller than upload_max_filesize (%s) - uploads up to the advertised limit will still be rejected."
+msgstr "post_max_size (%s) ni ndogo kuliko upload_max_filesize (%s) - upakiaji hadi kikomo kilichotangazwa bado utakataliwa."
+
+#: includes/functions.php
+#, php-format
+msgid "upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB."
+msgstr "upload_max_filesize (%s) ni ndogo kwa kumbukumbu ya hoja za polepole ya MySQL/MariaDB, ambayo inaweza kufikia mamia ya MB kwa urahisi."
+
+#: includes/functions.php
+msgid "ERROR: The uploaded Slowlog file exceeds the server's maximum upload filesize."
+msgstr "HITILAFU: Faili ya Slowlog iliyopakiwa inazidi ukubwa wa juu zaidi wa kupakia wa seva."
+
+#: includes/functions.php
+msgid "ERROR: The Slowlog file upload was interrupted before it finished - please try again."
+msgstr "HITILAFU: Upakiaji wa faili ya Slowlog ulikatizwa kabla ya kukamilika - tafadhali jaribu tena."
+
+#: includes/functions.php
+msgid "ERROR: The server has no temporary folder configured to receive the uploaded Slowlog file."
+msgstr "HITILAFU: Seva haina folda ya muda iliyosanidiwa kupokea faili ya Slowlog iliyopakiwa."
+
+#: includes/functions.php
+msgid "ERROR: The server failed to write the uploaded Slowlog file to disk."
+msgstr "HITILAFU: Seva ilishindwa kuandika faili ya Slowlog iliyopakiwa kwenye diski."
+
+#: includes/functions.php
+msgid "ERROR: A server extension blocked the Slowlog file upload."
+msgstr "HITILAFU: Kiendelezi cha seva kilizuia upakiaji wa faili ya Slowlog."
+
+#: includes/functions.php
+#, php-format
+msgid "ERROR: The Slowlog file upload failed (error code %d)."
+msgstr "HITILAFU: Upakiaji wa faili ya Slowlog umeshindwa (msimbo wa hitilafu %d)."
+
+#: includes/functions.php
+msgid "Queries"
+msgstr "Hoja"
+
+#: includes/functions.php
+msgid "Total Queries"
+msgstr "Jumla ya Hoja"
+
+#: includes/functions.php slowlog.php
+msgid "Rows"
+msgstr "Safu Mlalo"
+
+#: includes/functions.php
+msgid "Rows Returned"
+msgstr "Safu Mlalo Zilizorudishwa"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Examined"
+msgstr "Safu Mlalo Zilizochunguzwa"
+
+#: includes/functions.php slowlog.php
+msgid "Seconds"
+msgstr "Sekunde"
+
+#: includes/functions.php
+msgid "Lock Seconds"
+msgstr "Sekunde za Kufungwa"
+
+#: includes/functions.php
+msgid "Query Seconds"
+msgstr "Sekunde za Hoja"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Affected"
+msgstr "Safu Mlalo Zilizoathiriwa"
+
+#: includes/functions.php
+msgid "Bytes"
+msgstr "Baiti"
+
+#: includes/functions.php slowlog.php
+msgid "Bytes Sent"
+msgstr "Baiti Zilizotumwa"
+
+#: includes/functions.php
+msgid "Clear this filter"
+msgstr "Futa kichujio hiki"
+
+#: slowlog.php
+msgid "Delete"
+msgstr "Futa"
+
+#: slowlog.php
+msgid "ERROR: 'Detect all tables; group ... as OTHER TABLES' requires a list of Tables of Interest."
+msgstr "HITILAFU: 'Gundua majedwali yote; weka kundi ... kama MAJEDWALI MENGINE' inahitaji orodha ya Majedwali Yanayolengwa."
+
+#: slowlog.php
+msgid "ERROR: Unable to stage the uploaded Slowlog file for import."
+msgstr "HITILAFU: Imeshindwa kuandaa faili ya Slowlog iliyopakiwa kwa uingizaji."
+
+#: slowlog.php
+msgid "ERROR: Unable to create the Slowlog import record."
+msgstr "HITILAFU: Imeshindwa kuunda rekodi ya uingizaji wa Slowlog."
+
+#: slowlog.php
+msgid "The Slowlog has been queued and will be imported in the background. Refresh this page to track progress."
+msgstr "Slowlog imepangwa kwenye foleni na itaingizwa chinichini. Onyesha upya ukurasa huu ili kufuatilia maendeleo."
+
+#: slowlog.php
+msgid "You must select at least one Slowlog record."
+msgstr "Lazima uchague angalau rekodi moja ya Slowlog."
+
+#: slowlog.php
+msgid "Yes"
+msgstr "Ndiyo"
+
+#: slowlog.php
+msgid "No"
+msgstr "Hapana"
+
+#: slowlog.php
+msgid "Return"
+msgstr "Rudi"
+
+#: slowlog.php
+msgid "Import Template from Local File"
+msgstr "Leta Kiolezo kutoka kwa Faili ya Ndani"
+
+#: slowlog.php
+msgid "If the XML file containing template data is located on your local machine, select it here."
+msgstr "Ikiwa faili ya XML iliyo na data ya kiolezo iko kwenye mashine yako ya ndani, ichague hapa."
+
+#: slowlog.php
+msgid "LogFile Description"
+msgstr "Maelezo ya Faili ya Kumbukumbu"
+
+#: slowlog.php
+msgid "Please provide a description for this MySQL Slowlog file to be imported."
+msgstr "Tafadhali toa maelezo ya faili hii ya MySQL Slowlog itakayoingizwa."
+
+#: slowlog.php
+msgid "New Slow Log"
+msgstr "Kumbukumbu Mpya ya Polepole"
+
+#: slowlog.php
+msgid "Max Query Length"
+msgstr "Urefu wa Juu wa Hoja"
+
+#: slowlog.php
+msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
+msgstr "Ingiza tu herufi X za kwanza za Hoja ya SQL kutoka kwenye kumbukumbu ya Hoja za Polepole ya MySQL."
+
+#: slowlog.php
+msgid "All"
+msgstr "Zote"
+
+#: slowlog.php
+#, php-format
+msgid "%d Chars"
+msgstr "Herufi %d"
+
+#: slowlog.php
+msgid "Slowlog Table Names [ optional ]"
+msgstr "Majina ya Majedwali ya Slowlog [ hiari ]"
+
+#: slowlog.php
+msgid "Leave Blank for Auto Detection which runs must faster."
+msgstr "Acha Tupu kwa Ugunduzi Kiotomatiki ambao hufanya kazi haraka zaidi."
+
+#: slowlog.php
+msgid "Cacti Table Detection"
+msgstr "Ugunduzi wa Majedwali ya Cacti"
+
+#: slowlog.php
+msgid "How to tell Cacti-native tables apart from other tables referenced in the slow query log. Defaults to detecting every table with no grouping."
+msgstr "Jinsi ya kutofautisha majedwali asilia ya Cacti na majedwali mengine yaliyorejelewa kwenye kumbukumbu ya hoja za polepole. Chaguo-msingi ni kugundua kila jedwali bila kuyaweka katika makundi."
+
+#: slowlog.php
+msgid "Detect all tables (no 'OTHER TABLES' grouping)"
+msgstr "Gundua majedwali yote (hakuna kundi la 'MAJEDWALI MENGINE')"
+
+#: slowlog.php
+msgid "Use this Cacti Database; group other tables as 'OTHER TABLES'"
+msgstr "Tumia Hifadhidata hii ya Cacti; weka majedwali mengine kama 'MAJEDWALI MENGINE'"
+
+#: slowlog.php
+msgid "Detect all tables; group tables not in the list below as 'OTHER TABLES'"
+msgstr "Gundua majedwali yote; weka majedwali ambayo hayako kwenye orodha hapa chini kama 'MAJEDWALI MENGINE'"
+
+#: slowlog.php
+msgid "Tables of Interest"
+msgstr "Majedwali Yanayolengwa"
+
+#: slowlog.php
+msgid "Only used by the 'Detect all tables; group ... as OTHER TABLES' option above. Please provide a space delimited list of known tables to compare against. In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
+msgstr "Hutumiwa tu na chaguo la 'Gundua majedwali yote; weka kundi ... kama MAJEDWALI MENGINE' hapo juu. Tafadhali toa orodha ya majedwali yanayojulikana iliyotenganishwa kwa nafasi ili kulinganisha nayo. Katika Linux/UNIX, unaweza kupata orodha ya majedwali kwa kutumia amri ifuatayo:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>Thamani za '<i><b>user</b></i>', '<i><b>password</b></i>', na '<i><b>database</b></i>' hubadilishwa na thamani zako."
+
+#: slowlog.php
+msgid "Upload Limits"
+msgstr "Vikomo vya Upakiaji"
+
+#: slowlog.php
+msgid "File Size upload limits in Cacti."
+msgstr "Vikomo vya ukubwa wa faili ya kupakia katika Cacti."
+
+#: slowlog.php
+msgid "Max Upload Filesize"
+msgstr "Ukubwa wa Juu wa Faili ya Kupakia"
+
+#: slowlog.php
+msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
+msgstr "Ukubwa wa juu zaidi wa faili ambao seva yako ya Apache itaruhusu kupakiwa umewekwa kwa thamani iliyo upande wa kulia. Kwa sasa, huwezi kupakia faili kubwa kuliko hii. Ikiwa una kumbukumbu za polepole za MySQL kubwa kuliko hii, lazima ubadilishe faili ya <i>php.ini</i> inayohusiana na Apache, tafuta kigezo <b><i>upload_max_filesize</i></b> na uongeze thamani yake. Baada ya hapo lazima uanze upya Apache."
+
+#: slowlog.php
+msgid "Max Post Size"
+msgstr "Ukubwa wa Juu wa Post"
+
+#: slowlog.php
+msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
+msgstr "Ukubwa wa juu zaidi unaoweza kutuma (post) kwenye seva ya Apache umewekwa kwa thamani iliyo upande wa kulia. Ikiwa una kumbukumbu za polepole za MySQL kubwa kuliko thamani hii, lazima ubadilishe faili ya <i>php.ini</i> inayohusiana na Apache, tafuta kigezo <b><i>post_max_size</i></b> na uongeze thamani yake. Baada ya hapo lazima uanze upya Apache."
+
+#: slowlog.php
+msgid "Max Execution Time"
+msgstr "Muda wa Juu wa Utekelezaji"
+
+#: slowlog.php
+msgid "How long (in seconds) this request is allowed to run for; 0 means unlimited. This plugin already raises it to unlimited for its own requests, but a web server or reverse proxy in front of PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) can still cut the request off independently - that cannot be detected or overridden from here."
+msgstr "Muda (kwa sekunde) ambao ombi hili linaruhusiwa kutekelezwa; 0 inamaanisha bila kikomo. Programu-jalizi hii tayari inauinua hadi bila kikomo kwa maombi yake yenyewe, lakini seva ya wavuti au proksi iliyo mbele ya PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) bado inaweza kukatiza ombi hilo kwa kujitegemea - hilo haliwezi kugunduliwa au kubatilishwa kutoka hapa."
+
+#: slowlog.php
+msgid "Unlimited"
+msgstr "Bila Kikomo"
+
+#: slowlog.php
+msgid "Memory Limit"
+msgstr "Kikomo cha Kumbukumbu"
+
+#: slowlog.php
+msgid "How much memory this request is allowed to use; -1 means unlimited. This plugin already raises it to unlimited for its own requests. A very large slow query log being read/imported in a single request can exceed a limited value."
+msgstr "Kiasi cha kumbukumbu ambacho ombi hili linaruhusiwa kutumia; -1 inamaanisha bila kikomo. Programu-jalizi hii tayari inakiinua hadi bila kikomo kwa maombi yake yenyewe. Kumbukumbu kubwa sana ya hoja za polepole inayosomwa/kuingizwa katika ombi moja inaweza kuzidi thamani yenye kikomo."
+
+#: slowlog.php
+msgid "The current server configuration may cause a large import to fail:"
+msgstr "Usanidi wa sasa wa seva unaweza kusababisha uingizaji mkubwa kushindwa:"
+
+#: slowlog.php
+msgid "WARNING"
+msgstr "ONYO"
+
+#: slowlog.php
+msgid "Import MariaDB/MySQL Slowlog"
+msgstr "Ingiza MariaDB/MySQL Slowlog"
+
+#: slowlog.php
+msgid "Uploaded"
+msgstr "Imepakiwa"
+
+#: slowlog.php
+msgid "Processing, please wait..."
+msgstr "Inachakata, tafadhali subiri..."
+
+#: slowlog.php
+msgid "Upload failed - please try again."
+msgstr "Upakiaji umeshindwa - tafadhali jaribu tena."
+
+#: slowlog.php
+msgid "Actions"
+msgstr "Vitendo"
+
+#: slowlog.php
+msgid "Table Name"
+msgstr "Jina la Jedwali"
+
+#: slowlog.php
+msgid "Method"
+msgstr "Mbinu"
+
+#: slowlog.php
+msgid "Date"
+msgstr "Tarehe"
+
+#: slowlog.php
+msgid "User"
+msgstr "Mtumiaji"
+
+#: slowlog.php
+msgid "Host"
+msgstr "Kipangishi"
+
+#: slowlog.php
+msgid "Query Time"
+msgstr "Muda wa Hoja"
+
+#: slowlog.php
+msgid "Lock Time"
+msgstr "Muda wa Kufungwa"
+
+#: slowlog.php
+msgid "Sent"
+msgstr "Zilizotumwa"
+
+#: slowlog.php
+msgid "Examined"
+msgstr "Zilizochunguzwa"
+
+#: slowlog.php
+msgid "Affected"
+msgstr "Zilizoathiriwa"
+
+#: slowlog.php
+msgid "Log Entries"
+msgstr "Maingizo ya Kumbukumbu"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Details"
+msgstr "Maelezo ya MariaDB/MySQL SlowLog"
+
+#: slowlog.php
+msgid "View Details"
+msgstr "Tazama Maelezo"
+
+#: slowlog.php
+msgid "Chart Filters"
+msgstr "Vichujio vya Chati"
+
+#: slowlog.php
+#, php-format
+msgid "MariaDB/MySQL SlowLog Results - By %s"
+msgstr "Matokeo ya MariaDB/MySQL SlowLog - Kwa %s"
+
+#: slowlog.php
+msgid "Percentiles may be estimated from bounded samples. Counts, totals, minima and maxima use all entries."
+msgstr "Asilimia zinaweza kukadiriwa kutoka kwa sampuli zenye mipaka. Hesabu, jumla, viwango vya chini na vya juu hutumia maingizo yote."
+
+#: slowlog.php
+msgid "Select Method"
+msgstr "Chagua Mbinu"
+
+#: slowlog.php
+msgid "Select Table"
+msgstr "Chagua Jedwali"
+
+#: slowlog.php
+msgid "Selected"
+msgstr "Vilivyochaguliwa"
+
+#: slowlog.php
+msgid "Others"
+msgstr "Mengineyo"
+
+#: slowlog.php
+msgid "Top"
+msgstr "Juu"
+
+#: slowlog.php
+msgid "Include Max"
+msgstr "Jumuisha Kiwango cha Juu"
+
+#: slowlog.php
+msgid "Go"
+msgstr "Nenda"
+
+#: slowlog.php
+msgid "Clear"
+msgstr "Futa"
+
+#: slowlog.php
+msgid "None"
+msgstr "Hakuna"
+
+#: slowlog.php
+msgid "Search"
+msgstr "Tafuta"
+
+#: slowlog.php
+msgid "Enter keyword"
+msgstr "Weka neno kuu"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Query Details"
+msgstr "Maelezo ya Hoja ya MariaDB/MySQL SlowLog"
+
+#: slowlog.php
+msgid "IP"
+msgstr "IP"
+
+#: slowlog.php
+msgid "Rows Sent"
+msgstr "Safu Mlalo Zilizotumwa"
+
+#: slowlog.php
+msgid "Original Query"
+msgstr "Hoja Asilia"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog File Filters"
+msgstr "Vichujio vya Faili ya MariaDB/MySQL SlowLog"
+
+#: slowlog.php
+msgid "Description"
+msgstr "Maelezo"
+
+#: slowlog.php
+msgid "Import Status"
+msgstr "Hali ya Uingizaji"
+
+#: slowlog.php
+msgid "Status String"
+msgstr "Mfuatano wa Hali"
+
+#: slowlog.php
+msgid "ID"
+msgstr "Kitambulisho"
+
+#: slowlog.php
+msgid "Imported"
+msgstr "Umeingizwa"
+
+#: slowlog.php
+msgid "Lines"
+msgstr "Mistari"
+
+#: slowlog.php
+msgid "Duration"
+msgstr "Muda"
+
+#: slowlog.php
+msgid "Start Date"
+msgstr "Tarehe ya Kuanza"
+
+#: slowlog.php
+msgid "End Date"
+msgstr "Tarehe ya Mwisho"
+
+#: slowlog.php
+msgid "Pre-Processing"
+msgstr "Uchakataji wa Awali"
+
+#: slowlog.php
+msgid "Post-Processing"
+msgstr "Uchakataji wa Baadaye"
+
+#: slowlog.php
+msgid "Complete"
+msgstr "Imekamilika"
+
+#: slowlog.php
+msgid "Bad File Format"
+msgstr "Umbizo Mbaya la Faili"
+
+#: slowlog.php
+msgid "Unknown"
+msgstr "Haijulikani"
+
+#: slowlog.php
+msgid "Save"
+msgstr "Hifadhi"
+
+#: slowlog.php
+msgid "Cancel"
+msgstr "Ghairi"
+
+#: slowlog.php
+msgid "Import"
+msgstr "Ingiza"
+
+#: slowlog.php
+msgid "Create"
+msgstr "Unda"
+
+#: slowlog.php
+msgid "LogFile"
+msgstr "Faili ya Kumbukumbu"
+
+#: slowlog.php
+msgid "Any"
+msgstr "Yoyote"
+
+#: slowlog.php
+msgid "N/A"
+msgstr "Haipatikani"
+
+#: slowlog.php
+msgid "Tables"
+msgstr "Majedwali"
+
+#: slowlog.php
+msgid "Default"
+msgstr "Chaguo-msingi"
+
+#: slowlog.php
+msgid "From"
+msgstr "Kuanzia"
+
+#: slowlog.php
+msgid "Start Date Selector"
+msgstr "Kichagua Tarehe ya Mwanzo"
+
+#: slowlog.php
+msgid "To"
+msgstr "Hadi"
+
+#: slowlog.php
+msgid "End Date Selector"
+msgstr "Kichagua Tarehe ya Mwisho"
+
+#: slowlog.php
+msgid "Shift Time Backward"
+msgstr "Sogeza Muda Nyuma"
+
+#: slowlog.php
+msgid "Define Shifting Interval"
+msgstr "Bainisha Muda wa Kusogeza"
+
+#: slowlog.php
+msgid "Shift Time Forward"
+msgstr "Sogeza Muda Mbele"
+
+#: slowlog.php
+msgid "Custom"
+msgstr "Maalum"
