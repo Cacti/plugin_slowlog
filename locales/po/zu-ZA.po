@@ -1,0 +1,590 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR The Cacti Group
+# This file is distributed under the same license as the Cacti package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Cacti\n"
+"Report-Msgid-Bugs-To: developers@cacti.net\n"
+"POT-Creation-Date: 2026-10-24 04:06-0600\n"
+"PO-Revision-Date: 2026-11-27 18:00-0800\n"
+"Last-Translator: The Cacti Group <developers@cacti.net>\n"
+"Language-Team: Zulu <developers@cacti.net>\n"
+"Language: zu_ZA\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: import_log.php
+#, php-format
+msgid "ERROR: Invalid --logid value '%s', must be a positive integer"
+msgstr "IPHUTHA: Inani elingavumelekile le---logid '%s', kufanele kube inombolo ephelele engaphezu kweqanda"
+
+#: includes/functions.php
+msgid "ERROR: Unable to remove the imported Slowlog file."
+msgstr "IPHUTHA: Ayikwazanga ukususa ifayela le-Slowlog elingenisiwe."
+
+#: includes/functions.php
+msgid "Import Failed - Row Insert Error"
+msgstr "Ukungenisa Kuhlulekile - Iphutha Lokufaka Umugqa"
+
+#: slowlog.php
+msgid "ERROR: You do not have permission to import or delete Slowlog files."
+msgstr "IPHUTHA: Awunayo imvume yokungenisa noma yokususa amafayela e-Slowlog."
+
+#: includes/functions.php
+msgid "Read Error - Import Aborted, Log May Be Truncated"
+msgstr "Iphutha Lokufunda - Ukungenisa Kumisiwe, Ilogi Kungenzeka Inqanyuliwe"
+
+#: includes/functions.php
+msgid "Import Failed - Database Error"
+msgstr "Ukungenisa Kuhlulekile - Iphutha Lesizindalwazi"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Open File"
+msgstr "Ukungenisa Kuhlulekile - Ayikwazanga Ukuvula Ifayela"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Create Parent Record"
+msgstr "Ukungenisa Kuhlulekile - Ayikwazanga Ukudala Irekhodi Eliyinhloko"
+
+#: includes/functions.php
+msgid "Bad File Format - No Slow Query Log Entries Found"
+msgstr "Ifomethi Yefayela Embi - Akukho Okufakiwe Kwilogi Yemibuzo Ehamba Kancane Okutholakele"
+
+#: includes/functions.php
+msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
+msgstr "I-Slowlog yokuqala isifakiwe. Ukucubungula Kwakamuva kuzokwenzeka ngemuva. Ungaqala ukuhlaziya Imininingwane uma isimo sesiqediwe"
+
+#: includes/functions.php
+msgid "Post Processing Failed - Database Error"
+msgstr "Ukucubungula Kwakamuva Kuhlulekile - Iphutha Lesizindalwazi"
+
+#: includes/functions.php
+#, php-format
+msgid "max_execution_time is %d seconds (not unlimited) for this request - a large import could be killed mid-run. Some web servers/proxies (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) enforce their own independent cutoff that this setting cannot override."
+msgstr "I-max_execution_time iyimizuzwana engu-%d (ayikhululekile emkhawulweni) kulesi sicelo - ukungenisa okukhulu kungase kunqanyulwe maphakathi nokusebenza. Amanye amaseva ewebhu noma ama-proxy (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) asebenzisa umkhawulo wawo ozimele lesi silungiselelo esingenakuwushaya indiva."
+
+#: includes/functions.php
+#, php-format
+msgid "memory_limit is %s (not unlimited) for this request - a very large slow query log can exceed this while it is being read/imported."
+msgstr "I-memory_limit ingu-%s (ayikhululekile emkhawulweni) kulesi sicelo - ilogi enkulu kakhulu yemibuzo ehamba kancane ingeqa lo mkhawulo ngenkathi ifundwa noma ingeniswa."
+
+#: includes/functions.php
+#, php-format
+msgid "post_max_size (%s) is smaller than upload_max_filesize (%s) - uploads up to the advertised limit will still be rejected."
+msgstr "I-post_max_size (%s) incane kune-upload_max_filesize (%s) - okulayishwayo okufika emkhawulweni omenyezelwe kusazokwenqatshwa."
+
+#: includes/functions.php
+#, php-format
+msgid "upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB."
+msgstr "I-upload_max_filesize (%s) incane kakhulu kwilogi yemibuzo ehamba kancane ye-MySQL/MariaDB, engafinyelela kalula emakhulwini ama-MB."
+
+#: includes/functions.php
+msgid "ERROR: The uploaded Slowlog file exceeds the server's maximum upload filesize."
+msgstr "IPHUTHA: Ifayela le-Slowlog elilayishiwe leqa usayizi omkhulu wokulayisha weserva."
+
+#: includes/functions.php
+msgid "ERROR: The Slowlog file upload was interrupted before it finished - please try again."
+msgstr "IPHUTHA: Ukulayishwa kwefayela le-Slowlog kuphazamisekile ngaphambi kokuba kuqede - sicela uzame futhi."
+
+#: includes/functions.php
+msgid "ERROR: The server has no temporary folder configured to receive the uploaded Slowlog file."
+msgstr "IPHUTHA: Iseva ayinayo ifolda yesikhashana elungiselelwe ukwamukela ifayela le-Slowlog elilayishiwe."
+
+#: includes/functions.php
+msgid "ERROR: The server failed to write the uploaded Slowlog file to disk."
+msgstr "IPHUTHA: Iseva ihlulekile ukubhala ifayela le-Slowlog elilayishiwe kudiski."
+
+#: includes/functions.php
+msgid "ERROR: A server extension blocked the Slowlog file upload."
+msgstr "IPHUTHA: Isandiso seserva sivimbe ukulayishwa kwefayela le-Slowlog."
+
+#: includes/functions.php
+#, php-format
+msgid "ERROR: The Slowlog file upload failed (error code %d)."
+msgstr "IPHUTHA: Ukulayishwa kwefayela le-Slowlog kuhlulekile (ikhodi yephutha %d)."
+
+#: includes/functions.php
+msgid "Queries"
+msgstr "Imibuzo"
+
+#: includes/functions.php
+msgid "Total Queries"
+msgstr "Isamba Semibuzo"
+
+#: includes/functions.php slowlog.php
+msgid "Rows"
+msgstr "Imigqa"
+
+#: includes/functions.php
+msgid "Rows Returned"
+msgstr "Imigqa Ebuyisiwe"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Examined"
+msgstr "Imigqa Ehloliwe"
+
+#: includes/functions.php slowlog.php
+msgid "Seconds"
+msgstr "Imizuzwana"
+
+#: includes/functions.php
+msgid "Lock Seconds"
+msgstr "Imizuzwana Yokukhiya"
+
+#: includes/functions.php
+msgid "Query Seconds"
+msgstr "Imizuzwana Yombuzo"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Affected"
+msgstr "Imigqa Ethintekile"
+
+#: includes/functions.php
+msgid "Bytes"
+msgstr "Amabhayithi"
+
+#: includes/functions.php slowlog.php
+msgid "Bytes Sent"
+msgstr "Amabhayithi Athunyelwe"
+
+#: includes/functions.php
+msgid "Clear this filter"
+msgstr "Sula lesi sihlungi"
+
+#: slowlog.php
+msgid "Delete"
+msgstr "Susa"
+
+#: slowlog.php
+msgid "ERROR: 'Detect all tables; group ... as OTHER TABLES' requires a list of Tables of Interest."
+msgstr "IPHUTHA: Inketho ethi 'Thola wonke amathebula; qoqa ... njengokuthi AMANYE AMATHEBULA' idinga uhlu Lwamathebula Abalulekile."
+
+#: slowlog.php
+msgid "ERROR: Unable to stage the uploaded Slowlog file for import."
+msgstr "IPHUTHA: Ayikwazanga ukulungisa ifayela le-Slowlog elilayishiwe ukuze lingeniswe."
+
+#: slowlog.php
+msgid "ERROR: Unable to create the Slowlog import record."
+msgstr "IPHUTHA: Ayikwazanga ukudala irekhodi lokungenisa le-Slowlog."
+
+#: slowlog.php
+msgid "The Slowlog has been queued and will be imported in the background. Refresh this page to track progress."
+msgstr "I-Slowlog ibekwe emugqeni futhi izongeniswa ngemuva. Vuselela leli khasi ukuze ulandelele inqubekela phambili."
+
+#: slowlog.php
+msgid "You must select at least one Slowlog record."
+msgstr "Kufanele ukhethe okungenani irekhodi elilodwa le-Slowlog."
+
+#: slowlog.php
+msgid "Yes"
+msgstr "Yebo"
+
+#: slowlog.php
+msgid "No"
+msgstr "Cha"
+
+#: slowlog.php
+msgid "Return"
+msgstr "Buyela"
+
+#: slowlog.php
+msgid "Import Template from Local File"
+msgstr "Ngenisa Ithemplethi Kusuka Kufayela Lasendaweni"
+
+#: slowlog.php
+msgid "If the XML file containing template data is located on your local machine, select it here."
+msgstr "Uma ifayela le-XML eliqukethe idatha yethemplethi likumshini wakho wasendaweni, likhethe lapha."
+
+#: slowlog.php
+msgid "LogFile Description"
+msgstr "Incazelo Yefayela Lelogi"
+
+#: slowlog.php
+msgid "Please provide a description for this MySQL Slowlog file to be imported."
+msgstr "Sicela unikeze incazelo yaleli fayela le-MySQL Slowlog elizongeniswa."
+
+#: slowlog.php
+msgid "New Slow Log"
+msgstr "I-Slow Log Entsha"
+
+#: slowlog.php
+msgid "Max Query Length"
+msgstr "Ubude Obukhulu Bombuzo"
+
+#: slowlog.php
+msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
+msgstr "Ngenisa kuphela izinhlamvu zokuqala ezi-X zombuzo we-SQL kusuka kwilogi yemibuzo ehamba kancane ye-MySQL."
+
+#: slowlog.php
+msgid "All"
+msgstr "Konke"
+
+#: slowlog.php
+#, php-format
+msgid "%d Chars"
+msgstr "%d Izinhlamvu"
+
+#: slowlog.php
+msgid "Slowlog Table Names [ optional ]"
+msgstr "Amagama Amathebula e-Slowlog [ uyazikhethela ]"
+
+#: slowlog.php
+msgid "Leave Blank for Auto Detection which runs must faster."
+msgstr "Shiya Kungenalutho ukuze kutholakale ngokuzenzakalelayo okusebenza ngokushesha okukhulu."
+
+#: slowlog.php
+msgid "Cacti Table Detection"
+msgstr "Ukutholwa Kwamathebula e-Cacti"
+
+#: slowlog.php
+msgid "How to tell Cacti-native tables apart from other tables referenced in the slow query log. Defaults to detecting every table with no grouping."
+msgstr "Indlela yokuhlukanisa amathebula ase-Cacti kwamanye amathebula okubhekiselwe kuwo kwilogi yemibuzo ehamba kancane. Ngokuzenzakalelayo ithola wonke amathebula ngaphandle kokuwaqoqa."
+
+#: slowlog.php
+msgid "Detect all tables (no 'OTHER TABLES' grouping)"
+msgstr "Thola wonke amathebula (akukho ukuqoqa kwe-'OTHER TABLES')"
+
+#: slowlog.php
+msgid "Use this Cacti Database; group other tables as 'OTHER TABLES'"
+msgstr "Sebenzisa lesi Sizindalwazi se-Cacti; qoqa amanye amathebula njenge-'OTHER TABLES'"
+
+#: slowlog.php
+msgid "Detect all tables; group tables not in the list below as 'OTHER TABLES'"
+msgstr "Thola wonke amathebula; qoqa amathebula angekho ohlwini olungezansi njenge-'OTHER TABLES'"
+
+#: slowlog.php
+msgid "Tables of Interest"
+msgstr "Amathebula Abalulekile"
+
+#: slowlog.php
+msgid "Only used by the 'Detect all tables; group ... as OTHER TABLES' option above. Please provide a space delimited list of known tables to compare against. In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
+msgstr "Isetshenziswa kuphela inketho ethi 'Thola wonke amathebula; qoqa ... njenge-OTHER TABLES' ngenhla. Sicela unikeze uhlu oluhlukaniswe ngesikhala lwamathebula aziwayo okuzoqhathaniswa nawo. Ku-Linux/UNIX, ungathola uhlu lwamathebula ngokusebenzisa lo myalo olandelayo:<br><br> print `mysql -u<i><b>umsebenzisi</b></i> -p<i><b>iphasiwedi</b></i> -e \"show tables\" <i><b>isizindalwazi</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>Amanani athi '<i><b>umsebenzisi</b></i>', '<i><b>iphasiwedi</b></i>', kanye nethi '<i><b>isizindalwazi</b></i>' athathwa ngamanani akho."
+
+#: slowlog.php
+msgid "Upload Limits"
+msgstr "Imikhawulo Yokulayisha"
+
+#: slowlog.php
+msgid "File Size upload limits in Cacti."
+msgstr "Imikhawulo yosayizi wefayela yokulayisha ku-Cacti."
+
+#: slowlog.php
+msgid "Max Upload Filesize"
+msgstr "Usayizi Omkhulu Wefayela Elilayishwayo"
+
+#: slowlog.php
+msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
+msgstr "Usayizi omkhulu wefayela iseva yakho ye-Apache ezovumela ukuthi lilayishwe usethwe kunani elingakwesokudla. Okwamanje, awukwazi ukulayisha ifayela elikhulu kunaleli. Uma unamalogi ahamba kancane e-MySQL amakhulu kunalokhu, kufanele uguqule ifayela le-<i>php.ini</i> elihlobene ne-Apache, uthole okuguquguqukayo okuthi <b><i>upload_max_filesize</i></b> bese wenyusa inani. Ngemva kwalokho kufanele uqale kabusha i-Apache."
+
+#: slowlog.php
+msgid "Max Post Size"
+msgstr "Usayizi Omkhulu We-Post"
+
+#: slowlog.php
+msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
+msgstr "Usayizi omkhulu ongawuthumela kuseva ye-Apache usethwe kunani elingakwesokudla. Uma unamalogi ahamba kancane e-MySQL amakhulu kunaleli nani, kufanele uguqule ifayela le-<i>php.ini</i> elihlobene ne-Apache, uthole okuguquguqukayo okuthi <b><i>post_max_size</i></b> bese wenyusa inani lalo. Ngemva kwalokho kufanele uqale kabusha i-Apache."
+
+#: slowlog.php
+msgid "Max Execution Time"
+msgstr "Isikhathi Esikhulu Sokusebenza"
+
+#: slowlog.php
+msgid "How long (in seconds) this request is allowed to run for; 0 means unlimited. This plugin already raises it to unlimited for its own requests, but a web server or reverse proxy in front of PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) can still cut the request off independently - that cannot be detected or overridden from here."
+msgstr "Isikhathi (ngemizuzwana) lesi sicelo esivunyelwe ukusebenza ngaso; u-0 usho ukuthi akunamkhawulo. Le plugin isivele ikukhuphulela kokungenamkhawulo ezicelweni zayo, kodwa iseva yewebhu noma i-reverse proxy ephambi kwe-PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) isengasinqamula isicelo ngokuzimele - lokho ngeke kutholakale noma kushaywe indiva kusuka lapha."
+
+#: slowlog.php
+msgid "Unlimited"
+msgstr "Okungenamkhawulo"
+
+#: slowlog.php
+msgid "Memory Limit"
+msgstr "Umkhawulo Wenkumbulo"
+
+#: slowlog.php
+msgid "How much memory this request is allowed to use; -1 means unlimited. This plugin already raises it to unlimited for its own requests. A very large slow query log being read/imported in a single request can exceed a limited value."
+msgstr "Ingakanani inkumbulo lesi sicelo esivunyelwe ukuyisebenzisa; u--1 usho ukuthi akunamkhawulo. Le plugin isivele ikukhuphulela kokungenamkhawulo ezicelweni zayo. Ilogi enkulu kakhulu yemibuzo ehamba kancane efundwa/engeniswa esicelweni esisodwa ingeqa inani elinomkhawulo."
+
+#: slowlog.php
+msgid "The current server configuration may cause a large import to fail:"
+msgstr "Ukucushwa kweseva kwamanje kungabangela ukuthi ukungenisa okukhulu kuhluleke:"
+
+#: slowlog.php
+msgid "WARNING"
+msgstr "ISEXWAYISO"
+
+#: slowlog.php
+msgid "Import MariaDB/MySQL Slowlog"
+msgstr "Ngenisa I-MariaDB/MySQL Slowlog"
+
+#: slowlog.php
+msgid "Uploaded"
+msgstr "Kulayishiwe"
+
+#: slowlog.php
+msgid "Processing, please wait..."
+msgstr "Iyacubungula, sicela ulinde..."
+
+#: slowlog.php
+msgid "Upload failed - please try again."
+msgstr "Ukulayisha kuhlulekile - sicela uzame futhi."
+
+#: slowlog.php
+msgid "Actions"
+msgstr "Izenzo"
+
+#: slowlog.php
+msgid "Table Name"
+msgstr "Igama Lethebula"
+
+#: slowlog.php
+msgid "Method"
+msgstr "Indlela"
+
+#: slowlog.php
+msgid "Date"
+msgstr "Usuku"
+
+#: slowlog.php
+msgid "User"
+msgstr "Umsebenzisi"
+
+#: slowlog.php
+msgid "Host"
+msgstr "Umsingathi"
+
+#: slowlog.php
+msgid "Query Time"
+msgstr "Isikhathi Sombuzo"
+
+#: slowlog.php
+msgid "Lock Time"
+msgstr "Isikhathi Sokukhiya"
+
+#: slowlog.php
+msgid "Sent"
+msgstr "Okuthunyelwe"
+
+#: slowlog.php
+msgid "Examined"
+msgstr "Okuhloliwe"
+
+#: slowlog.php
+msgid "Affected"
+msgstr "Okuthintekile"
+
+#: slowlog.php
+msgid "Log Entries"
+msgstr "Okufakiwe Kwilogi"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Details"
+msgstr "Imininingwane Ye-MariaDB/MySQL SlowLog"
+
+#: slowlog.php
+msgid "View Details"
+msgstr "Buka Imininingwane"
+
+#: slowlog.php
+msgid "Chart Filters"
+msgstr "Izihlungi Zeshadi"
+
+#: slowlog.php
+#, php-format
+msgid "MariaDB/MySQL SlowLog Results - By %s"
+msgstr "Imiphumela Ye-MariaDB/MySQL SlowLog - Ngokuka-%s"
+
+#: slowlog.php
+msgid "Percentiles may be estimated from bounded samples. Counts, totals, minima and maxima use all entries."
+msgstr "Amaphesenti angalinganiselwa kusuka kumasampula anomkhawulo. Izibalo, izamba, amanani aphansi kanye namanani aphezulu asebenzisa konke okufakiwe."
+
+#: slowlog.php
+msgid "Select Method"
+msgstr "Khetha Indlela"
+
+#: slowlog.php
+msgid "Select Table"
+msgstr "Khetha Ithebula"
+
+#: slowlog.php
+msgid "Selected"
+msgstr "Kukhethiwe"
+
+#: slowlog.php
+msgid "Others"
+msgstr "Okunye"
+
+#: slowlog.php
+msgid "Top"
+msgstr "Phezulu"
+
+#: slowlog.php
+msgid "Include Max"
+msgstr "Faka Inani Eliphakeme"
+
+#: slowlog.php
+msgid "Go"
+msgstr "Hamba"
+
+#: slowlog.php
+msgid "Clear"
+msgstr "Sula"
+
+#: slowlog.php
+msgid "None"
+msgstr "Akukho"
+
+#: slowlog.php
+msgid "Search"
+msgstr "Sesha"
+
+#: slowlog.php
+msgid "Enter keyword"
+msgstr "Faka igama elingukhiye"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Query Details"
+msgstr "Imininingwane Yombuzo We-MariaDB/MySQL SlowLog"
+
+#: slowlog.php
+msgid "IP"
+msgstr "IP"
+
+#: slowlog.php
+msgid "Rows Sent"
+msgstr "Imigqa Ethunyelwe"
+
+#: slowlog.php
+msgid "Original Query"
+msgstr "Umbuzo Wangempela"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog File Filters"
+msgstr "Izihlungi Zefayela Le-MariaDB/MySQL SlowLog"
+
+#: slowlog.php
+msgid "Description"
+msgstr "Incazelo"
+
+#: slowlog.php
+msgid "Import Status"
+msgstr "Isimo Sokungenisa"
+
+#: slowlog.php
+msgid "Status String"
+msgstr "Uchungechunge Lwesimo"
+
+#: slowlog.php
+msgid "ID"
+msgstr "I-ID"
+
+#: slowlog.php
+msgid "Imported"
+msgstr "Ingenisiwe"
+
+#: slowlog.php
+msgid "Lines"
+msgstr "Imigqa"
+
+#: slowlog.php
+msgid "Duration"
+msgstr "Ubude Besikhathi"
+
+#: slowlog.php
+msgid "Start Date"
+msgstr "Usuku Lokuqala"
+
+#: slowlog.php
+msgid "End Date"
+msgstr "Usuku Lokuphela"
+
+#: slowlog.php
+msgid "Pre-Processing"
+msgstr "Ukucubungula Kwangaphambili"
+
+#: slowlog.php
+msgid "Post-Processing"
+msgstr "Ukucubungula Kwakamuva"
+
+#: slowlog.php
+msgid "Complete"
+msgstr "Kuqediwe"
+
+#: slowlog.php
+msgid "Bad File Format"
+msgstr "Ifomethi Yefayela Embi"
+
+#: slowlog.php
+msgid "Unknown"
+msgstr "Akwaziwa"
+
+#: slowlog.php
+msgid "Save"
+msgstr "Londoloza"
+
+#: slowlog.php
+msgid "Cancel"
+msgstr "Khansela"
+
+#: slowlog.php
+msgid "Import"
+msgstr "Ngenisa"
+
+#: slowlog.php
+msgid "Create"
+msgstr "Dala"
+
+#: slowlog.php
+msgid "LogFile"
+msgstr "Ifayela Lelogi"
+
+#: slowlog.php
+msgid "Any"
+msgstr "Noma yikuphi"
+
+#: slowlog.php
+msgid "N/A"
+msgstr "Akutholakali"
+
+#: slowlog.php
+msgid "Tables"
+msgstr "Amathebula"
+
+#: slowlog.php
+msgid "Default"
+msgstr "Okuzenzakalelayo"
+
+#: slowlog.php
+msgid "From"
+msgstr "Kusuka"
+
+#: slowlog.php
+msgid "Start Date Selector"
+msgstr "Isikhethi Sosuku Lokuqala"
+
+#: slowlog.php
+msgid "To"
+msgstr "Kuya ku"
+
+#: slowlog.php
+msgid "End Date Selector"
+msgstr "Isikhethi Sosuku Lokugcina"
+
+#: slowlog.php
+msgid "Shift Time Backward"
+msgstr "Hlehlisa Isikhathi Emuva"
+
+#: slowlog.php
+msgid "Define Shifting Interval"
+msgstr "Chaza Isikhawu Sokushintsha Isikhathi"
+
+#: slowlog.php
+msgid "Shift Time Forward"
+msgstr "Qhubekisela Isikhathi Phambili"
+
+#: slowlog.php
+msgid "Custom"
+msgstr "Okwezifiso"

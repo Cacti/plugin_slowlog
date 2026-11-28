@@ -1,0 +1,590 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR The Cacti Group
+# This file is distributed under the same license as the Cacti package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Cacti\n"
+"Report-Msgid-Bugs-To: developers@cacti.net\n"
+"POT-Creation-Date: 2026-10-24 04:06-0600\n"
+"PO-Revision-Date: 2026-11-27 18:00-0800\n"
+"Last-Translator: The Cacti Group <developers@cacti.net>\n"
+"Language-Team: Ukrainian <https://translate.cacti.net/projects/cacti/core/uk/>\n"
+"Language: uk-UA\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+
+#: import_log.php
+#, php-format
+msgid "ERROR: Invalid --logid value '%s', must be a positive integer"
+msgstr "ПОМИЛКА: неприпустиме значення --logid '%s', має бути додатним цілим числом"
+
+#: includes/functions.php
+msgid "ERROR: Unable to remove the imported Slowlog file."
+msgstr "ПОМИЛКА: не вдалося видалити імпортований файл журналу повільних запитів."
+
+#: includes/functions.php
+msgid "Import Failed - Row Insert Error"
+msgstr "Помилка імпорту — помилка вставлення рядка"
+
+#: slowlog.php
+msgid "ERROR: You do not have permission to import or delete Slowlog files."
+msgstr "ПОМИЛКА: у вас немає прав на імпорт або видалення файлів журналу повільних запитів."
+
+#: includes/functions.php
+msgid "Read Error - Import Aborted, Log May Be Truncated"
+msgstr "Помилка читання — імпорт перервано, журнал може бути обрізаним"
+
+#: includes/functions.php
+msgid "Import Failed - Database Error"
+msgstr "Помилка імпорту — помилка бази даних"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Open File"
+msgstr "Помилка імпорту — не вдалося відкрити файл"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Create Parent Record"
+msgstr "Помилка імпорту — не вдалося створити батьківський запис"
+
+#: includes/functions.php
+msgid "Bad File Format - No Slow Query Log Entries Found"
+msgstr "Неприпустимий формат файлу — записів журналу повільних запитів не знайдено"
+
+#: includes/functions.php
+msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
+msgstr "Початковий журнал повільних запитів завантажено. Постобробка відбуватиметься у фоновому режимі. Ви зможете розпочати аналіз подробиць після завершення обробки"
+
+#: includes/functions.php
+msgid "Post Processing Failed - Database Error"
+msgstr "Помилка постобробки — помилка бази даних"
+
+#: includes/functions.php
+#, php-format
+msgid "max_execution_time is %d seconds (not unlimited) for this request - a large import could be killed mid-run. Some web servers/proxies (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) enforce their own independent cutoff that this setting cannot override."
+msgstr "Параметр max_execution_time для цього запиту становить %d с (не необмежено) — великий імпорт може бути перервано під час виконання. Деякі вебсервери або проксі (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) мають власні незалежні обмеження часу, які це налаштування не може перевизначити."
+
+#: includes/functions.php
+#, php-format
+msgid "memory_limit is %s (not unlimited) for this request - a very large slow query log can exceed this while it is being read/imported."
+msgstr "Параметр memory_limit для цього запиту становить %s (не необмежено) — дуже великий журнал повільних запитів може перевищити цей ліміт під час читання/імпорту."
+
+#: includes/functions.php
+#, php-format
+msgid "post_max_size (%s) is smaller than upload_max_filesize (%s) - uploads up to the advertised limit will still be rejected."
+msgstr "Значення post_max_size (%s) менше за upload_max_filesize (%s) — завантаження до заявленого обмеження все одно буде відхилено."
+
+#: includes/functions.php
+#, php-format
+msgid "upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB."
+msgstr "Значення upload_max_filesize (%s) замале для журналу повільних запитів MySQL/MariaDB, який легко може сягати сотень МБ."
+
+#: includes/functions.php
+msgid "ERROR: The uploaded Slowlog file exceeds the server's maximum upload filesize."
+msgstr "ПОМИЛКА: завантажений файл журналу повільних запитів перевищує максимальний розмір завантаження сервера."
+
+#: includes/functions.php
+msgid "ERROR: The Slowlog file upload was interrupted before it finished - please try again."
+msgstr "ПОМИЛКА: завантаження файлу журналу повільних запитів перервалося до завершення — спробуйте ще раз."
+
+#: includes/functions.php
+msgid "ERROR: The server has no temporary folder configured to receive the uploaded Slowlog file."
+msgstr "ПОМИЛКА: на сервері не налаштовано тимчасовий каталог для прийому завантаженого файлу журналу повільних запитів."
+
+#: includes/functions.php
+msgid "ERROR: The server failed to write the uploaded Slowlog file to disk."
+msgstr "ПОМИЛКА: серверу не вдалося записати завантажений файл журналу повільних запитів на диск."
+
+#: includes/functions.php
+msgid "ERROR: A server extension blocked the Slowlog file upload."
+msgstr "ПОМИЛКА: розширення сервера заблокувало завантаження файлу журналу повільних запитів."
+
+#: includes/functions.php
+#, php-format
+msgid "ERROR: The Slowlog file upload failed (error code %d)."
+msgstr "ПОМИЛКА: не вдалося завантажити файл журналу повільних запитів (код помилки %d)."
+
+#: includes/functions.php
+msgid "Queries"
+msgstr "Запити"
+
+#: includes/functions.php
+msgid "Total Queries"
+msgstr "Усього запитів"
+
+#: includes/functions.php slowlog.php
+msgid "Rows"
+msgstr "Рядки"
+
+#: includes/functions.php
+msgid "Rows Returned"
+msgstr "Повернуто рядків"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Examined"
+msgstr "Перевірено рядків"
+
+#: includes/functions.php slowlog.php
+msgid "Seconds"
+msgstr "Секунди"
+
+#: includes/functions.php
+msgid "Lock Seconds"
+msgstr "Секунди блокування"
+
+#: includes/functions.php
+msgid "Query Seconds"
+msgstr "Секунди запиту"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Affected"
+msgstr "Змінено рядків"
+
+#: includes/functions.php
+msgid "Bytes"
+msgstr "Байти"
+
+#: includes/functions.php slowlog.php
+msgid "Bytes Sent"
+msgstr "Надіслано байтів"
+
+#: includes/functions.php
+msgid "Clear this filter"
+msgstr "Очистити цей фільтр"
+
+#: slowlog.php
+msgid "Delete"
+msgstr "Видалити"
+
+#: slowlog.php
+msgid "ERROR: 'Detect all tables; group ... as OTHER TABLES' requires a list of Tables of Interest."
+msgstr "ПОМИЛКА: режим «Виявляти всі таблиці; групувати ... як OTHER TABLES» вимагає списку цільових таблиць."
+
+#: slowlog.php
+msgid "ERROR: Unable to stage the uploaded Slowlog file for import."
+msgstr "ПОМИЛКА: не вдалося підготувати завантажений файл журналу повільних запитів до імпорту."
+
+#: slowlog.php
+msgid "ERROR: Unable to create the Slowlog import record."
+msgstr "ПОМИЛКА: не вдалося створити запис імпорту журналу повільних запитів."
+
+#: slowlog.php
+msgid "The Slowlog has been queued and will be imported in the background. Refresh this page to track progress."
+msgstr "Журнал повільних запитів поставлено в чергу і буде імпортовано у фоновому режимі. Оновіть цю сторінку, щоб відстежувати перебіг."
+
+#: slowlog.php
+msgid "You must select at least one Slowlog record."
+msgstr "Потрібно вибрати принаймні один запис журналу повільних запитів."
+
+#: slowlog.php
+msgid "Yes"
+msgstr "Так"
+
+#: slowlog.php
+msgid "No"
+msgstr "Ні"
+
+#: slowlog.php
+msgid "Return"
+msgstr "Повернутися"
+
+#: slowlog.php
+msgid "Import Template from Local File"
+msgstr "Імпорт шаблону з локального файлу"
+
+#: slowlog.php
+msgid "If the XML file containing template data is located on your local machine, select it here."
+msgstr "Якщо XML-файл із даними шаблону знаходиться на вашому локальному комп’ютері, виберіть його тут."
+
+#: slowlog.php
+msgid "LogFile Description"
+msgstr "Опис файлу журналу"
+
+#: slowlog.php
+msgid "Please provide a description for this MySQL Slowlog file to be imported."
+msgstr "Вкажіть опис для цього файлу журналу повільних запитів MySQL, що імпортується."
+
+#: slowlog.php
+msgid "New Slow Log"
+msgstr "Новий журнал повільних запитів"
+
+#: slowlog.php
+msgid "Max Query Length"
+msgstr "Максимальна довжина запиту"
+
+#: slowlog.php
+msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
+msgstr "Імпортувати лише перші X символів SQL-запиту з журналу повільних запитів MySQL."
+
+#: slowlog.php
+msgid "All"
+msgstr "Всі"
+
+#: slowlog.php
+#, php-format
+msgid "%d Chars"
+msgstr "%d симв."
+
+#: slowlog.php
+msgid "Slowlog Table Names [ optional ]"
+msgstr "Назви таблиць журналу повільних запитів [ необов'язково ]"
+
+#: slowlog.php
+msgid "Leave Blank for Auto Detection which runs must faster."
+msgstr "Залиште порожнім для автоматичного виявлення, яке працює значно швидше."
+
+#: slowlog.php
+msgid "Cacti Table Detection"
+msgstr "Виявлення таблиць Cacti"
+
+#: slowlog.php
+msgid "How to tell Cacti-native tables apart from other tables referenced in the slow query log. Defaults to detecting every table with no grouping."
+msgstr "Спосіб розрізнення власних таблиць Cacti та інших таблиць, згаданих у журналі повільних запитів. За замовчуванням виявляються всі таблиці без групування."
+
+#: slowlog.php
+msgid "Detect all tables (no 'OTHER TABLES' grouping)"
+msgstr "Виявляти всі таблиці (без групування в «OTHER TABLES»)"
+
+#: slowlog.php
+msgid "Use this Cacti Database; group other tables as 'OTHER TABLES'"
+msgstr "Використовувати цю базу даних Cacti; групувати інші таблиці як «OTHER TABLES»"
+
+#: slowlog.php
+msgid "Detect all tables; group tables not in the list below as 'OTHER TABLES'"
+msgstr "Виявляти всі таблиці; групувати таблиці не зі списку нижче як «OTHER TABLES»"
+
+#: slowlog.php
+msgid "Tables of Interest"
+msgstr "Цільові таблиці"
+
+#: slowlog.php
+msgid "Only used by the 'Detect all tables; group ... as OTHER TABLES' option above. Please provide a space delimited list of known tables to compare against. In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
+msgstr "Використовується лише з параметром «Виявляти всі таблиці; групувати ... як OTHER TABLES» вище. Вкажіть список відомих таблиць через пробіл для порівняння. У Linux/UNIX список таблиць можна отримати такою командою:<br><br> print `mysql -u<i><b>користувач</b></i> -p<i><b>пароль</b></i> -e \"show tables\" <i><b>база_даних</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>Значення '<i><b>користувач</b></i>', '<i><b>пароль</b></i>' і '<i><b>база_даних</b></i>' замініть на власні."
+
+#: slowlog.php
+msgid "Upload Limits"
+msgstr "Обмеження завантаження"
+
+#: slowlog.php
+msgid "File Size upload limits in Cacti."
+msgstr "Обмеження розміру файлів для завантаження в Cacti."
+
+#: slowlog.php
+msgid "Max Upload Filesize"
+msgstr "Макс. розмір завантаження файлу"
+
+#: slowlog.php
+msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
+msgstr "Максимальний розмір файлу, який сервер Apache дозволяє завантажувати, вказано праворуч. Наразі ви не можете завантажити файл більшого розміру. Якщо ваші журнали повільних запитів MySQL більші за це значення, змініть файл <i>php.ini</i>, пов'язаний з Apache, знайдіть змінну <b><i>upload_max_filesize</i></b> і збільште її значення. Після цього перезапустіть Apache."
+
+#: slowlog.php
+msgid "Max Post Size"
+msgstr "Макс. розмір POST-запиту"
+
+#: slowlog.php
+msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
+msgstr "Максимальний розмір даних, який можна надіслати POST-запитом на сервер Apache, вказано праворуч. Якщо ваші журнали повільних запитів MySQL більші за це значення, змініть файл <i>php.ini</i>, пов'язаний з Apache, знайдіть змінну <b><i>post_max_size</i></b> і збільште її значення. Після цього перезапустіть Apache."
+
+#: slowlog.php
+msgid "Max Execution Time"
+msgstr "Макс. час виконання"
+
+#: slowlog.php
+msgid "How long (in seconds) this request is allowed to run for; 0 means unlimited. This plugin already raises it to unlimited for its own requests, but a web server or reverse proxy in front of PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) can still cut the request off independently - that cannot be detected or overridden from here."
+msgstr "Скільки часу (у секундах) дозволено виконуватися цьому запиту; 0 означає без обмежень. Цей плагін уже знімає обмеження для власних запитів, але вебсервер або зворотний проксі перед PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) усе одно може перервати запит незалежно — це неможливо виявити або перевизначити звідси."
+
+#: slowlog.php
+msgid "Unlimited"
+msgstr "Без ліміту"
+
+#: slowlog.php
+msgid "Memory Limit"
+msgstr "Обмеження пам'яті"
+
+#: slowlog.php
+msgid "How much memory this request is allowed to use; -1 means unlimited. This plugin already raises it to unlimited for its own requests. A very large slow query log being read/imported in a single request can exceed a limited value."
+msgstr "Скільки пам'яті дозволено використовувати цьому запиту; -1 означає без обмежень. Цей плагін уже знімає обмеження для власних запитів. Дуже великий журнал повільних запитів, що читається/імпортується в межах одного запиту, може перевищити встановлений ліміт."
+
+#: slowlog.php
+msgid "The current server configuration may cause a large import to fail:"
+msgstr "Поточна конфігурація сервера може спричинити збій великого імпорту:"
+
+#: slowlog.php
+msgid "WARNING"
+msgstr "ПОПЕРЕДЖЕННЯ"
+
+#: slowlog.php
+msgid "Import MariaDB/MySQL Slowlog"
+msgstr "Імпорт журналу повільних запитів MariaDB/MySQL"
+
+#: slowlog.php
+msgid "Uploaded"
+msgstr "Завантажено"
+
+#: slowlog.php
+msgid "Processing, please wait..."
+msgstr "Обробка, зачекайте..."
+
+#: slowlog.php
+msgid "Upload failed - please try again."
+msgstr "Помилка завантаження — спробуйте ще раз."
+
+#: slowlog.php
+msgid "Actions"
+msgstr "Дії"
+
+#: slowlog.php
+msgid "Table Name"
+msgstr "Назва таблиці"
+
+#: slowlog.php
+msgid "Method"
+msgstr "Метод"
+
+#: slowlog.php
+msgid "Date"
+msgstr "Дата"
+
+#: slowlog.php
+msgid "User"
+msgstr "Користувач"
+
+#: slowlog.php
+msgid "Host"
+msgstr "Хост"
+
+#: slowlog.php
+msgid "Query Time"
+msgstr "Час запиту"
+
+#: slowlog.php
+msgid "Lock Time"
+msgstr "Час блокування"
+
+#: slowlog.php
+msgid "Sent"
+msgstr "Надіслано"
+
+#: slowlog.php
+msgid "Examined"
+msgstr "Перевірено"
+
+#: slowlog.php
+msgid "Affected"
+msgstr "Змінено"
+
+#: slowlog.php
+msgid "Log Entries"
+msgstr "Записи журналу"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Details"
+msgstr "Подробиці журналу повільних запитів MariaDB/MySQL"
+
+#: slowlog.php
+msgid "View Details"
+msgstr "Переглянути подробиці"
+
+#: slowlog.php
+msgid "Chart Filters"
+msgstr "Фільтри діаграми"
+
+#: slowlog.php
+#, php-format
+msgid "MariaDB/MySQL SlowLog Results - By %s"
+msgstr "Результати журналу повільних запитів MariaDB/MySQL — за %s"
+
+#: slowlog.php
+msgid "Percentiles may be estimated from bounded samples. Counts, totals, minima and maxima use all entries."
+msgstr "Процентилі можуть оцінюватися за обмеженою вибіркою. Кількість, суми, мінімуми та максимуми обчислюються за всіма записами."
+
+#: slowlog.php
+msgid "Select Method"
+msgstr "Вибрати метод"
+
+#: slowlog.php
+msgid "Select Table"
+msgstr "Вибрати таблицю"
+
+#: slowlog.php
+msgid "Selected"
+msgstr "Вибрано"
+
+#: slowlog.php
+msgid "Others"
+msgstr "Інші"
+
+#: slowlog.php
+msgid "Top"
+msgstr "Топ"
+
+#: slowlog.php
+msgid "Include Max"
+msgstr "Включити максимум"
+
+#: slowlog.php
+msgid "Go"
+msgstr "Перейти"
+
+#: slowlog.php
+msgid "Clear"
+msgstr "Очистити"
+
+#: slowlog.php
+msgid "None"
+msgstr "Немає"
+
+#: slowlog.php
+msgid "Search"
+msgstr "Пошук"
+
+#: slowlog.php
+msgid "Enter keyword"
+msgstr "Введіть ключове слово"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Query Details"
+msgstr "Подробиці запитів журналу повільних запитів MariaDB/MySQL"
+
+#: slowlog.php
+msgid "IP"
+msgstr "IP адреса"
+
+#: slowlog.php
+msgid "Rows Sent"
+msgstr "Надіслано рядків"
+
+#: slowlog.php
+msgid "Original Query"
+msgstr "Початковий запит"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog File Filters"
+msgstr "Фільтри файлів журналу повільних запитів MariaDB/MySQL"
+
+#: slowlog.php
+msgid "Description"
+msgstr "Опис"
+
+#: slowlog.php
+msgid "Import Status"
+msgstr "Стан імпорту"
+
+#: slowlog.php
+msgid "Status String"
+msgstr "Рядок стану"
+
+#: slowlog.php
+msgid "ID"
+msgstr "ID"
+
+#: slowlog.php
+msgid "Imported"
+msgstr "Імпортується"
+
+#: slowlog.php
+msgid "Lines"
+msgstr "Рядки"
+
+#: slowlog.php
+msgid "Duration"
+msgstr "Тривалість"
+
+#: slowlog.php
+msgid "Start Date"
+msgstr "Початкова дата"
+
+#: slowlog.php
+msgid "End Date"
+msgstr "Кінцева дата"
+
+#: slowlog.php
+msgid "Pre-Processing"
+msgstr "Попередня обробка"
+
+#: slowlog.php
+msgid "Post-Processing"
+msgstr "Постобробка"
+
+#: slowlog.php
+msgid "Complete"
+msgstr "Підтвердити"
+
+#: slowlog.php
+msgid "Bad File Format"
+msgstr "Неприпустимий формат файлу"
+
+#: slowlog.php
+msgid "Unknown"
+msgstr "Невідомо"
+
+#: slowlog.php
+msgid "Save"
+msgstr "Зберегти"
+
+#: slowlog.php
+msgid "Cancel"
+msgstr "Скасувати"
+
+#: slowlog.php
+msgid "Import"
+msgstr "Імпорт"
+
+#: slowlog.php
+msgid "Create"
+msgstr "Створити"
+
+#: slowlog.php
+msgid "LogFile"
+msgstr "Файл журналу"
+
+#: slowlog.php
+msgid "Any"
+msgstr "Будь-який"
+
+#: slowlog.php
+msgid "N/A"
+msgstr "(відсутній)"
+
+#: slowlog.php
+msgid "Tables"
+msgstr "Таблиці"
+
+#: slowlog.php
+msgid "Default"
+msgstr "За замовчуванням"
+
+#: slowlog.php
+msgid "From"
+msgstr "Від"
+
+#: slowlog.php
+msgid "Start Date Selector"
+msgstr "Вибір дати початку"
+
+#: slowlog.php
+msgid "To"
+msgstr "До"
+
+#: slowlog.php
+msgid "End Date Selector"
+msgstr "Вибір дати завершення"
+
+#: slowlog.php
+msgid "Shift Time Backward"
+msgstr "Зсув часу назад"
+
+#: slowlog.php
+msgid "Define Shifting Interval"
+msgstr "Визначте інтервал перемикання"
+
+#: slowlog.php
+msgid "Shift Time Forward"
+msgstr "Зсув часу вперед"
+
+#: slowlog.php
+msgid "Custom"
+msgstr "Користувацький"

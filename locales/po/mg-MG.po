@@ -1,0 +1,590 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR The Cacti Group
+# This file is distributed under the same license as the Cacti package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Cacti\n"
+"Report-Msgid-Bugs-To: developers@cacti.net\n"
+"POT-Creation-Date: 2026-10-24 04:06-0600\n"
+"PO-Revision-Date: 2026-11-27 18:00-0800\n"
+"Last-Translator: The Cacti Group <developers@cacti.net>\n"
+"Language-Team: Malagasy <developers@cacti.net>\n"
+"Language: mg_MG\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: import_log.php
+#, php-format
+msgid "ERROR: Invalid --logid value '%s', must be a positive integer"
+msgstr "HADISOANA: Tsy mety ny sanda --logid '%s', tsy maintsy isa feno miabo"
+
+#: includes/functions.php
+msgid "ERROR: Unable to remove the imported Slowlog file."
+msgstr "HADISOANA: Tsy afaka nanala ny rakitra Slowlog nafarana."
+
+#: includes/functions.php
+msgid "Import Failed - Row Insert Error"
+msgstr "Tsy nahomby ny Fanafarana - Hadisoana tamin'ny fampidirana andalana"
+
+#: slowlog.php
+msgid "ERROR: You do not have permission to import or delete Slowlog files."
+msgstr "HADISOANA: Tsy manana fahazoan-dalana hanafatra na hamafa rakitra Slowlog ianao."
+
+#: includes/functions.php
+msgid "Read Error - Import Aborted, Log May Be Truncated"
+msgstr "Hadisoana tamin'ny famakiana - Najanona ny Fanafarana, mety ho tapaka ny tantara"
+
+#: includes/functions.php
+msgid "Import Failed - Database Error"
+msgstr "Tsy nahomby ny Fanafarana - Hadisoana amin'ny tahiry angona"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Open File"
+msgstr "Tsy nahomby ny Fanafarana - Tsy afaka nanokatra ny rakitra"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Create Parent Record"
+msgstr "Tsy nahomby ny Fanafarana - Tsy afaka namorona ny firaketana fototra"
+
+#: includes/functions.php
+msgid "Bad File Format - No Slow Query Log Entries Found"
+msgstr "Endriky ny rakitra tsy mety - Tsy nisy fampidirana tantaran'ny fangatahana miadana hita"
+
+#: includes/functions.php
+msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
+msgstr "Voaray ny Slowlog voalohany.  Hatao any ambadika ny fanodinana aoriana.  Azonao atomboka ny famakafakana ny Antsipiriany rehefa vita ny sata"
+
+#: includes/functions.php
+msgid "Post Processing Failed - Database Error"
+msgstr "Tsy nahomby ny Fanodinana Aoriana - Hadisoana amin'ny tahiry angona"
+
+#: includes/functions.php
+#, php-format
+msgid "max_execution_time is %d seconds (not unlimited) for this request - a large import could be killed mid-run. Some web servers/proxies (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) enforce their own independent cutoff that this setting cannot override."
+msgstr "Ny max_execution_time dia %d segondra (tsy hoe tsy voafetra) ho an'ity fangatahana ity - mety ho tapaka eo antenatenany ny fanafarana lehibe. Ny mpizara web/proxy sasany (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) dia mampihatra fetr'ora mahaleo tena izay tsy vitan'ity fandrindrana ity ny manafoana azy."
+
+#: includes/functions.php
+#, php-format
+msgid "memory_limit is %s (not unlimited) for this request - a very large slow query log can exceed this while it is being read/imported."
+msgstr "Ny memory_limit dia %s (tsy hoe tsy voafetra) ho an'ity fangatahana ity - mety hihoatra an'izany ny rakitra tantaran'ny fangatahana miadana lehibe dia lehibe mandritra ny famakiana/fanafarana azy."
+
+#: includes/functions.php
+#, php-format
+msgid "post_max_size (%s) is smaller than upload_max_filesize (%s) - uploads up to the advertised limit will still be rejected."
+msgstr "Ny post_max_size (%s) dia kely noho ny upload_max_filesize (%s) - mbola holavina ihany ny fampakarana hatramin'ny fetra voalaza."
+
+#: includes/functions.php
+#, php-format
+msgid "upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB."
+msgstr "Ny upload_max_filesize (%s) dia kely ho an'ny tantaran'ny fangatahana miadana MySQL/MariaDB, izay mora mahatratra an-jatony MB."
+
+#: includes/functions.php
+msgid "ERROR: The uploaded Slowlog file exceeds the server's maximum upload filesize."
+msgstr "HADISOANA: Mihoatra ny haben'ny rakitra ambony indrindra azo ampiakarina amin'ny mpizara ny rakitra Slowlog nampiakarina."
+
+#: includes/functions.php
+msgid "ERROR: The Slowlog file upload was interrupted before it finished - please try again."
+msgstr "HADISOANA: Tapaka talohan'ny nahavitany ny fampakarana ny rakitra Slowlog - andramo indray azafady."
+
+#: includes/functions.php
+msgid "ERROR: The server has no temporary folder configured to receive the uploaded Slowlog file."
+msgstr "HADISOANA: Tsy manana lahatahiry vonjimaika voaomana handraisana ny rakitra Slowlog nampiakarina ny mpizara."
+
+#: includes/functions.php
+msgid "ERROR: The server failed to write the uploaded Slowlog file to disk."
+msgstr "HADISOANA: Tsy nahavita nanoratra ny rakitra Slowlog nampiakarina tao amin'ny kapila ny mpizara."
+
+#: includes/functions.php
+msgid "ERROR: A server extension blocked the Slowlog file upload."
+msgstr "HADISOANA: Nisy fanitarana ao amin'ny mpizara nanakana ny fampakarana ny rakitra Slowlog."
+
+#: includes/functions.php
+#, php-format
+msgid "ERROR: The Slowlog file upload failed (error code %d)."
+msgstr "HADISOANA: Tsy nahomby ny fampakarana ny rakitra Slowlog (kaody hadisoana %d)."
+
+#: includes/functions.php
+msgid "Queries"
+msgstr "Fangatahana"
+
+#: includes/functions.php
+msgid "Total Queries"
+msgstr "Totalin'ny Fangatahana"
+
+#: includes/functions.php slowlog.php
+msgid "Rows"
+msgstr "Andalana"
+
+#: includes/functions.php
+msgid "Rows Returned"
+msgstr "Andalana Naverina"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Examined"
+msgstr "Andalana Nojerena"
+
+#: includes/functions.php slowlog.php
+msgid "Seconds"
+msgstr "Segondra"
+
+#: includes/functions.php
+msgid "Lock Seconds"
+msgstr "Segondra Fanidiana"
+
+#: includes/functions.php
+msgid "Query Seconds"
+msgstr "Segondra Fangatahana"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Affected"
+msgstr "Andalana Voakasika"
+
+#: includes/functions.php
+msgid "Bytes"
+msgstr "Oktety"
+
+#: includes/functions.php slowlog.php
+msgid "Bytes Sent"
+msgstr "Oktety Nalefa"
+
+#: includes/functions.php
+msgid "Clear this filter"
+msgstr "Esory ity sivana ity"
+
+#: slowlog.php
+msgid "Delete"
+msgstr "Fafao"
+
+#: slowlog.php
+msgid "ERROR: 'Detect all tables; group ... as OTHER TABLES' requires a list of Tables of Interest."
+msgstr "HADISOANA: Ny 'Fantaro ny tabilao rehetra; atambaro ... ho TABILAO HAFA' dia mitaky lisitry ny Tabilao Mahaliana."
+
+#: slowlog.php
+msgid "ERROR: Unable to stage the uploaded Slowlog file for import."
+msgstr "HADISOANA: Tsy afaka nanomana ny rakitra Slowlog nampiakarina mba hafarana."
+
+#: slowlog.php
+msgid "ERROR: Unable to create the Slowlog import record."
+msgstr "HADISOANA: Tsy afaka namorona ny firaketana fanafarana Slowlog."
+
+#: slowlog.php
+msgid "The Slowlog has been queued and will be imported in the background. Refresh this page to track progress."
+msgstr "Natao ao amin'ny laharam-piandrasana ny Slowlog ary hafarana any ambadika. Havaozy ity pejy ity hanarahana ny fandrosoana."
+
+#: slowlog.php
+msgid "You must select at least one Slowlog record."
+msgstr "Tsy maintsy misafidy firaketana Slowlog iray fara fahakeliny ianao."
+
+#: slowlog.php
+msgid "Yes"
+msgstr "Eny"
+
+#: slowlog.php
+msgid "No"
+msgstr "Tsia"
+
+#: slowlog.php
+msgid "Return"
+msgstr "Miverina"
+
+#: slowlog.php
+msgid "Import Template from Local File"
+msgstr "Manafatra modely avy amin'ny rakitra eo an-toerana"
+
+#: slowlog.php
+msgid "If the XML file containing template data is located on your local machine, select it here."
+msgstr "Raha ao amin'ny solosainao eo an-toerana no misy ny rakitra XML mirakitra ny angon'ny modely, dia fidio eto izany."
+
+#: slowlog.php
+msgid "LogFile Description"
+msgstr "Famaritana ny Rakitra Tantara"
+
+#: slowlog.php
+msgid "Please provide a description for this MySQL Slowlog file to be imported."
+msgstr "Omeo famaritana ho an'ity rakitra MySQL Slowlog hafarana ity azafady."
+
+#: slowlog.php
+msgid "New Slow Log"
+msgstr "Tantara Miadana Vaovao"
+
+#: slowlog.php
+msgid "Max Query Length"
+msgstr "Halavan'ny Fangatahana Ambony Indrindra"
+
+#: slowlog.php
+msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
+msgstr "Ny tarehintsoratra X voalohany amin'ny Fangatahana SQL avy amin'ny tantaran'ny fangatahana miadana MySQL ihany no afarana."
+
+#: slowlog.php
+msgid "All"
+msgstr "Rehetra"
+
+#: slowlog.php
+#, php-format
+msgid "%d Chars"
+msgstr "Tarehintsoratra %d"
+
+#: slowlog.php
+msgid "Slowlog Table Names [ optional ]"
+msgstr "Anaran'ny Tabilao Slowlog [ tsy voatery ]"
+
+#: slowlog.php
+msgid "Leave Blank for Auto Detection which runs must faster."
+msgstr "Avelao ho foana ho an'ny Famantarana Mandeha Ho Azy izay haingana lavitra."
+
+#: slowlog.php
+msgid "Cacti Table Detection"
+msgstr "Famantarana ny Tabilao Cacti"
+
+#: slowlog.php
+msgid "How to tell Cacti-native tables apart from other tables referenced in the slow query log. Defaults to detecting every table with no grouping."
+msgstr "Ny fomba hanavahana ny tabilao teratany Cacti amin'ny tabilao hafa voatonona ao amin'ny tantaran'ny fangatahana miadana. Ny voafaritra mialoha dia mamantatra ny tabilao rehetra tsy misy fanambarana."
+
+#: slowlog.php
+msgid "Detect all tables (no 'OTHER TABLES' grouping)"
+msgstr "Fantaro ny tabilao rehetra (tsy misy fanambarana 'TABILAO HAFA')"
+
+#: slowlog.php
+msgid "Use this Cacti Database; group other tables as 'OTHER TABLES'"
+msgstr "Ampiasao ity Tahiry angona Cacti ity; atambaro ho 'TABILAO HAFA' ny tabilao hafa"
+
+#: slowlog.php
+msgid "Detect all tables; group tables not in the list below as 'OTHER TABLES'"
+msgstr "Fantaro ny tabilao rehetra; atambaro ho 'TABILAO HAFA' ny tabilao tsy ao amin'ny lisitra eto ambany"
+
+#: slowlog.php
+msgid "Tables of Interest"
+msgstr "Tabilao Mahaliana"
+
+#: slowlog.php
+msgid "Only used by the 'Detect all tables; group ... as OTHER TABLES' option above. Please provide a space delimited list of known tables to compare against. In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
+msgstr "Ampiasaina amin'ny safidy 'Fantaro ny tabilao rehetra; atambaro ... ho TABILAO HAFA' etsy ambony ihany. Omeo lisitry ny tabilao fantatra sarahina elanelana mba hampitahaina azafady. Ao amin'ny Linux/UNIX, azonao alaina ny lisitry ny tabilao amin'ny fampiasana ity baiko ity:<br><br> print `mysql -u<i><b>mpampiasa</b></i> -p<i><b>tenimiafina</b></i> -e \"show tables\" <i><b>tahiry_angona</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>Ny sandan'ny '<i><b>mpampiasa</b></i>', '<i><b>tenimiafina</b></i>', ary '<i><b>tahiry_angona</b></i>' dia soloina amin'ny sandanao."
+
+#: slowlog.php
+msgid "Upload Limits"
+msgstr "Fetran'ny Fampakarana"
+
+#: slowlog.php
+msgid "File Size upload limits in Cacti."
+msgstr "Fetran'ny haben'ny rakitra azo ampiakarina ao amin'ny Cacti."
+
+#: slowlog.php
+msgid "Max Upload Filesize"
+msgstr "Haben'ny Rakitra Ambony Indrindra Azo Ampiakarina"
+
+#: slowlog.php
+msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
+msgstr "Ny haben'ny rakitra ambony indrindra avelan'ny mpizara Apache ampiakarina dia apetraka amin'ny sanda eo ankavanana.  Amin'izao fotoana izao dia tsy afaka mampakatra rakitra lehibe noho izany ianao.  Raha manana tantara miadana MySQL lehibe noho izany ianao, dia tsy maintsy manova ny rakitra <i>php.ini</i> mifandray amin'ny Apache, mitady ny variable <b><i>upload_max_filesize</i></b> ary mampitombo ny sandany.  Aorian'izay dia tsy maintsy averina alefa ny Apache."
+
+#: slowlog.php
+msgid "Max Post Size"
+msgstr "Habe POST Ambony Indrindra"
+
+#: slowlog.php
+msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
+msgstr "Ny habe ambony indrindra azonao alefa (POST) amin'ny mpizara Apache dia apetraka amin'ny sanda eo ankavanana.  Raha manana tantara miadana MySQL lehibe noho izany sanda izany ianao, dia tsy maintsy manova ny rakitra <i>php.ini</i> mifandray amin'ny Apache, mitady ny variable <b><i>post_max_size</i></b> ary mampitombo ny sandany.  Aorian'izay dia tsy maintsy averina alefa ny Apache."
+
+#: slowlog.php
+msgid "Max Execution Time"
+msgstr "Fotoana Fanatanterahana Ambony Indrindra"
+
+#: slowlog.php
+msgid "How long (in seconds) this request is allowed to run for; 0 means unlimited. This plugin already raises it to unlimited for its own requests, but a web server or reverse proxy in front of PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) can still cut the request off independently - that cannot be detected or overridden from here."
+msgstr "Hafiriana (amin'ny segondra) no avela handehanan'ity fangatahana ity; ny 0 dia midika hoe tsy voafetra. Efa mampiakatra izany ho tsy voafetra ho an'ny fangatahany manokana ity fanampiny ity, saingy ny mpizara web na reverse proxy eo anoloan'ny PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) dia mbola afaka manapaka ny fangatahana samirery - tsy azo fantarina na foanana eto izany."
+
+#: slowlog.php
+msgid "Unlimited"
+msgstr "Tsy voafetra"
+
+#: slowlog.php
+msgid "Memory Limit"
+msgstr "Fetran'ny Tadidy"
+
+#: slowlog.php
+msgid "How much memory this request is allowed to use; -1 means unlimited. This plugin already raises it to unlimited for its own requests. A very large slow query log being read/imported in a single request can exceed a limited value."
+msgstr "Hatraiza ny tadidy avela hampiasain'ity fangatahana ity; ny -1 dia midika hoe tsy voafetra. Efa mampiakatra izany ho tsy voafetra ho an'ny fangatahany manokana ity fanampiny ity. Ny tantaran'ny fangatahana miadana lehibe dia lehibe vakiana/afarana ao anatin'ny fangatahana iray dia mety hihoatra ny sanda voafetra."
+
+#: slowlog.php
+msgid "The current server configuration may cause a large import to fail:"
+msgstr "Mety hiteraka tsy fahombiazan'ny fanafarana lehibe ny fikirakirana mpizara ankehitriny:"
+
+#: slowlog.php
+msgid "WARNING"
+msgstr "FAMPITANDREMANA"
+
+#: slowlog.php
+msgid "Import MariaDB/MySQL Slowlog"
+msgstr "Manafatra Slowlog MariaDB/MySQL"
+
+#: slowlog.php
+msgid "Uploaded"
+msgstr "Voampakatra"
+
+#: slowlog.php
+msgid "Processing, please wait..."
+msgstr "Eo am-panodinana, andraso kely azafady..."
+
+#: slowlog.php
+msgid "Upload failed - please try again."
+msgstr "Tsy nahomby ny fampakarana - andramo indray azafady."
+
+#: slowlog.php
+msgid "Actions"
+msgstr "Hetsika"
+
+#: slowlog.php
+msgid "Table Name"
+msgstr "Anaran'ny Tabilao"
+
+#: slowlog.php
+msgid "Method"
+msgstr "Fomba"
+
+#: slowlog.php
+msgid "Date"
+msgstr "Daty"
+
+#: slowlog.php
+msgid "User"
+msgstr "Mpampiasa"
+
+#: slowlog.php
+msgid "Host"
+msgstr "Mpampiantrano"
+
+#: slowlog.php
+msgid "Query Time"
+msgstr "Fotoan'ny Fangatahana"
+
+#: slowlog.php
+msgid "Lock Time"
+msgstr "Fotoana Fanidiana"
+
+#: slowlog.php
+msgid "Sent"
+msgstr "Nalefa"
+
+#: slowlog.php
+msgid "Examined"
+msgstr "Nojerena"
+
+#: slowlog.php
+msgid "Affected"
+msgstr "Voakasika"
+
+#: slowlog.php
+msgid "Log Entries"
+msgstr "Fampidirana ao amin'ny tantara"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Details"
+msgstr "Antsipirian'ny SlowLog MariaDB/MySQL"
+
+#: slowlog.php
+msgid "View Details"
+msgstr "Jereo ny Antsipiriany"
+
+#: slowlog.php
+msgid "Chart Filters"
+msgstr "Sivanan'ny Tabilao Kisary"
+
+#: slowlog.php
+#, php-format
+msgid "MariaDB/MySQL SlowLog Results - By %s"
+msgstr "Vokatry ny SlowLog MariaDB/MySQL - Araka ny %s"
+
+#: slowlog.php
+msgid "Percentiles may be estimated from bounded samples. Counts, totals, minima and maxima use all entries."
+msgstr "Mety ho tombanana avy amin'ny santionany voafetra ny isan-jato. Ny fanisana, ny totaly, ny kely indrindra ary ny lehibe indrindra dia mampiasa ny fampidirana rehetra."
+
+#: slowlog.php
+msgid "Select Method"
+msgstr "Fidio ny Fomba"
+
+#: slowlog.php
+msgid "Select Table"
+msgstr "Fidio ny Tabilao"
+
+#: slowlog.php
+msgid "Selected"
+msgstr "Voafidy"
+
+#: slowlog.php
+msgid "Others"
+msgstr "Hafa"
+
+#: slowlog.php
+msgid "Top"
+msgstr "Ambony indrindra"
+
+#: slowlog.php
+msgid "Include Max"
+msgstr "Ampidiro ny Ambony indrindra"
+
+#: slowlog.php
+msgid "Go"
+msgstr "Alefa"
+
+#: slowlog.php
+msgid "Clear"
+msgstr "Fafao"
+
+#: slowlog.php
+msgid "None"
+msgstr "Tsy misy"
+
+#: slowlog.php
+msgid "Search"
+msgstr "Fikarohana"
+
+#: slowlog.php
+msgid "Enter keyword"
+msgstr "Ampidiro ny teny fototra"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Query Details"
+msgstr "Antsipirian'ny Fangatahana SlowLog MariaDB/MySQL"
+
+#: slowlog.php
+msgid "IP"
+msgstr "IP"
+
+#: slowlog.php
+msgid "Rows Sent"
+msgstr "Andalana Nalefa"
+
+#: slowlog.php
+msgid "Original Query"
+msgstr "Fangatahana Fototra"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog File Filters"
+msgstr "Sivanan'ny Rakitra SlowLog MariaDB/MySQL"
+
+#: slowlog.php
+msgid "Description"
+msgstr "Famaritana"
+
+#: slowlog.php
+msgid "Import Status"
+msgstr "Satan'ny Fanafarana"
+
+#: slowlog.php
+msgid "Status String"
+msgstr "Lahatsoratra Sata"
+
+#: slowlog.php
+msgid "ID"
+msgstr "ID"
+
+#: slowlog.php
+msgid "Imported"
+msgstr "Nafarana"
+
+#: slowlog.php
+msgid "Lines"
+msgstr "Andalana"
+
+#: slowlog.php
+msgid "Duration"
+msgstr "Faharetana"
+
+#: slowlog.php
+msgid "Start Date"
+msgstr "Daty fanombohana"
+
+#: slowlog.php
+msgid "End Date"
+msgstr "Daty famaranana"
+
+#: slowlog.php
+msgid "Pre-Processing"
+msgstr "Fanodinana Mialoha"
+
+#: slowlog.php
+msgid "Post-Processing"
+msgstr "Fanodinana Aoriana"
+
+#: slowlog.php
+msgid "Complete"
+msgstr "Vita"
+
+#: slowlog.php
+msgid "Bad File Format"
+msgstr "Endriky ny Rakitra Tsy Mety"
+
+#: slowlog.php
+msgid "Unknown"
+msgstr "Tsy fantatra"
+
+#: slowlog.php
+msgid "Save"
+msgstr "Tehirizo"
+
+#: slowlog.php
+msgid "Cancel"
+msgstr "Foano"
+
+#: slowlog.php
+msgid "Import"
+msgstr "Manafatra"
+
+#: slowlog.php
+msgid "Create"
+msgstr "Mamorona"
+
+#: slowlog.php
+msgid "LogFile"
+msgstr "Rakitra Tantara"
+
+#: slowlog.php
+msgid "Any"
+msgstr "Na inona na inona"
+
+#: slowlog.php
+msgid "N/A"
+msgstr "Tsy misy"
+
+#: slowlog.php
+msgid "Tables"
+msgstr "Tabilao"
+
+#: slowlog.php
+msgid "Default"
+msgstr "Voafaritra mialoha"
+
+#: slowlog.php
+msgid "From"
+msgstr "Manomboka ny"
+
+#: slowlog.php
+msgid "Start Date Selector"
+msgstr "Mpifidy daty fanombohana"
+
+#: slowlog.php
+msgid "To"
+msgstr "Hatramin'ny"
+
+#: slowlog.php
+msgid "End Date Selector"
+msgstr "Mpifidy daty fiafarana"
+
+#: slowlog.php
+msgid "Shift Time Backward"
+msgstr "Ahemotra ny fotoana"
+
+#: slowlog.php
+msgid "Define Shifting Interval"
+msgstr "Farito ny elanelam-potoana famindrana"
+
+#: slowlog.php
+msgid "Shift Time Forward"
+msgstr "Aroso mandroso ny fotoana"
+
+#: slowlog.php
+msgid "Custom"
+msgstr "Manokana"

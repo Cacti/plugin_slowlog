@@ -1,0 +1,590 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR The Cacti Group
+# This file is distributed under the same license as the Cacti package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Cacti\n"
+"Report-Msgid-Bugs-To: developers@cacti.net\n"
+"POT-Creation-Date: 2026-10-24 04:06-0600\n"
+"PO-Revision-Date: 2026-11-27 18:00-0800\n"
+"Last-Translator: The Cacti Group <developers@cacti.net>\n"
+"Language-Team: Igbo <developers@cacti.net>\n"
+"Language: ig_NG\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: import_log.php
+#, php-format
+msgid "ERROR: Invalid --logid value '%s', must be a positive integer"
+msgstr "NJEHIE: Uru --logid '%s' adịghị mma, ọ ga-abụrịrị ọnụọgụgụ ziri ezi karịrị efu"
+
+#: includes/functions.php
+msgid "ERROR: Unable to remove the imported Slowlog file."
+msgstr "NJEHIE: Enweghị ike iwepụ faịlụ Slowlog ebubatara."
+
+#: includes/functions.php
+msgid "Import Failed - Row Insert Error"
+msgstr "Mbubata Dara Ada - Njehie Itinye Ahịrị"
+
+#: slowlog.php
+msgid "ERROR: You do not have permission to import or delete Slowlog files."
+msgstr "NJEHIE: Ị nweghị ikike ibubata ma ọ bụ ihichapụ faịlụ Slowlog."
+
+#: includes/functions.php
+msgid "Read Error - Import Aborted, Log May Be Truncated"
+msgstr "Njehie Ọgụgụ - Akwụsịrị Mbubata, Ndekọ Nwere Ike Ịbụ Nke Ebipụrụ"
+
+#: includes/functions.php
+msgid "Import Failed - Database Error"
+msgstr "Mbubata Dara Ada - Njehie Nchekwa Data"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Open File"
+msgstr "Mbubata Dara Ada - Enweghị Ike Imepe Faịlụ"
+
+#: includes/functions.php
+msgid "Import Failed - Unable to Create Parent Record"
+msgstr "Mbubata Dara Ada - Enweghị Ike Imepụta Ndekọ Nne"
+
+#: includes/functions.php
+msgid "Bad File Format - No Slow Query Log Entries Found"
+msgstr "Ụdị Faịlụ Ọjọọ - Ahụghị Ndekọ Ajụjụ Nwayọọ Ọ Bụla"
+
+#: includes/functions.php
+msgid "The initial Slowlog has been ingested.  Post Processing will take place in the background.  You can start analyzing the Details once the status is complete"
+msgstr "Anabatala Slowlog mbụ ahụ.  Nhazi Mgbe Mbubata ga-eme n'azụ.  Ị nwere ike ịmalite inyocha Nkọwa ozugbo ọnọdụ ya mechara"
+
+#: includes/functions.php
+msgid "Post Processing Failed - Database Error"
+msgstr "Nhazi Mgbe Mbubata Dara Ada - Njehie Nchekwa Data"
+
+#: includes/functions.php
+#, php-format
+msgid "max_execution_time is %d seconds (not unlimited) for this request - a large import could be killed mid-run. Some web servers/proxies (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) enforce their own independent cutoff that this setting cannot override."
+msgstr "max_execution_time bụ sekọnd %d (ọ bụghị enweghị oke) maka arịrịọ a - a pụrụ igbu nnukwu mbubata n'etiti ọrụ. Ụfọdụ sava weebụ/prọksị (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) na-amanye oke oge nke ha nke ntọala a na-enweghị ike imeri."
+
+#: includes/functions.php
+#, php-format
+msgid "memory_limit is %s (not unlimited) for this request - a very large slow query log can exceed this while it is being read/imported."
+msgstr "memory_limit bụ %s (ọ bụghị enweghị oke) maka arịrịọ a - nnukwu ndekọ ajụjụ nwayọọ nwere ike ịkarị nke a ka a na-agụ/ebubata ya."
+
+#: includes/functions.php
+#, php-format
+msgid "post_max_size (%s) is smaller than upload_max_filesize (%s) - uploads up to the advertised limit will still be rejected."
+msgstr "post_max_size (%s) dị ntakịrị karịa upload_max_filesize (%s) - a ka ga-ajụ mbunye ruo oke ekwupụtara."
+
+#: includes/functions.php
+#, php-format
+msgid "upload_max_filesize (%s) is small for a MySQL/MariaDB slow query log, which can easily be hundreds of MB."
+msgstr "upload_max_filesize (%s) dị ntakịrị maka ndekọ ajụjụ nwayọọ MySQL/MariaDB, nke nwere ike ịdị ọtụtụ narị MB ngwa ngwa."
+
+#: includes/functions.php
+msgid "ERROR: The uploaded Slowlog file exceeds the server's maximum upload filesize."
+msgstr "NJEHIE: Faịlụ Slowlog ebunyere karịrị oke nha mbunye kacha nke sava ahụ."
+
+#: includes/functions.php
+msgid "ERROR: The Slowlog file upload was interrupted before it finished - please try again."
+msgstr "NJEHIE: Akwụsịrị mbunye faịlụ Slowlog tupu ya agwụ - biko nwaa ọzọ."
+
+#: includes/functions.php
+msgid "ERROR: The server has no temporary folder configured to receive the uploaded Slowlog file."
+msgstr "NJEHIE: Sava ahụ enweghị fọlda nwa oge ahaziri iji nata faịlụ Slowlog ebunyere."
+
+#: includes/functions.php
+msgid "ERROR: The server failed to write the uploaded Slowlog file to disk."
+msgstr "NJEHIE: Sava ahụ emeghị ike ide faịlụ Slowlog ebunyere na diski."
+
+#: includes/functions.php
+msgid "ERROR: A server extension blocked the Slowlog file upload."
+msgstr "NJEHIE: Mgbakwunye sava gbochiri mbunye faịlụ Slowlog ahụ."
+
+#: includes/functions.php
+#, php-format
+msgid "ERROR: The Slowlog file upload failed (error code %d)."
+msgstr "NJEHIE: Mbunye faịlụ Slowlog dara ada (koodu njehie %d)."
+
+#: includes/functions.php
+msgid "Queries"
+msgstr "Ajụjụ"
+
+#: includes/functions.php
+msgid "Total Queries"
+msgstr "Ngụkọta Ajụjụ"
+
+#: includes/functions.php slowlog.php
+msgid "Rows"
+msgstr "Ahịrị"
+
+#: includes/functions.php
+msgid "Rows Returned"
+msgstr "Ahịrị E Weghachiri"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Examined"
+msgstr "Ahịrị E Nyochara"
+
+#: includes/functions.php slowlog.php
+msgid "Seconds"
+msgstr "Sekọnd"
+
+#: includes/functions.php
+msgid "Lock Seconds"
+msgstr "Sekọnd Mkpọchi"
+
+#: includes/functions.php
+msgid "Query Seconds"
+msgstr "Sekọnd Ajụjụ"
+
+#: includes/functions.php slowlog.php
+msgid "Rows Affected"
+msgstr "Ahịrị Emere Ihe"
+
+#: includes/functions.php
+msgid "Bytes"
+msgstr "Baịtị"
+
+#: includes/functions.php slowlog.php
+msgid "Bytes Sent"
+msgstr "Baịtị E Zitere"
+
+#: includes/functions.php
+msgid "Clear this filter"
+msgstr "Kpochapụ ihe nzacha a"
+
+#: slowlog.php
+msgid "Delete"
+msgstr "Hichapụ"
+
+#: slowlog.php
+msgid "ERROR: 'Detect all tables; group ... as OTHER TABLES' requires a list of Tables of Interest."
+msgstr "NJEHIE: 'Chọpụta tebụl niile; kpọkọta ... dị ka OTHER TABLES' chọrọ ndepụta nke Tebụl Mmasị."
+
+#: slowlog.php
+msgid "ERROR: Unable to stage the uploaded Slowlog file for import."
+msgstr "NJEHIE: Enweghị ike ịkwadebe faịlụ Slowlog ebunyere maka mbubata."
+
+#: slowlog.php
+msgid "ERROR: Unable to create the Slowlog import record."
+msgstr "NJEHIE: Enweghị ike imepụta ndekọ mbubata Slowlog."
+
+#: slowlog.php
+msgid "The Slowlog has been queued and will be imported in the background. Refresh this page to track progress."
+msgstr "Etinyela Slowlog n'ahịrị ma a ga-ebubata ya n'azụ. Megharịa ibe a iji soro ọganihu."
+
+#: slowlog.php
+msgid "You must select at least one Slowlog record."
+msgstr "Ị ga-ahọrọrịrị opekata mpe otu ndekọ Slowlog."
+
+#: slowlog.php
+msgid "Yes"
+msgstr "Ee"
+
+#: slowlog.php
+msgid "No"
+msgstr "Mba"
+
+#: slowlog.php
+msgid "Return"
+msgstr "Laghachi"
+
+#: slowlog.php
+msgid "Import Template from Local File"
+msgstr "Bubata Nlereanya site na Faịlụ Mpaghara"
+
+#: slowlog.php
+msgid "If the XML file containing template data is located on your local machine, select it here."
+msgstr "Ọ bụrụ na faịlụ XML nwere data nlereanya dị na kọmputa mpaghara gị, họrọ ya ebe a."
+
+#: slowlog.php
+msgid "LogFile Description"
+msgstr "Nkọwa Faịlụ Ndekọ"
+
+#: slowlog.php
+msgid "Please provide a description for this MySQL Slowlog file to be imported."
+msgstr "Biko nye nkọwa maka faịlụ MySQL Slowlog a ga-ebubata."
+
+#: slowlog.php
+msgid "New Slow Log"
+msgstr "Ndekọ Nwayọọ Ọhụrụ"
+
+#: slowlog.php
+msgid "Max Query Length"
+msgstr "Ogologo Ajụjụ Kacha"
+
+#: slowlog.php
+msgid "Only import the first X characters of the SQL Query from the MySQL Slow Query log."
+msgstr "Bubata naanị mkpụrụedemede X mbụ nke Ajụjụ SQL site na ndekọ Ajụjụ Nwayọọ MySQL."
+
+#: slowlog.php
+msgid "All"
+msgstr "Niile"
+
+#: slowlog.php
+#, php-format
+msgid "%d Chars"
+msgstr "Mkpụrụedemede %d"
+
+#: slowlog.php
+msgid "Slowlog Table Names [ optional ]"
+msgstr "Aha Tebụl Slowlog [ nhọrọ ]"
+
+#: slowlog.php
+msgid "Leave Blank for Auto Detection which runs must faster."
+msgstr "Hapụ ya Ka Ọ Tọgbọrọ Chakoo maka Nchọpụta Akpaaka nke na-agba ọsọ ngwa ngwa."
+
+#: slowlog.php
+msgid "Cacti Table Detection"
+msgstr "Nchọpụta Tebụl Cacti"
+
+#: slowlog.php
+msgid "How to tell Cacti-native tables apart from other tables referenced in the slow query log. Defaults to detecting every table with no grouping."
+msgstr "Otu esi amata tebụl Cacti dị iche na tebụl ndị ọzọ akpọtụrụ na ndekọ ajụjụ nwayọọ. Nke ndabere bụ ịchọpụta tebụl ọ bụla na-enweghị mkpọkọta."
+
+#: slowlog.php
+msgid "Detect all tables (no 'OTHER TABLES' grouping)"
+msgstr "Chọpụta tebụl niile (enweghị mkpọkọta 'OTHER TABLES')"
+
+#: slowlog.php
+msgid "Use this Cacti Database; group other tables as 'OTHER TABLES'"
+msgstr "Jiri Nchekwa Data Cacti a; kpọkọta tebụl ndị ọzọ dị ka 'OTHER TABLES'"
+
+#: slowlog.php
+msgid "Detect all tables; group tables not in the list below as 'OTHER TABLES'"
+msgstr "Chọpụta tebụl niile; kpọkọta tebụl ndị na-adịghị na ndepụta dị n'okpuru dị ka 'OTHER TABLES'"
+
+#: slowlog.php
+msgid "Tables of Interest"
+msgstr "Tebụl Mmasị"
+
+#: slowlog.php
+msgid "Only used by the 'Detect all tables; group ... as OTHER TABLES' option above. Please provide a space delimited list of known tables to compare against. In Linux/UNIX, you may obtain a list of tables by using the following command:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>The values of '<i><b>user</b></i>', '<i><b>password</b></i>', and '<i><b>database</b></i>' are replaced with your values."
+msgstr "Naanị nhọrọ 'Chọpụta tebụl niile; kpọkọta ... dị ka OTHER TABLES' dị n'elu na-eji ya. Biko nye ndepụta tebụl a maara nke e jiri oghere kewaa iji tụnyere. Na Linux/UNIX, ị nwere ike ịnweta ndepụta tebụl site na iji iwu na-esote:<br><br> print `mysql -u<i><b>user</b></i> -p<i><b>password</b></i> -e \"show tables\" <i><b>database</b></i> | grep -v Tables_in` | tr '\\n' ' '<br><br>A na-eji uru gị dochie uru nke '<i><b>user</b></i>', '<i><b>password</b></i>', na '<i><b>database</b></i>'."
+
+#: slowlog.php
+msgid "Upload Limits"
+msgstr "Oke Mbunye"
+
+#: slowlog.php
+msgid "File Size upload limits in Cacti."
+msgstr "Oke nha mbunye faịlụ na Cacti."
+
+#: slowlog.php
+msgid "Max Upload Filesize"
+msgstr "Nha Faịlụ Mbunye Kacha"
+
+#: slowlog.php
+msgid "The maximum filesize your Apache server will allow to be uploaded is set to the value on the right.  Currently, you can not upload a file larger than this.  If you have MySQL Slow logs larger than this, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>upload_max_filesize</i></b> and increase the value.  After which you must restart Apache."
+msgstr "Oke nha faịlụ kacha nke sava Apache gị ga-ekwe ka ebunye ka etọrọ na uru dị n'aka nri.  Ugbu a, ị nweghị ike ibunye faịlụ buru ibu karịa nke a.  Ọ bụrụ na ị nwere ndekọ MySQL Slow buru ibu karịa nke a, ị ga-agbanwerịrị faịlụ <i>php.ini</i> jikọtara na Apache, chọta mgbanwe <b><i>upload_max_filesize</i></b> ma mee ka uru ya bawanye.  Mgbe nke ahụ gasịrị, ị ga-amaliteghachi Apache."
+
+#: slowlog.php
+msgid "Max Post Size"
+msgstr "Nha Post Kacha"
+
+#: slowlog.php
+msgid "The maximum size you can post to the Apache server is set to the value on the right.  If you have MySQL Slow logs larger than this value, you must alter the <i>php.ini</i> file associated with Apache, find the variable <b><i>post_max_size</i></b> and increase its value.  After which you must restart Apache."
+msgstr "Oke nha kacha ị nwere ike iziga na sava Apache ka etọrọ na uru dị n'aka nri.  Ọ bụrụ na ị nwere ndekọ MySQL Slow buru ibu karịa uru a, ị ga-agbanwerịrị faịlụ <i>php.ini</i> jikọtara na Apache, chọta mgbanwe <b><i>post_max_size</i></b> ma mee ka uru ya bawanye.  Mgbe nke ahụ gasịrị, ị ga-amaliteghachi Apache."
+
+#: slowlog.php
+msgid "Max Execution Time"
+msgstr "Oge Mmezu Kacha"
+
+#: slowlog.php
+msgid "How long (in seconds) this request is allowed to run for; 0 means unlimited. This plugin already raises it to unlimited for its own requests, but a web server or reverse proxy in front of PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) can still cut the request off independently - that cannot be detected or overridden from here."
+msgstr "Ogologo oge (na sekọnd) ekwere ka arịrịọ a rụọ ọrụ; 0 pụtara enweghị oke. Mgbakwunye a na-ebulilarị ya ruo enweghị oke maka arịrịọ nke ya, mana sava weebụ ma ọ bụ prọksị azụ n'ihu PHP (Apache Timeout, Nginx fastcgi_read_timeout/proxy_read_timeout, PHP-FPM request_terminate_timeout) ka nwere ike ibipụ arịrịọ ahụ n'onwe ya - enweghị ike ịchọpụta ma ọ bụ imeri nke ahụ site ebe a."
+
+#: slowlog.php
+msgid "Unlimited"
+msgstr "Enweghị Oke"
+
+#: slowlog.php
+msgid "Memory Limit"
+msgstr "Oke Ebe Nchekwa (Memory)"
+
+#: slowlog.php
+msgid "How much memory this request is allowed to use; -1 means unlimited. This plugin already raises it to unlimited for its own requests. A very large slow query log being read/imported in a single request can exceed a limited value."
+msgstr "Ego ole ebe nchekwa ekwere ka arịrịọ a jiri; -1 pụtara enweghị oke. Mgbakwunye a na-ebulilarị ya ruo enweghị oke maka arịrịọ nke ya. Nnukwu ndekọ ajụjụ nwayọọ a na-agụ/ebubata n'otu arịrịọ nwere ike ịkarị uru nwere oke."
+
+#: slowlog.php
+msgid "The current server configuration may cause a large import to fail:"
+msgstr "Nhazi sava dị ugbu a nwere ike ime ka nnukwu mbubata daa ada:"
+
+#: slowlog.php
+msgid "WARNING"
+msgstr "ỊDỌ AKA NA NTỊ"
+
+#: slowlog.php
+msgid "Import MariaDB/MySQL Slowlog"
+msgstr "Bubata Slowlog MariaDB/MySQL"
+
+#: slowlog.php
+msgid "Uploaded"
+msgstr "Ebunyere"
+
+#: slowlog.php
+msgid "Processing, please wait..."
+msgstr "Na-ahazi, biko chere..."
+
+#: slowlog.php
+msgid "Upload failed - please try again."
+msgstr "Mbunye dara ada - biko nwaa ọzọ."
+
+#: slowlog.php
+msgid "Actions"
+msgstr "Omume"
+
+#: slowlog.php
+msgid "Table Name"
+msgstr "Aha Tebụl"
+
+#: slowlog.php
+msgid "Method"
+msgstr "Ụzọ"
+
+#: slowlog.php
+msgid "Date"
+msgstr "Ụbọchị"
+
+#: slowlog.php
+msgid "User"
+msgstr "Onye ọrụ"
+
+#: slowlog.php
+msgid "Host"
+msgstr "Onye nnabata"
+
+#: slowlog.php
+msgid "Query Time"
+msgstr "Oge Ajụjụ"
+
+#: slowlog.php
+msgid "Lock Time"
+msgstr "Oge Mkpọchi"
+
+#: slowlog.php
+msgid "Sent"
+msgstr "E Zitere"
+
+#: slowlog.php
+msgid "Examined"
+msgstr "E Nyochara"
+
+#: slowlog.php
+msgid "Affected"
+msgstr "Emere Ihe"
+
+#: slowlog.php
+msgid "Log Entries"
+msgstr "Ndekọ Log"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Details"
+msgstr "Nkọwa SlowLog MariaDB/MySQL"
+
+#: slowlog.php
+msgid "View Details"
+msgstr "Lee Nkọwa"
+
+#: slowlog.php
+msgid "Chart Filters"
+msgstr "Ihe Nzacha Chaatị"
+
+#: slowlog.php
+#, php-format
+msgid "MariaDB/MySQL SlowLog Results - By %s"
+msgstr "Nsonaazụ SlowLog MariaDB/MySQL - Site na %s"
+
+#: slowlog.php
+msgid "Percentiles may be estimated from bounded samples. Counts, totals, minima and maxima use all entries."
+msgstr "Enwere ike iji ihe nlele nwere oke tụọ pesentịlụ. Ngụkọta, mkpokọta, nke kacha nta na nke kacha ukwuu na-eji ndekọ niile."
+
+#: slowlog.php
+msgid "Select Method"
+msgstr "Họrọ Ụzọ"
+
+#: slowlog.php
+msgid "Select Table"
+msgstr "Họrọ Tebụl"
+
+#: slowlog.php
+msgid "Selected"
+msgstr "Ahọpụtara"
+
+#: slowlog.php
+msgid "Others"
+msgstr "Ndị Ọzọ"
+
+#: slowlog.php
+msgid "Top"
+msgstr "N'elu"
+
+#: slowlog.php
+msgid "Include Max"
+msgstr "Tinye Nke Kacha"
+
+#: slowlog.php
+msgid "Go"
+msgstr "Gaa"
+
+#: slowlog.php
+msgid "Clear"
+msgstr "Kpochapụ"
+
+#: slowlog.php
+msgid "None"
+msgstr "Ọ Dịghị Nke Ọ Bụla"
+
+#: slowlog.php
+msgid "Search"
+msgstr "Chọọ"
+
+#: slowlog.php
+msgid "Enter keyword"
+msgstr "Tinye isi okwu"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog Query Details"
+msgstr "Nkọwa Ajụjụ SlowLog MariaDB/MySQL"
+
+#: slowlog.php
+msgid "IP"
+msgstr "IP"
+
+#: slowlog.php
+msgid "Rows Sent"
+msgstr "Ahịrị E Zitere"
+
+#: slowlog.php
+msgid "Original Query"
+msgstr "Ajụjụ Mbụ"
+
+#: slowlog.php
+msgid "MariaDB/MySQL SlowLog File Filters"
+msgstr "Ihe Nzacha Faịlụ SlowLog MariaDB/MySQL"
+
+#: slowlog.php
+msgid "Description"
+msgstr "Nkọwa"
+
+#: slowlog.php
+msgid "Import Status"
+msgstr "Ọnọdụ Mbubata"
+
+#: slowlog.php
+msgid "Status String"
+msgstr "Ederede Ọnọdụ"
+
+#: slowlog.php
+msgid "ID"
+msgstr "Njirimara"
+
+#: slowlog.php
+msgid "Imported"
+msgstr "Ebubatara"
+
+#: slowlog.php
+msgid "Lines"
+msgstr "Ahịrị Gasị"
+
+#: slowlog.php
+msgid "Duration"
+msgstr "Ogologo Oge"
+
+#: slowlog.php
+msgid "Start Date"
+msgstr "Ụbọchị Mmalite"
+
+#: slowlog.php
+msgid "End Date"
+msgstr "Ụbọchị Njedebe"
+
+#: slowlog.php
+msgid "Pre-Processing"
+msgstr "Nhazi Tupu Mbubata"
+
+#: slowlog.php
+msgid "Post-Processing"
+msgstr "Nhazi Mgbe Mbubata"
+
+#: slowlog.php
+msgid "Complete"
+msgstr "Emechara"
+
+#: slowlog.php
+msgid "Bad File Format"
+msgstr "Ụdị Faịlụ Ọjọọ"
+
+#: slowlog.php
+msgid "Unknown"
+msgstr "Amaghị"
+
+#: slowlog.php
+msgid "Save"
+msgstr "Chekwaa"
+
+#: slowlog.php
+msgid "Cancel"
+msgstr "Kagbuo"
+
+#: slowlog.php
+msgid "Import"
+msgstr "Bubata"
+
+#: slowlog.php
+msgid "Create"
+msgstr "Mepụta"
+
+#: slowlog.php
+msgid "LogFile"
+msgstr "Faịlụ Ndekọ"
+
+#: slowlog.php
+msgid "Any"
+msgstr "Ọ Bụla"
+
+#: slowlog.php
+msgid "N/A"
+msgstr "Ọ dịghị"
+
+#: slowlog.php
+msgid "Tables"
+msgstr "Tebụl"
+
+#: slowlog.php
+msgid "Default"
+msgstr "Nke Ndabere"
+
+#: slowlog.php
+msgid "From"
+msgstr "Site na"
+
+#: slowlog.php
+msgid "Start Date Selector"
+msgstr "Nhọrọ Ụbọchị Mmalite"
+
+#: slowlog.php
+msgid "To"
+msgstr "Ruo"
+
+#: slowlog.php
+msgid "End Date Selector"
+msgstr "Nhọrọ Ụbọchị Njedebe"
+
+#: slowlog.php
+msgid "Shift Time Backward"
+msgstr "Kpụgharịa Oge Azụ"
+
+#: slowlog.php
+msgid "Define Shifting Interval"
+msgstr "Kọwaa Oge Mkpụgharị"
+
+#: slowlog.php
+msgid "Shift Time Forward"
+msgstr "Kpụgharịa Oge n'Ihu"
+
+#: slowlog.php
+msgid "Custom"
+msgstr "Ahaziri"
